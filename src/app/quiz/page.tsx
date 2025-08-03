@@ -3,7 +3,7 @@
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { quizSections, QuizQuestion } from '@/lib/quizQuestions';
-import { getQuizProgress } from '@/utils/formatQuizForAI';
+// import { getQuizProgress } from '@/utils/formatQuizForAI'; // Not used in this version
 import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
 export default function QuizPage() {

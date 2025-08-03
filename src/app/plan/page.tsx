@@ -8,7 +8,7 @@ import { Music, Loader2, Download, ArrowRight, CheckCircle } from 'lucide-react'
 
 export default function PlanPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
   const [strategyPlan, setStrategyPlan] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);

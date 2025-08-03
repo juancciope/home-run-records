@@ -7,7 +7,7 @@ import { Music, TrendingUp, Users, Disc, Play, Heart, Share2, LogOut, Settings }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
+  const [user, setUser] = useState<{ id: string; email?: string } | null>(null); // eslint-disable-line @typescript-eslint/no-unused-vars
   const [activeTab, setActiveTab] = useState('production');
   const [isLoading, setIsLoading] = useState(true);
 
