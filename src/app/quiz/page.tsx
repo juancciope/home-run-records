@@ -4,13 +4,22 @@ import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
 import { quizSections, QuizSection, QuizQuestion } from '@/lib/quizQuestions';
 import { getQuizProgress } from '@/utils/formatQuizForAI';
-import { ChevronLeft, ChevronRight, Check } from 'lucide-react';
+import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
 export default function QuizPage() {
   const router = useRouter();
-  const [currentSectionIndex, setCurrentSectionIndex] = useState(0);
+  const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   const [isComplete, setIsComplete] = useState(false);
+
+  // Flatten all questions into one array for smoother progression
+  const allQuestions = quizSections.flatMap(section => 
+    section.questions.map(question => ({
+      ...question,
+      sectionTitle: section.title,
+      sectionDescription: section.description
+    }))
+  );
 
   // Load saved answers from localStorage
   useEffect(() => {
@@ -29,9 +38,10 @@ export default function QuizPage() {
     setIsComplete(progress.percentage === 100);
   }, [answers]);
 
-  const currentSection = quizSections[currentSectionIndex];
-  const isLastSection = currentSectionIndex === quizSections.length - 1;
-  const isFirstSection = currentSectionIndex === 0;
+  const currentQuestion = allQuestions[currentQuestionIndex];
+  const isLastQuestion = currentQuestionIndex === allQuestions.length - 1;
+  const isFirstQuestion = currentQuestionIndex === 0;
+  const progress = Math.round(((currentQuestionIndex + 1) / allQuestions.length) * 100);
 
   const handleAnswerChange = (questionId: string, value: string | string[]) => {
     setAnswers(prev => ({
@@ -41,162 +51,127 @@ export default function QuizPage() {
   };
 
   const handleNext = () => {
-    if (isLastSection) {
-      if (isComplete) {
-        router.push('/signup');
-      }
+    if (isLastQuestion) {
+      router.push('/signup');
     } else {
-      setCurrentSectionIndex(prev => prev + 1);
+      setCurrentQuestionIndex(prev => prev + 1);
     }
   };
 
   const handlePrevious = () => {
-    if (!isFirstSection) {
-      setCurrentSectionIndex(prev => prev - 1);
+    if (!isFirstQuestion) {
+      setCurrentQuestionIndex(prev => prev - 1);
     }
   };
 
-  const getSectionProgress = (section: QuizSection) => {
-    const sectionQuestions = section.questions;
-    const answeredQuestions = sectionQuestions.filter(q => {
-      const answer = answers[q.id];
-      return answer !== undefined && answer !== null && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
-    });
-    return {
-      answered: answeredQuestions.length,
-      total: sectionQuestions.length,
-      percentage: Math.round((answeredQuestions.length / sectionQuestions.length) * 100)
-    };
+  const isCurrentQuestionAnswered = () => {
+    const answer = answers[currentQuestion.id];
+    return answer !== undefined && answer !== null && answer !== '' && !(Array.isArray(answer) && answer.length === 0);
   };
 
-  const overallProgress = getQuizProgress(answers);
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center text-white mb-8">
-          <h1 className="text-4xl font-bold mb-2">Artist Brand Discovery</h1>
-          <p className="text-xl text-gray-300">Help us understand your unique artistic journey</p>
+    <div className="min-h-screen bg-white">
+      {/* Progress Bar */}
+      <div className="fixed top-0 left-0 right-0 z-50 bg-white/80 backdrop-blur-md border-b border-gray-100">
+        <div className="h-1 bg-gray-100">
+          <div 
+            className="h-full bg-gradient-to-r from-blue-500 to-purple-600 transition-all duration-500 ease-out"
+            style={{ width: `${progress}%` }}
+          />
         </div>
-
-        {/* Progress Bar */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="flex justify-between items-center mb-4">
-            <span className="text-white font-medium">Overall Progress</span>
-            <span className="text-white font-medium">{overallProgress.percentage}% Complete</span>
-          </div>
-          <div className="w-full bg-white/20 rounded-full h-3">
-            <div 
-              className="bg-gradient-to-r from-pink-500 to-purple-600 h-3 rounded-full transition-all duration-300"
-              style={{ width: `${overallProgress.percentage}%` }}
-            />
-          </div>
-        </div>
-
-        {/* Section Navigation */}
-        <div className="max-w-4xl mx-auto mb-8">
-          <div className="grid grid-cols-4 gap-4">
-            {quizSections.map((section, index) => {
-              const sectionProgress = getSectionProgress(section);
-              const isCurrentSection = index === currentSectionIndex;
-              const isCompleted = sectionProgress.percentage === 100;
-              const isAccessible = index <= currentSectionIndex;
-
-              return (
-                <button
-                  key={section.id}
-                  onClick={() => isAccessible && setCurrentSectionIndex(index)}
-                  disabled={!isAccessible}
-                  className={`p-4 rounded-lg text-left transition-all ${
-                    isCurrentSection
-                      ? 'bg-white/20 border-2 border-pink-400'
-                      : isCompleted
-                      ? 'bg-green-500/20 border-2 border-green-400'
-                      : isAccessible
-                      ? 'bg-white/10 border-2 border-transparent hover:bg-white/15'
-                      : 'bg-white/5 border-2 border-transparent opacity-50'
-                  }`}
-                >
-                  <div className="flex items-center justify-between mb-2">
-                    <h3 className="text-white font-medium text-sm">{section.title}</h3>
-                    {isCompleted && <Check className="w-4 h-4 text-green-400" />}
-                  </div>
-                  <div className="w-full bg-white/20 rounded-full h-2">
-                    <div 
-                      className="bg-gradient-to-r from-pink-500 to-purple-600 h-2 rounded-full transition-all duration-300"
-                      style={{ width: `${sectionProgress.percentage}%` }}
-                    />
-                  </div>
-                  <span className="text-gray-300 text-xs">{sectionProgress.answered}/{sectionProgress.total}</span>
-                </button>
-              );
-            })}
+        <div className="container mx-auto px-6 py-4">
+          <div className="flex items-center justify-between">
+            <div className="flex items-center space-x-4">
+              <div className="w-8 h-8 bg-gradient-to-r from-blue-500 to-purple-600 rounded-full flex items-center justify-center">
+                <Sparkles className="w-4 h-4 text-white" />
+              </div>
+              <div>
+                <h1 className="text-lg font-semibold text-gray-900">Artist Discovery</h1>
+                <p className="text-sm text-gray-500">Question {currentQuestionIndex + 1} of {allQuestions.length}</p>
+              </div>
+            </div>
+            <div className="text-sm font-medium text-gray-600">
+              {progress}% complete
+            </div>
           </div>
         </div>
+      </div>
 
-        {/* Quiz Content */}
-        <div className="max-w-3xl mx-auto">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
-            <div className="mb-6">
-              <h2 className="text-3xl font-bold text-white mb-2">{currentSection.title}</h2>
-              <p className="text-gray-300">{currentSection.description}</p>
+      {/* Main Content */}
+      <div className="pt-24 pb-12">
+        <div className="container mx-auto px-6">
+          <div className="max-w-2xl mx-auto">
+            {/* Section Context */}
+            <div className="text-center mb-8">
+              <div className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full mb-4">
+                {currentQuestion.sectionTitle}
+              </div>
+              <p className="text-gray-600">
+                {currentQuestion.sectionDescription}
+              </p>
             </div>
 
-            <div className="space-y-8">
-              {currentSection.questions.map((question) => (
-                <QuestionComponent
-                  key={question.id}
-                  question={question}
-                  value={answers[question.id]}
-                  onChange={(value) => handleAnswerChange(question.id, value)}
-                />
-              ))}
+            {/* Question */}
+            <div className="bg-white rounded-3xl border border-gray-100 shadow-lg p-8 mb-8">
+              <div className="mb-8">
+                <h2 className="text-2xl font-semibold text-gray-900 leading-relaxed">
+                  {currentQuestion.question}
+                </h2>
+              </div>
+
+              <QuestionComponent
+                question={currentQuestion}
+                value={answers[currentQuestion.id]}
+                onChange={(value) => handleAnswerChange(currentQuestion.id, value)}
+              />
             </div>
 
             {/* Navigation */}
-            <div className="flex justify-between items-center mt-8 pt-6 border-t border-white/20">
+            <div className="flex items-center justify-between">
               <button
                 onClick={handlePrevious}
-                disabled={isFirstSection}
-                className={`flex items-center px-6 py-3 rounded-lg font-medium transition-all ${
-                  isFirstSection
-                    ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
-                    : 'bg-white/20 text-white hover:bg-white/30'
+                disabled={isFirstQuestion}
+                className={`flex items-center px-6 py-3 rounded-xl font-medium transition-all ${
+                  isFirstQuestion
+                    ? 'text-gray-400 cursor-not-allowed'
+                    : 'text-gray-700 hover:bg-gray-50'
                 }`}
               >
-                <ChevronLeft className="w-5 h-5 mr-2" />
+                <ArrowLeft className="w-4 h-4 mr-2" />
                 Previous
               </button>
 
-              <span className="text-white font-medium">
-                Section {currentSectionIndex + 1} of {quizSections.length}
-              </span>
-
               <button
                 onClick={handleNext}
-                className="flex items-center px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white rounded-lg font-medium hover:from-pink-600 hover:to-purple-700 transition-all"
+                disabled={!isCurrentQuestionAnswered()}
+                className={`flex items-center px-8 py-4 rounded-xl font-semibold transition-all ${
+                  isCurrentQuestionAnswered()
+                    ? 'bg-gradient-to-r from-blue-500 to-purple-600 text-white hover:from-blue-600 hover:to-purple-700 shadow-lg'
+                    : 'bg-gray-100 text-gray-400 cursor-not-allowed'
+                }`}
               >
-                {isLastSection ? (
-                  isComplete ? (
-                    <>
-                      Complete Quiz
-                      <Check className="w-5 h-5 ml-2" />
-                    </>
-                  ) : (
-                    <>
-                      Finish Later
-                      <ChevronRight className="w-5 h-5 ml-2" />
-                    </>
-                  )
+                {isLastQuestion ? (
+                  <>
+                    Complete Discovery
+                    <Check className="w-4 h-4 ml-2" />
+                  </>
                 ) : (
                   <>
                     Next
-                    <ChevronRight className="w-5 h-5 ml-2" />
+                    <ArrowRight className="w-4 h-4 ml-2" />
                   </>
                 )}
               </button>
             </div>
+
+            {/* Encouragement */}
+            {isCurrentQuestionAnswered() && (
+              <div className="text-center mt-6">
+                <p className="text-sm text-gray-500">
+                  Great! Your answer helps us understand you better.
+                </p>
+              </div>
+            )}
           </div>
         </div>
       </div>
@@ -222,7 +197,7 @@ function QuestionComponent({
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder={question.placeholder}
-            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           />
         );
 
@@ -233,7 +208,7 @@ function QuestionComponent({
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
             placeholder={question.placeholder}
-            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent resize-none"
+            className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 placeholder-gray-400 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent resize-none transition-all"
           />
         );
 
@@ -242,13 +217,13 @@ function QuestionComponent({
           <select
             value={value || ''}
             onChange={(e) => onChange(e.target.value)}
-            className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
+            className="w-full px-4 py-4 bg-gray-50 border border-gray-200 rounded-xl text-gray-900 focus:outline-none focus:ring-2 focus:ring-blue-500 focus:border-transparent transition-all"
           >
-            <option value="" disabled className="text-gray-900">
-              Select an option...
+            <option value="" disabled>
+              Choose an option...
             </option>
             {question.options?.map((option) => (
-              <option key={option} value={option} className="text-gray-900">
+              <option key={option} value={option}>
                 {option}
               </option>
             ))}
@@ -259,16 +234,23 @@ function QuestionComponent({
         return (
           <div className="space-y-3">
             {question.options?.map((option) => (
-              <label key={option} className="flex items-center cursor-pointer">
+              <label 
+                key={option} 
+                className={`flex items-center p-4 rounded-xl cursor-pointer transition-all border-2 ${
+                  value === option 
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
                 <input
                   type="radio"
                   name={question.id}
                   value={option}
                   checked={value === option}
                   onChange={(e) => onChange(e.target.value)}
-                  className="mr-3 w-4 h-4 text-pink-500 focus:ring-pink-500 focus:ring-2"
+                  className="mr-4 w-5 h-5 text-blue-500 focus:ring-blue-500"
                 />
-                <span className="text-white">{option}</span>
+                <span className="text-gray-700 font-medium">{option}</span>
               </label>
             ))}
           </div>
@@ -279,7 +261,14 @@ function QuestionComponent({
         return (
           <div className="space-y-3">
             {question.options?.map((option) => (
-              <label key={option} className="flex items-center cursor-pointer">
+              <label 
+                key={option} 
+                className={`flex items-center p-4 rounded-xl cursor-pointer transition-all border-2 ${
+                  selectedValues.includes(option)
+                    ? 'border-blue-500 bg-blue-50' 
+                    : 'border-gray-200 hover:border-gray-300 hover:bg-gray-50'
+                }`}
+              >
                 <input
                   type="checkbox"
                   checked={selectedValues.includes(option)}
@@ -290,9 +279,9 @@ function QuestionComponent({
                       onChange(selectedValues.filter((v: string) => v !== option));
                     }
                   }}
-                  className="mr-3 w-4 h-4 text-pink-500 focus:ring-pink-500 focus:ring-2"
+                  className="mr-4 w-5 h-5 text-blue-500 focus:ring-blue-500 rounded"
                 />
-                <span className="text-white">{option}</span>
+                <span className="text-gray-700 font-medium">{option}</span>
               </label>
             ))}
           </div>
@@ -305,10 +294,6 @@ function QuestionComponent({
 
   return (
     <div>
-      <label className="block text-white font-medium mb-3">
-        {question.question}
-        {question.required && <span className="text-pink-400 ml-1">*</span>}
-      </label>
       {renderInput()}
     </div>
   );

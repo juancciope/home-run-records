@@ -16,290 +16,233 @@ export interface QuizSection {
 
 export const quizSections: QuizSection[] = [
   {
-    id: 'identity',
-    title: 'Artist Identity',
-    description: 'Help us understand who you are as an artist',
+    id: 'discover',
+    title: 'Discover Yourself',
+    description: 'Let\'s start by understanding what drives you as an artist',
     questions: [
       {
         id: 'artist_name',
-        question: 'What is your artist name or stage name?',
+        question: 'What do you want people to call you as an artist?',
         type: 'text',
         required: true,
-        placeholder: 'e.g., Luna Martinez, The Midnight Collective'
+        placeholder: 'Your artist name or stage name'
       },
       {
-        id: 'real_name',
-        question: 'What is your real name?',
-        type: 'text',
-        required: true,
-        placeholder: 'First and Last Name'
-      },
-      {
-        id: 'genre',
-        question: 'What genre(s) best describe your music?',
-        type: 'multiselect',
-        options: [
-          'Pop',
-          'Hip Hop',
-          'R&B',
-          'Rock',
-          'Electronic',
-          'Folk',
-          'Country',
-          'Jazz',
-          'Classical',
-          'Reggae',
-          'Latin',
-          'Indie',
-          'Alternative',
-          'Other'
-        ],
-        required: true
-      },
-      {
-        id: 'experience_level',
-        question: 'How would you describe your experience level?',
+        id: 'why_music',
+        question: 'Why do you make music?',
         type: 'radio',
         options: [
-          'Just starting out (0-1 years)',
-          'Developing (1-3 years)',
-          'Experienced (3-5 years)',
-          'Professional (5+ years)',
-          'Industry veteran (10+ years)'
+          'It\'s my passion and creative outlet',
+          'I want to connect with people emotionally',
+          'I have stories and messages to share',
+          'I want to build a career in music',
+          'It helps me process my experiences',
+          'I love performing and entertaining'
         ],
         required: true
       },
       {
-        id: 'unique_sound',
-        question: 'What makes your sound unique? Describe your musical style in a few sentences.',
+        id: 'music_feeling',
+        question: 'How do you want people to feel when they hear your music?',
+        type: 'multiselect',
+        options: [
+          'Happy and energized',
+          'Calm and peaceful',
+          'Inspired and motivated',
+          'Understood and connected',
+          'Nostalgic and reflective',
+          'Confident and empowered',
+          'Free and liberated',
+          'Comforted and supported'
+        ],
+        required: true
+      },
+      {
+        id: 'sound_description',
+        question: 'If you had to describe your sound in everyday words, what would you say?',
         type: 'textarea',
         required: true,
-        placeholder: 'Describe what sets you apart from other artists...'
+        placeholder: 'e.g., "Dreamy pop with a touch of nostalgia" or "Raw emotions over simple beats"'
       }
     ]
   },
   {
     id: 'audience',
-    title: 'Target Audience',
-    description: 'Let\'s identify who your music resonates with',
+    title: 'Find Your People',
+    description: 'Who are the people that would love your music?',
     questions: [
       {
-        id: 'target_age',
-        question: 'What age group do you primarily create music for?',
-        type: 'select',
-        options: [
-          'Under 18',
-          '18-24',
-          '25-34',
-          '35-44',
-          '45-54',
-          '55+',
-          'All ages'
-        ],
-        required: true
-      },
-      {
-        id: 'target_demographics',
-        question: 'Who is your ideal listener? (Select all that apply)',
-        type: 'multiselect',
-        options: [
-          'College students',
-          'Young professionals',
-          'Parents',
-          'Music enthusiasts',
-          'Party-goers',
-          'Gym/workout community',
-          'Alternative music fans',
-          'Mainstream music fans',
-          'Local community',
-          'International audience'
-        ],
-        required: true
-      },
-      {
-        id: 'current_fanbase',
-        question: 'How would you describe your current fanbase size?',
+        id: 'ideal_listener',
+        question: 'Imagine your perfect listener. What are they doing when they discover your music?',
         type: 'radio',
         options: [
-          'Just family and friends (0-50)',
-          'Small local following (50-500)',
-          'Growing regional presence (500-5,000)',
-          'Established fanbase (5,000-50,000)',
-          'Large following (50,000+)'
+          'Working out or running',
+          'Studying or working',
+          'Relaxing at home',
+          'Driving or commuting',
+          'At a party or social gathering',
+          'Going through a tough time',
+          'Celebrating something special',
+          'Just exploring new music'
         ],
         required: true
       },
       {
-        id: 'fan_connection',
-        question: 'How do you currently connect with your fans?',
+        id: 'listener_age',
+        question: 'What age group do you think connects most with your vibe?',
+        type: 'radio',
+        options: [
+          'Teens (13-17)',
+          'Young adults (18-25)',
+          'Millennials (26-35)',
+          'Gen X (36-50)',
+          'Everyone - age doesn\'t matter'
+        ],
+        required: true
+      },
+      {
+        id: 'current_reach',
+        question: 'Who listens to your music right now?',
+        type: 'radio',
+        options: [
+          'Mostly family and close friends',
+          'Friends and some of their friends',
+          'People in my local community',
+          'A growing group of fans online',
+          'I haven\'t shared my music much yet'
+        ],
+        required: true
+      },
+      {
+        id: 'dream_audience',
+        question: 'In your wildest dreams, where would you want your music to be heard?',
         type: 'multiselect',
         options: [
-          'Social media (Instagram, TikTok, Twitter)',
-          'Live performances',
-          'Streaming platforms',
-          'YouTube',
-          'Email newsletter',
-          'Fan meet-ups',
-          'Discord/community groups',
-          'Through friends/word of mouth',
-          'Not actively connecting yet'
+          'Coffee shops and chill spaces',
+          'Major music festivals',
+          'Movie soundtracks',
+          'Radio stations',
+          'Viral on social media',
+          'Concert halls and venues',
+          'Streaming playlists',
+          'People\'s personal moments'
         ],
         required: true
-      },
-      {
-        id: 'audience_goals',
-        question: 'What are your goals for growing your audience?',
-        type: 'textarea',
-        required: true,
-        placeholder: 'Describe what you want to achieve with your fanbase...'
       }
     ]
   },
   {
-    id: 'vision',
-    title: 'Career Vision',
-    description: 'Share your dreams and aspirations',
+    id: 'journey',
+    title: 'Your Journey',
+    description: 'Where are you now and where do you want to go?',
     questions: [
       {
-        id: 'career_goals',
-        question: 'What are your main career goals for the next 2-3 years?',
-        type: 'multiselect',
+        id: 'current_stage',
+        question: 'Where are you in your music journey right now?',
+        type: 'radio',
         options: [
-          'Release my first album/EP',
-          'Build a sustainable income from music',
-          'Tour nationally/internationally',
-          'Get signed to a record label',
-          'Collaborate with established artists',
-          'Build a strong online presence',
-          'Perform at major festivals',
-          'Start my own record label',
-          'Become a full-time musician',
-          'Win music awards/recognition'
+          'Just starting - writing my first songs',
+          'Learning and experimenting with my sound',
+          'Have some songs, figuring out next steps',
+          'Ready to share but not sure how',
+          'Sharing music but want to grow',
+          'Building momentum and looking to level up'
         ],
         required: true
       },
       {
-        id: 'success_definition',
-        question: 'How do you personally define success as an artist?',
+        id: 'biggest_dream',
+        question: 'What\'s your biggest dream as an artist?',
+        type: 'radio',
+        options: [
+          'To make music my full-time career',
+          'To touch people\'s lives with my music',
+          'To perform at major venues and festivals',
+          'To collaborate with artists I admire',
+          'To build a community around my music',
+          'To create something timeless and meaningful'
+        ],
+        required: true
+      },
+      {
+        id: 'main_challenge',
+        question: 'What feels like the biggest obstacle right now?',
+        type: 'radio',
+        options: [
+          'I don\'t know how to get my music heard',
+          'I need better recording/production quality',
+          'I\'m not confident about my music yet',
+          'I don\'t have time or resources',
+          'I don\'t know the business side of music',
+          'I feel overwhelmed by everything'
+        ],
+        required: true
+      },
+      {
+        id: 'success_vision',
+        question: 'What would make you feel truly successful as an artist?',
         type: 'textarea',
         required: true,
-        placeholder: 'What would make you feel successful in your music career?'
-      },
-      {
-        id: 'biggest_challenge',
-        question: 'What is your biggest challenge right now?',
-        type: 'select',
-        options: [
-          'Creating quality music/production',
-          'Building an audience',
-          'Marketing and promotion',
-          'Finding collaborators',
-          'Financial resources',
-          'Time management',
-          'Industry connections',
-          'Technical skills',
-          'Performance anxiety/confidence',
-          'Balancing music with other responsibilities'
-        ],
-        required: true
-      },
-      {
-        id: 'resources_available',
-        question: 'What resources do you currently have access to?',
-        type: 'multiselect',
-        options: [
-          'Home recording setup',
-          'Professional studio access',
-          'Musical instruments',
-          'Music production software',
-          'Social media presence',
-          'Live performance venues',
-          'Industry contacts',
-          'Marketing budget',
-          'Team members (manager, producer, etc.)',
-          'Musical collaborators'
-        ],
-        required: true
-      },
-      {
-        id: 'inspiration',
-        question: 'Who are your biggest musical inspirations and why?',
-        type: 'textarea',
-        required: true,
-        placeholder: 'List artists who inspire you and what you admire about them...'
+        placeholder: 'Paint a picture of what success looks like for you...'
       }
     ]
   },
   {
-    id: 'projects',
-    title: 'Current Projects',
-    description: 'Tell us about your current and upcoming projects',
+    id: 'action',
+    title: 'Take Action',
+    description: 'Let\'s talk about your next steps',
     questions: [
       {
-        id: 'current_projects',
-        question: 'What music projects are you currently working on?',
+        id: 'ready_to_do',
+        question: 'What are you most excited to work on right now?',
         type: 'multiselect',
         options: [
-          'Single release',
-          'EP (3-6 songs)',
-          'Full album',
-          'Music videos',
-          'Live performance preparation',
-          'Collaborations',
-          'Remix projects',
-          'Songwriting sessions',
-          'Nothing currently',
-          'Other'
+          'Writing and creating new music',
+          'Improving my recording setup',
+          'Learning about music marketing',
+          'Building my social media presence',
+          'Connecting with other musicians',
+          'Planning my first release',
+          'Performing live',
+          'Finding my unique sound'
         ],
         required: true
       },
       {
-        id: 'release_timeline',
-        question: 'When do you plan to release your next project?',
+        id: 'timeline_comfort',
+        question: 'How do you like to work on your goals?',
         type: 'radio',
         options: [
-          'Within the next month',
-          '1-3 months',
-          '3-6 months',
-          '6-12 months',
-          'More than a year',
-          'No specific timeline yet'
+          'I like quick wins and fast progress',
+          'I prefer steady, consistent steps',
+          'I work in bursts when inspired',
+          'I need structure and deadlines',
+          'I go with the flow and see what happens'
         ],
         required: true
       },
       {
-        id: 'production_stage',
-        question: 'What stage is your current music in?',
-        type: 'radio',
+        id: 'support_need',
+        question: 'What kind of support would help you most right now?',
+        type: 'multiselect',
         options: [
-          'Writing/songwriting phase',
-          'Recording in progress',
-          'Mixing and mastering',
-          'Ready for release',
-          'Released and promoting',
-          'Planning next project'
+          'A clear roadmap and action plan',
+          'Technical skills and tutorials',
+          'Connections with other artists',
+          'Feedback on my music',
+          'Help with promotion and marketing',
+          'Industry knowledge and insights',
+          'Motivation and encouragement',
+          'Tools and resources'
         ],
         required: true
       },
       {
-        id: 'collaboration_interest',
-        question: 'Are you interested in collaborating with other artists?',
-        type: 'radio',
-        options: [
-          'Very interested - actively seeking',
-          'Open to opportunities',
-          'Maybe, with the right person',
-          'Prefer to work solo',
-          'Not interested currently'
-        ],
-        required: true
-      },
-      {
-        id: 'project_description',
-        question: 'Describe your current or next project in detail. What\'s the concept, mood, or story behind it?',
+        id: 'vision_statement',
+        question: 'Finish this sentence: "In one year, I want my music to..."',
         type: 'textarea',
         required: true,
-        placeholder: 'Tell us about your creative vision for this project...'
+        placeholder: 'e.g., "be helping people through difficult times" or "be playing in coffee shops across my city"'
       }
     ]
   }

@@ -21,9 +21,9 @@ export default function Home() {
           </h2>
           
           <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Discover your unique artist brand, get AI-powered career strategies, 
-            and track your journey to music success. Start with our comprehensive 
-            artist assessment quiz.
+            Discover who you are as an artist through guided questions that help you 
+            understand your unique sound, find your audience, and create a personalized 
+            roadmap for your music journey.
           </p>
 
           {/* CTA Button */}
@@ -31,7 +31,7 @@ export default function Home() {
             href="/quiz"
             className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-lg font-semibold rounded-full hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
           >
-            Start Your Artist Journey
+            Begin Artist Discovery
             <TrendingUp className="ml-2 w-5 h-5" />
           </Link>
         </div>
@@ -42,10 +42,10 @@ export default function Home() {
             <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-full w-fit mx-auto mb-4">
               <Target className="w-8 h-8" />
             </div>
-            <h3 className="text-xl font-semibold mb-3">Brand Discovery Quiz</h3>
+            <h3 className="text-xl font-semibold mb-3">Artist Discovery</h3>
             <p className="text-gray-300">
-              Complete our comprehensive assessment to uncover your unique artist identity, 
-              target audience, and career vision.
+              Thoughtful questions that help you discover your unique sound, understand 
+              your audience, and clarify your artistic vision.
             </p>
           </div>
 
