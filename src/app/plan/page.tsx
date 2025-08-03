@@ -8,7 +8,7 @@ import { Music, Loader2, Download, ArrowRight, CheckCircle } from 'lucide-react'
 
 export default function PlanPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [strategyPlan, setStrategyPlan] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
@@ -16,7 +16,7 @@ export default function PlanPage() {
 
   useEffect(() => {
     loadUserAndPlan();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUserAndPlan = async () => {
     try {
@@ -161,7 +161,7 @@ export default function PlanPage() {
               <h3 className="text-xl font-semibold text-red-300 mb-4">Something went wrong</h3>
               <p className="text-red-200 mb-6">{error}</p>
               <button
-                onClick={() => generateNewPlan(user.id)}
+                onClick={() => user?.id && generateNewPlan(user.id)}
                 className="px-6 py-3 bg-red-500 text-white rounded-lg hover:bg-red-600 transition-all"
               >
                 Try Again

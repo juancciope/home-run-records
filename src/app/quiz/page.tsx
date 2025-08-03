@@ -2,7 +2,7 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { quizSections, QuizSection, QuizQuestion } from '@/lib/quizQuestions';
+import { quizSections, QuizQuestion } from '@/lib/quizQuestions';
 import { getQuizProgress } from '@/utils/formatQuizForAI';
 import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
 
@@ -10,7 +10,7 @@ export default function QuizPage() {
   const router = useRouter();
   const [currentQuestionIndex, setCurrentQuestionIndex] = useState(0);
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
-  const [isComplete, setIsComplete] = useState(false);
+  // Removed isComplete state as it's not used in this version
 
   // Flatten all questions into one array for smoother progression
   const allQuestions = quizSections.flatMap(section => 
@@ -32,10 +32,6 @@ export default function QuizPage() {
   // Save answers to localStorage whenever they change
   useEffect(() => {
     localStorage.setItem('quiz_answers', JSON.stringify(answers));
-    
-    // Check if quiz is complete
-    const progress = getQuizProgress(answers);
-    setIsComplete(progress.percentage === 100);
   }, [answers]);
 
   const currentQuestion = allQuestions[currentQuestionIndex];

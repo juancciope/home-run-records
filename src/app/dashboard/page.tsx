@@ -7,13 +7,13 @@ import { Music, TrendingUp, Users, Disc, Play, Heart, Share2, LogOut, Settings }
 
 export default function DashboardPage() {
   const router = useRouter();
-  const [user, setUser] = useState<any>(null);
+  const [user, setUser] = useState<{ id: string; email: string } | null>(null);
   const [activeTab, setActiveTab] = useState('production');
   const [isLoading, setIsLoading] = useState(true);
 
   useEffect(() => {
     loadUser();
-  }, []);
+  }, []); // eslint-disable-line react-hooks/exhaustive-deps
 
   const loadUser = async () => {
     try {
