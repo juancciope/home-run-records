@@ -24,6 +24,7 @@ import {
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { LineChart, Line, XAxis, YAxis, CartesianGrid, Tooltip, ResponsiveContainer, PieChart, Pie, Cell } from "recharts"
+import { TestStyles } from "./test-styles"
 
 const streamingData = [
   { month: "Jan", streams: 45000, followers: 12000 },
@@ -78,6 +79,8 @@ const topFans = [
 export function DashboardContent() {
   return (
     <div className="p-6 space-y-6">
+      {/* Temporary test component */}
+      <TestStyles />
       {/* Welcome Section */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
