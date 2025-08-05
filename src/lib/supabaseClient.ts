@@ -2,7 +2,7 @@ import { createClient } from '@supabase/supabase-js';
 import { QuizAnswers } from './types';
 
 const supabaseUrl = process.env.NEXT_PUBLIC_SUPABASE_URL || 'https://placeholder.supabase.co';
-const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'placeholder-key';
+const supabaseAnonKey = process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY || 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpc3MiOiJzdXBhYmFzZSIsInJlZiI6InBsYWNlaG9sZGVyIiwicm9sZSI6ImFub24iLCJpYXQiOjE2NDI0NTI5MjEsImV4cCI6MTk1ODAyODkyMX0.placeholder';
 
 export const supabase = createClient(supabaseUrl, supabaseAnonKey);
 
