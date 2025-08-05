@@ -28,12 +28,7 @@ export default function LoginPage() {
       }
 
       if (data.user) {
-        // Check if user is admin
-        if (email === process.env.NEXT_PUBLIC_ADMIN_EMAIL || email === 'admin@homerunrecords.com') {
-          router.push('/admin');
-        } else {
-          router.push('/dashboard');
-        }
+        router.push('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -138,20 +133,14 @@ export default function LoginPage() {
             <p className="text-gray-300">
               Don&apos;t have an account?{' '}
               <Link 
-                href="/quiz"
+                href="/signup"
                 className="text-pink-400 hover:text-pink-300 font-medium"
               >
-                Take the quiz to get started
+                Sign up
               </Link>
             </p>
           </div>
 
-          {/* Admin Notice */}
-          <div className="mt-8 p-4 bg-white/10 backdrop-blur-lg rounded-lg">
-            <p className="text-center text-gray-300 text-sm">
-              <strong>Admin access:</strong> Use admin@homerunrecords.com to access the admin dashboard
-            </p>
-          </div>
         </div>
       </div>
     </div>

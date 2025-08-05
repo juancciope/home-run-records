@@ -1,10 +1,10 @@
 'use client';
 
-import { useState, useEffect } from 'react';
+import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signUp, saveQuizAnswers } from '@/lib/supabaseClient';
-import { getQuizProgress } from '@/utils/formatQuizForAI';
+import { signUp } from '@/lib/supabaseClient';
 import { Music, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import Link from 'next/link';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -15,21 +15,6 @@ export default function SignUpPage() {
   const [showConfirmPassword, setShowConfirmPassword] = useState(false);
   const [isLoading, setIsLoading] = useState(false);
   const [error, setError] = useState('');
-  const [quizAnswers, setQuizAnswers] = useState<Record<string, string | string[]>>({});
-  const [quizProgress, setQuizProgress] = useState({ percentage: 0, completed: 0, total: 0 });
-
-  useEffect(() => {
-    // Load quiz answers from localStorage
-    const savedAnswers = localStorage.getItem('quiz_answers');
-    if (savedAnswers) {
-      const answers = JSON.parse(savedAnswers);
-      setQuizAnswers(answers);
-      setQuizProgress(getQuizProgress(answers));
-    } else {
-      // No quiz answers found, redirect to quiz
-      router.push('/quiz');
-    }
-  }, [router]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -46,11 +31,6 @@ export default function SignUpPage() {
       return;
     }
 
-    if (quizProgress.percentage < 100) {
-      setError('Please complete the quiz before creating your account');
-      return;
-    }
-
     setIsLoading(true);
 
     try {
@@ -63,14 +43,8 @@ export default function SignUpPage() {
       }
 
       if (data.user) {
-        // Save quiz answers to database
-        await saveQuizAnswers(data.user.id, quizAnswers);
-        
-        // Clear localStorage
-        localStorage.removeItem('quiz_answers');
-        
-        // Redirect to plan page
-        router.push('/plan');
+        // Redirect to dashboard
+        router.push('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -106,38 +80,10 @@ export default function SignUpPage() {
             <h1 className="text-4xl font-bold">Home Run Records</h1>
           </div>
           <h2 className="text-2xl font-bold mb-2">Create Your Artist Account</h2>
-          <p className="text-xl text-gray-300">Get your personalized AI strategy plan</p>
+          <p className="text-xl text-gray-300">Join the platform and start tracking your growth</p>
         </div>
 
         <div className="max-w-md mx-auto">
-          {/* Quiz Progress Card */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-6 mb-6">
-            <div className="flex items-center justify-between mb-3">
-              <span className="text-white font-medium">Quiz Progress</span>
-              <CheckCircle className={`w-5 h-5 ${quizProgress.percentage === 100 ? 'text-green-400' : 'text-gray-400'}`} />
-            </div>
-            <div className="w-full bg-white/20 rounded-full h-3 mb-2">
-              <div 
-                className="bg-gradient-to-r from-pink-500 to-purple-600 h-3 rounded-full transition-all duration-300"
-                style={{ width: `${quizProgress.percentage}%` }}
-              />
-            </div>
-            <span className="text-gray-300 text-sm">
-              {quizProgress.completed} of {quizProgress.total} questions completed ({quizProgress.percentage}%)
-            </span>
-            
-            {quizProgress.percentage < 100 && (
-              <div className="mt-3 p-3 bg-yellow-500/20 border border-yellow-500/30 rounded-lg">
-                <div className="flex items-center">
-                  <AlertCircle className="w-4 h-4 text-yellow-400 mr-2" />
-                  <span className="text-yellow-200 text-sm">
-                    Complete the quiz to unlock your AI strategy plan
-                  </span>
-                </div>
-              </div>
-            )}
-          </div>
-
           {/* Signup Form */}
           <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
             <form onSubmit={handleSubmit} className="space-y-6">
@@ -249,14 +195,14 @@ export default function SignUpPage() {
               {/* Submit Button */}
               <button
                 type="submit"
-                disabled={isLoading || quizProgress.percentage < 100}
+                disabled={isLoading}
                 className={`w-full py-3 rounded-lg font-medium transition-all ${
-                  isLoading || quizProgress.percentage < 100
+                  isLoading
                     ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
                     : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700'
                 }`}
               >
-                {isLoading ? 'Creating Account...' : 'Create Account & Get My Plan'}
+                {isLoading ? 'Creating Account...' : 'Create Account'}
               </button>
 
               {/* Terms */}
@@ -266,16 +212,25 @@ export default function SignUpPage() {
             </form>
           </div>
 
-          {/* Login Link */}
-          <div className="text-center mt-6">
+          {/* Links */}
+          <div className="text-center mt-6 space-y-2">
             <p className="text-gray-300">
               Already have an account?{' '}
-              <button 
-                onClick={() => router.push('/login')}
+              <Link 
+                href="/login"
                 className="text-pink-400 hover:text-pink-300 font-medium"
               >
                 Sign in here
-              </button>
+              </Link>
+            </p>
+            <p className="text-gray-300">
+              Want to discover your audience first?{' '}
+              <Link 
+                href="/find-your-audience"
+                className="text-pink-400 hover:text-pink-300 font-medium"
+              >
+                Take the assessment
+              </Link>
             </p>
           </div>
         </div>

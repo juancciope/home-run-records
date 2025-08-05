@@ -14,239 +14,94 @@ export interface QuizSection {
   questions: QuizQuestion[];
 }
 
-export const quizSections: QuizSection[] = [
+export const audienceQuestions: QuizQuestion[] = [
   {
-    id: 'discover',
-    title: 'Discover Yourself',
-    description: 'Let\'s start by understanding what drives you as an artist',
-    questions: [
-      {
-        id: 'artist_name',
-        question: 'What do you want people to call you as an artist?',
-        type: 'text',
-        required: true,
-        placeholder: 'Your artist name or stage name'
-      },
-      {
-        id: 'why_music',
-        question: 'Why do you make music?',
-        type: 'radio',
-        options: [
-          'It\'s my passion and creative outlet',
-          'I want to connect with people emotionally',
-          'I have stories and messages to share',
-          'I want to build a career in music',
-          'It helps me process my experiences',
-          'I love performing and entertaining'
-        ],
-        required: true
-      },
-      {
-        id: 'music_feeling',
-        question: 'How do you want people to feel when they hear your music?',
-        type: 'multiselect',
-        options: [
-          'Happy and energized',
-          'Calm and peaceful',
-          'Inspired and motivated',
-          'Understood and connected',
-          'Nostalgic and reflective',
-          'Confident and empowered',
-          'Free and liberated',
-          'Comforted and supported'
-        ],
-        required: true
-      },
-      {
-        id: 'sound_description',
-        question: 'If you had to describe your sound in everyday words, what would you say?',
-        type: 'textarea',
-        required: true,
-        placeholder: 'e.g., "Dreamy pop with a touch of nostalgia" or "Raw emotions over simple beats"'
-      }
-    ]
+    id: 'music_vibe',
+    question: 'How would you describe the vibe of your music?',
+    type: 'radio',
+    options: [
+      'High energy and upbeat',
+      'Chill and relaxing',
+      'Emotional and deep',
+      'Party and fun',
+      'Thoughtful and introspective',
+      'Raw and authentic'
+    ],
+    required: true
   },
   {
-    id: 'audience',
-    title: 'Find Your People',
-    description: 'Who are the people that would love your music?',
-    questions: [
-      {
-        id: 'ideal_listener',
-        question: 'Imagine your perfect listener. What are they doing when they discover your music?',
-        type: 'radio',
-        options: [
-          'Working out or running',
-          'Studying or working',
-          'Relaxing at home',
-          'Driving or commuting',
-          'At a party or social gathering',
-          'Going through a tough time',
-          'Celebrating something special',
-          'Just exploring new music'
-        ],
-        required: true
-      },
-      {
-        id: 'listener_age',
-        question: 'What age group do you think connects most with your vibe?',
-        type: 'radio',
-        options: [
-          'Teens (13-17)',
-          'Young adults (18-25)',
-          'Millennials (26-35)',
-          'Gen X (36-50)',
-          'Everyone - age doesn\'t matter'
-        ],
-        required: true
-      },
-      {
-        id: 'current_reach',
-        question: 'Who listens to your music right now?',
-        type: 'radio',
-        options: [
-          'Mostly family and close friends',
-          'Friends and some of their friends',
-          'People in my local community',
-          'A growing group of fans online',
-          'I haven\'t shared my music much yet'
-        ],
-        required: true
-      },
-      {
-        id: 'dream_audience',
-        question: 'In your wildest dreams, where would you want your music to be heard?',
-        type: 'multiselect',
-        options: [
-          'Coffee shops and chill spaces',
-          'Major music festivals',
-          'Movie soundtracks',
-          'Radio stations',
-          'Viral on social media',
-          'Concert halls and venues',
-          'Streaming playlists',
-          'People\'s personal moments'
-        ],
-        required: true
-      }
-    ]
+    id: 'listener_moment',
+    question: 'When would someone most likely listen to your music?',
+    type: 'radio',
+    options: [
+      'While working out or running',
+      'During study or work sessions',
+      'Relaxing at home after a long day',
+      'Driving or commuting',
+      'At parties or social events',
+      'During emotional or reflective moments'
+    ],
+    required: true
   },
   {
-    id: 'journey',
-    title: 'Your Journey',
-    description: 'Where are you now and where do you want to go?',
-    questions: [
-      {
-        id: 'current_stage',
-        question: 'Where are you in your music journey right now?',
-        type: 'radio',
-        options: [
-          'Just starting - writing my first songs',
-          'Learning and experimenting with my sound',
-          'Have some songs, figuring out next steps',
-          'Ready to share but not sure how',
-          'Sharing music but want to grow',
-          'Building momentum and looking to level up'
-        ],
-        required: true
-      },
-      {
-        id: 'biggest_dream',
-        question: 'What\'s your biggest dream as an artist?',
-        type: 'radio',
-        options: [
-          'To make music my full-time career',
-          'To touch people\'s lives with my music',
-          'To perform at major venues and festivals',
-          'To collaborate with artists I admire',
-          'To build a community around my music',
-          'To create something timeless and meaningful'
-        ],
-        required: true
-      },
-      {
-        id: 'main_challenge',
-        question: 'What feels like the biggest obstacle right now?',
-        type: 'radio',
-        options: [
-          'I don\'t know how to get my music heard',
-          'I need better recording/production quality',
-          'I\'m not confident about my music yet',
-          'I don\'t have time or resources',
-          'I don\'t know the business side of music',
-          'I feel overwhelmed by everything'
-        ],
-        required: true
-      },
-      {
-        id: 'success_vision',
-        question: 'What would make you feel truly successful as an artist?',
-        type: 'textarea',
-        required: true,
-        placeholder: 'Paint a picture of what success looks like for you...'
-      }
-    ]
+    id: 'age_group',
+    question: 'What age group connects most with your music?',
+    type: 'radio',
+    options: [
+      'Teens (13-17)',
+      'Young adults (18-25)', 
+      'Millennials (26-35)',
+      'Gen X and older (35+)',
+      'All ages'
+    ],
+    required: true
   },
   {
-    id: 'action',
-    title: 'Take Action',
-    description: 'Let\'s talk about your next steps',
-    questions: [
-      {
-        id: 'ready_to_do',
-        question: 'What are you most excited to work on right now?',
-        type: 'multiselect',
-        options: [
-          'Writing and creating new music',
-          'Improving my recording setup',
-          'Learning about music marketing',
-          'Building my social media presence',
-          'Connecting with other musicians',
-          'Planning my first release',
-          'Performing live',
-          'Finding my unique sound'
-        ],
-        required: true
-      },
-      {
-        id: 'timeline_comfort',
-        question: 'How do you like to work on your goals?',
-        type: 'radio',
-        options: [
-          'I like quick wins and fast progress',
-          'I prefer steady, consistent steps',
-          'I work in bursts when inspired',
-          'I need structure and deadlines',
-          'I go with the flow and see what happens'
-        ],
-        required: true
-      },
-      {
-        id: 'support_need',
-        question: 'What kind of support would help you most right now?',
-        type: 'multiselect',
-        options: [
-          'A clear roadmap and action plan',
-          'Technical skills and tutorials',
-          'Connections with other artists',
-          'Feedback on my music',
-          'Help with promotion and marketing',
-          'Industry knowledge and insights',
-          'Motivation and encouragement',
-          'Tools and resources'
-        ],
-        required: true
-      },
-      {
-        id: 'vision_statement',
-        question: 'Finish this sentence: "In one year, I want my music to..."',
-        type: 'textarea',
-        required: true,
-        placeholder: 'e.g., "be helping people through difficult times" or "be playing in coffee shops across my city"'
-      }
-    ]
+    id: 'lifestyle',
+    question: 'What lifestyle best describes your ideal listener?',
+    type: 'radio',
+    options: [
+      'Students and young professionals',
+      'Creative professionals and artists',
+      'Parents and family-oriented people',
+      'Party-goers and social butterflies',
+      'Introverts and deep thinkers',
+      'Fitness enthusiasts and active people'
+    ],
+    required: true
+  },
+  {
+    id: 'discovery_platform',
+    question: 'Where would your audience most likely discover you?',
+    type: 'radio',
+    options: [
+      'TikTok and Instagram',
+      'Spotify playlists',
+      'YouTube',
+      'Live performances and local venues',
+      'Word of mouth and friends',
+      'Radio and mainstream media'
+    ],
+    required: true
+  },
+  {
+    id: 'emotional_connection',
+    question: 'What emotional need does your music fulfill for listeners?',
+    type: 'radio',
+    options: [
+      'Energy and motivation',
+      'Comfort and relaxation',
+      'Connection and understanding',
+      'Escape and fun',
+      'Inspiration and hope',
+      'Authenticity and realness'
+    ],
+    required: true
   }
 ];
+
+// Keep the old structure for backward compatibility but mark as deprecated
+export const quizSections: QuizSection[] = [];
 
 export const getTotalQuestions = (): number => {
   return quizSections.reduce((total, section) => total + section.questions.length, 0);

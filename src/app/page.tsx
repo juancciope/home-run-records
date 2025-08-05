@@ -1,13 +1,12 @@
 import Link from 'next/link';
-import { Music, Target, TrendingUp, Users } from 'lucide-react';
+import { Music, Users, LogIn, Sparkles } from 'lucide-react';
 
 export default function Home() {
   return (
     <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      {/* Hero Section */}
       <div className="container mx-auto px-4 py-16">
+        {/* Header */}
         <div className="text-center text-white">
-          {/* Logo/Brand */}
           <div className="flex items-center justify-center mb-8">
             <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-3 rounded-full mr-4">
               <Music className="w-8 h-8 text-white" />
@@ -15,99 +14,80 @@ export default function Home() {
             <h1 className="text-4xl font-bold">Home Run Records</h1>
           </div>
           
-          {/* Tagline */}
           <h2 className="text-6xl font-bold mb-6 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-            Artist Intelligence System
+            Artist Intelligence Platform
           </h2>
           
           <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Discover who you are as an artist through guided questions that help you 
-            understand your unique sound, find your audience, and create a personalized 
-            roadmap for your music journey.
+            Empowering artists with data-driven insights and strategic guidance
           </p>
-
-          {/* CTA Button */}
-          <Link 
-            href="/quiz"
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-lg font-semibold rounded-full hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            Begin Artist Discovery
-            <TrendingUp className="ml-2 w-5 h-5" />
-          </Link>
         </div>
 
-        {/* Features Grid */}
-        <div className="grid md:grid-cols-3 gap-8 mt-20">
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center text-white">
-            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-3 rounded-full w-fit mx-auto mb-4">
-              <Target className="w-8 h-8" />
+        {/* Two Main CTAs */}
+        <div className="grid md:grid-cols-2 gap-8 max-w-4xl mx-auto mt-12">
+          {/* Login Card */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center text-white border border-white/20 hover:border-pink-500/50 transition-all duration-300">
+            <div className="bg-gradient-to-r from-blue-500 to-cyan-500 p-4 rounded-full w-fit mx-auto mb-6">
+              <LogIn className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-semibold mb-3">Artist Discovery</h3>
-            <p className="text-gray-300">
-              Thoughtful questions that help you discover your unique sound, understand 
-              your audience, and clarify your artistic vision.
+            <h3 className="text-2xl font-bold mb-4">Artist Login</h3>
+            <p className="text-gray-300 mb-8">
+              Access your dashboard to track your music production, reach, and fan engagement metrics
             </p>
+            <Link 
+              href="/login"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-blue-500 to-cyan-500 text-white font-semibold rounded-full hover:from-blue-600 hover:to-cyan-600 transition-all duration-300 transform hover:scale-105"
+            >
+              Login to Dashboard
+            </Link>
           </div>
 
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center text-white">
-            <div className="bg-gradient-to-r from-green-500 to-emerald-500 p-3 rounded-full w-fit mx-auto mb-4">
-              <TrendingUp className="w-8 h-8" />
+          {/* Find Your Audience Card */}
+          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center text-white border border-white/20 hover:border-purple-500/50 transition-all duration-300">
+            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-4 rounded-full w-fit mx-auto mb-6">
+              <Users className="w-10 h-10" />
             </div>
-            <h3 className="text-xl font-semibold mb-3">AI Strategy Plans</h3>
-            <p className="text-gray-300">
-              Get personalized, actionable career strategies powered by AI and 
-              industry expertise tailored to your goals.
+            <h3 className="text-2xl font-bold mb-4">Find Your Audience</h3>
+            <p className="text-gray-300 mb-8">
+              Discover your ideal fan profile with our quick 6-question assessment tool
             </p>
-          </div>
-
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8 text-center text-white">
-            <div className="bg-gradient-to-r from-orange-500 to-red-500 p-3 rounded-full w-fit mx-auto mb-4">
-              <Users className="w-8 h-8" />
-            </div>
-            <h3 className="text-xl font-semibold mb-3">Progress Dashboard</h3>
-            <p className="text-gray-300">
-              Track your music production, reach, and fan engagement with 
-              our comprehensive artist dashboard.
-            </p>
+            <Link 
+              href="/find-your-audience"
+              className="inline-flex items-center px-6 py-3 bg-gradient-to-r from-pink-500 to-purple-600 text-white font-semibold rounded-full hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105"
+            >
+              Start Free Assessment
+              <Sparkles className="ml-2 w-5 h-5" />
+            </Link>
           </div>
         </div>
 
-        {/* How It Works */}
+        {/* Features */}
         <div className="mt-20 text-center text-white">
-          <h3 className="text-3xl font-bold mb-12">How It Works</h3>
-          <div className="grid md:grid-cols-4 gap-8">
-            <div className="flex flex-col items-center">
-              <div className="bg-pink-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4">1</div>
-              <h4 className="font-semibold mb-2">Take the Quiz</h4>
-              <p className="text-gray-300 text-sm">Answer questions about your identity, audience, vision, and projects</p>
+          <h3 className="text-3xl font-bold mb-12">Platform Features</h3>
+          <div className="grid md:grid-cols-3 gap-8 max-w-5xl mx-auto">
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <h4 className="font-semibold mb-2">Track Production</h4>
+              <p className="text-gray-400 text-sm">Monitor releases, streams, and production metrics</p>
             </div>
-            <div className="flex flex-col items-center">
-              <div className="bg-purple-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4">2</div>
-              <h4 className="font-semibold mb-2">Create Account</h4>
-              <p className="text-gray-300 text-sm">Sign up to save your results and access your personalized plan</p>
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <h4 className="font-semibold mb-2">Measure Reach</h4>
+              <p className="text-gray-400 text-sm">Analyze your social media and streaming platform growth</p>
             </div>
-            <div className="flex flex-col items-center">
-              <div className="bg-blue-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4">3</div>
-              <h4 className="font-semibold mb-2">Get AI Strategy</h4>
-              <p className="text-gray-300 text-sm">Receive your custom career roadmap and actionable recommendations</p>
-            </div>
-            <div className="flex flex-col items-center">
-              <div className="bg-green-500 text-white rounded-full w-12 h-12 flex items-center justify-center text-xl font-bold mb-4">4</div>
-              <h4 className="font-semibold mb-2">Track Progress</h4>
-              <p className="text-gray-300 text-sm">Monitor your growth with our comprehensive dashboard</p>
+            <div className="bg-white/5 backdrop-blur-lg rounded-xl p-6">
+              <h4 className="font-semibold mb-2">Fan Engagement</h4>
+              <p className="text-gray-400 text-sm">Understand and connect with your audience</p>
             </div>
           </div>
         </div>
 
-        {/* Final CTA */}
-        <div className="text-center mt-20">
-          <p className="text-xl text-gray-300 mb-6">Ready to transform your music career?</p>
-          <Link 
-            href="/quiz"
-            className="inline-flex items-center px-8 py-4 bg-gradient-to-r from-pink-500 to-purple-600 text-white text-lg font-semibold rounded-full hover:from-pink-600 hover:to-purple-700 transition-all duration-300 transform hover:scale-105 shadow-lg"
-          >
-            Start Free Assessment
-          </Link>
+        {/* Footer */}
+        <div className="text-center mt-20 text-gray-400">
+          <p className="text-sm">
+            Don't have an account?{' '}
+            <Link href="/signup" className="text-pink-400 hover:text-pink-300">
+              Sign up here
+            </Link>
+          </p>
         </div>
       </div>
     </div>

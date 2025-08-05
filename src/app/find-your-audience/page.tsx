@@ -2,9 +2,22 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { quizSections, QuizQuestion } from '@/lib/quizQuestions';
-// import { getQuizProgress } from '@/utils/formatQuizForAI'; // Not used in this version
+import { audienceQuestions, QuizQuestion } from '@/lib/quizQuestions';
 import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
+
+// Generate audience profile based on answers
+function generateAudienceProfile(answers: Record<string, string | string[]>) {
+  const profile = {
+    vibe: answers.music_vibe || 'Not specified',
+    moment: answers.listener_moment || 'Not specified',
+    ageGroup: answers.age_group || 'Not specified',
+    lifestyle: answers.lifestyle || 'Not specified',
+    platform: answers.discovery_platform || 'Not specified',
+    connection: answers.emotional_connection || 'Not specified',
+  };
+  
+  return profile;
+}
 
 export default function QuizPage() {
   const router = useRouter();
@@ -12,14 +25,8 @@ export default function QuizPage() {
   const [answers, setAnswers] = useState<Record<string, string | string[]>>({});
   // Removed isComplete state as it's not used in this version
 
-  // Flatten all questions into one array for smoother progression
-  const allQuestions = quizSections.flatMap(section => 
-    section.questions.map(question => ({
-      ...question,
-      sectionTitle: section.title,
-      sectionDescription: section.description
-    }))
-  );
+  // Use the simplified audience questions
+  const allQuestions = audienceQuestions;
 
   // Load saved answers from localStorage
   useEffect(() => {
@@ -48,7 +55,10 @@ export default function QuizPage() {
 
   const handleNext = () => {
     if (isLastQuestion) {
-      router.push('/signup');
+      // Generate audience profile and show results
+      const audienceProfile = generateAudienceProfile(answers);
+      localStorage.setItem('audience_profile', JSON.stringify(audienceProfile));
+      router.push('/find-your-audience/results');
     } else {
       setCurrentQuestionIndex(prev => prev + 1);
     }
@@ -82,7 +92,7 @@ export default function QuizPage() {
                 <Sparkles className="w-4 h-4 text-white" />
               </div>
               <div>
-                <h1 className="text-lg font-semibold text-gray-900">Artist Discovery</h1>
+                <h1 className="text-lg font-semibold text-gray-900">Find Your Audience</h1>
                 <p className="text-sm text-gray-500">Question {currentQuestionIndex + 1} of {allQuestions.length}</p>
               </div>
             </div>
@@ -97,13 +107,11 @@ export default function QuizPage() {
       <div className="pt-24 pb-12">
         <div className="container mx-auto px-6">
           <div className="max-w-2xl mx-auto">
-            {/* Section Context */}
+            {/* Title */}
             <div className="text-center mb-8">
-              <div className="inline-flex items-center px-3 py-1 bg-blue-50 text-blue-700 text-sm font-medium rounded-full mb-4">
-                {currentQuestion.sectionTitle}
-              </div>
+              <h2 className="text-3xl font-bold text-gray-900 mb-2">Discover Your Ideal Fans</h2>
               <p className="text-gray-600">
-                {currentQuestion.sectionDescription}
+                Answer a few quick questions to understand your target audience
               </p>
             </div>
 
@@ -148,7 +156,7 @@ export default function QuizPage() {
               >
                 {isLastQuestion ? (
                   <>
-                    Complete Discovery
+                    See Your Audience
                     <Check className="w-4 h-4 ml-2" />
                   </>
                 ) : (
