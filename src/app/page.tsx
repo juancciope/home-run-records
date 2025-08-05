@@ -83,7 +83,7 @@ export default function Home() {
         {/* Footer */}
         <div className="text-center mt-20 text-gray-400">
           <p className="text-sm">
-            Don't have an account?{' '}
+            Don&apos;t have an account?{' '}
             <Link href="/signup" className="text-pink-400 hover:text-pink-300">
               Sign up here
             </Link>
