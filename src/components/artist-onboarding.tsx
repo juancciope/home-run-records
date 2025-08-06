@@ -65,14 +65,15 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
       const artist = searchResults.find(a => a.id === selectedArtist);
       if (!artist) throw new Error("Artist not found");
       
-      // Sync artist data
-      await VibrateService.syncArtistData(user.id, artist.id);
-      
-      // Update profile with artist name if not already set
+      // Update profile with artist name first
+      console.log('Updating profile with artist name:', artist.name);
       await ArtistService.updateProfile(user.id, {
         artist_name: artist.name,
-        viberate_artist_id: artist.id,
       });
+      
+      // Then sync artist data from Viberate
+      console.log('Syncing Viberate data for artist:', artist.id);
+      await VibrateService.syncArtistData(user.id, artist.id);
       
       setStep(3);
       

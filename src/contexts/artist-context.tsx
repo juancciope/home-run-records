@@ -81,9 +81,13 @@ export function ArtistProvider({ children }: ArtistProviderProps) {
       const currentUser = await getCurrentUser();
       
       if (currentUser) {
+        console.log('Loading artist profile for user:', currentUser.id);
+        
         // Get full artist profile, passing the actual user email from auth
         const profile = await ArtistService.getArtistProfile(currentUser.id, currentUser.email);
+        
         if (profile) {
+          console.log('Loaded artist profile:', profile);
           setUser({
             id: profile.id,
             email: profile.email || currentUser.email || '',
@@ -98,13 +102,16 @@ export function ArtistProvider({ children }: ArtistProviderProps) {
             onboarding_completed: profile.onboarding_completed,
           });
         } else {
+          console.log('No profile found, creating basic user data');
           // Fallback to basic user data
           setUser({
             id: currentUser.id,
             email: currentUser.email || '',
+            onboarding_completed: false,
           });
         }
       } else {
+        console.log('No current user found');
         setUser(null);
       }
     } catch (error) {

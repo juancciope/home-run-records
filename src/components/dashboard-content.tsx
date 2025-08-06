@@ -3,6 +3,7 @@
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
+import { Badge } from "@/components/ui/badge"
 import {
   TrendingUp,
   Users,
@@ -14,6 +15,8 @@ import {
   Zap,
   Activity,
   Database,
+  Wifi,
+  WifiOff,
 } from "lucide-react"
 import {
   ChartContainer,
@@ -47,6 +50,13 @@ export function DashboardContent() {
   } | null>(null);
   const [isLoadingMetrics, setIsLoadingMetrics] = React.useState(true);
   const [needsOnboarding, setNeedsOnboarding] = React.useState(false);
+  const [hasVibrateConnection, setHasVibrateConnection] = React.useState(false);
+  const [marketingData, setMarketingData] = React.useState({
+    totalReach: 342000,
+    engaged: 45600,
+    followers: 21200,
+    isRealData: false,
+  });
 
   const loadPipelineMetrics = React.useCallback(async () => {
     if (!user?.id) return;
@@ -58,8 +68,43 @@ export function DashboardContent() {
       setPipelineMetrics(metrics);
       
       // Check if user has connected their data
-      const profile = await ArtistService.getArtistProfile(user.id);
-      if (!profile?.viberate_artist_id && !profile?.artist_name) {
+      const profile = await ArtistService.getArtistProfile(user.id, user.email);
+      console.log('Dashboard loaded profile:', profile);
+      
+      const hasConnection = !!profile?.viberate_artist_id;
+      setHasVibrateConnection(hasConnection);
+      
+      // Load real marketing data if Viberate is connected
+      if (hasConnection && profile?.viberate_artist_id) {
+        try {
+          const { VibrateService } = await import('@/lib/services/viberate-service');
+          const vibrateData = await VibrateService.getArtistAnalytics(profile.viberate_artist_id);
+          
+          if (vibrateData) {
+            console.log('Loaded real Viberate data:', vibrateData);
+            setMarketingData({
+              totalReach: vibrateData.totalReach,
+              engaged: vibrateData.engagedAudience,
+              followers: vibrateData.totalFollowers,
+              isRealData: true,
+            });
+          }
+        } catch (error) {
+          console.error('Error loading Vibrate analytics:', error);
+          // Keep mock data if real data fails
+        }
+      } else {
+        // Use mock data for demo
+        setMarketingData({
+          totalReach: metrics?.marketing?.totalReach || 342000,
+          engaged: metrics?.marketing?.engagedAudience || 45600,
+          followers: metrics?.marketing?.totalFollowers || 21200,
+          isRealData: false,
+        });
+      }
+      
+      if (!hasConnection && !profile?.onboarding_completed) {
+        console.log('User needs onboarding - no Viberate connection');
         setNeedsOnboarding(true);
       }
     } catch (error) {
@@ -73,19 +118,13 @@ export function DashboardContent() {
     if (user?.id) {
       loadPipelineMetrics();
     }
-  }, [user?.id, loadPipelineMetrics]);
+  }, [user?.id, user?.email, loadPipelineMetrics]);
 
   // Use real data if available, otherwise fall back to mock data
   const productionData = pipelineMetrics?.production || {
     unfinished: 12,
     finished: 5,
     released: 28,
-  };
-
-  const marketingData = {
-    totalReach: pipelineMetrics?.marketing?.totalReach || 342000,
-    engaged: pipelineMetrics?.marketing?.engagedAudience || 45600,
-    followers: pipelineMetrics?.marketing?.totalFollowers || 21200,
   };
 
   const fanEngagementData = pipelineMetrics?.fanEngagement || {
@@ -196,7 +235,26 @@ export function DashboardContent() {
       <div className="flex items-center justify-between">
         <div>
           <h1 className="text-2xl font-bold">Business Intelligence Dashboard</h1>
-          <p className="text-muted-foreground">Your complete view of performance across all business realms</p>
+          <div className="flex items-center gap-3 mt-1">
+            <p className="text-muted-foreground">Your complete view of performance across all business realms</p>
+            <div className="flex items-center gap-2">
+              {hasVibrateConnection ? (
+                <>
+                  <Wifi className="h-4 w-4 text-green-500" />
+                  <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400">
+                    Connected
+                  </Badge>
+                </>
+              ) : (
+                <>
+                  <WifiOff className="h-4 w-4 text-orange-500" />
+                  <Badge variant="secondary" className="bg-orange-500/10 text-orange-700 dark:text-orange-400">
+                    Demo Data
+                  </Badge>
+                </>
+              )}
+            </div>
+          </div>
         </div>
         <Button 
           variant="outline" 
@@ -204,7 +262,7 @@ export function DashboardContent() {
           className="flex items-center gap-2"
         >
           <Database className="h-4 w-4" />
-          Connect Data
+          {hasVibrateConnection ? 'Manage Connection' : 'Connect Data'}
         </Button>
       </div>
 
@@ -327,7 +385,14 @@ export function DashboardContent() {
               </ChartContainer>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-2xl font-bold">{(marketingData.totalReach / 1000).toFixed(0)}K</span>
-                <span className="text-xs text-green-600">+84% growth</span>
+                <div className="flex items-center gap-1">
+                  <span className="text-xs text-green-600">+84% growth</span>
+                  {marketingData.isRealData && (
+                    <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-200">
+                      Live
+                    </Badge>
+                  )}
+                </div>
               </div>
             </CardContent>
           </Card>

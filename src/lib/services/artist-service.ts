@@ -213,33 +213,69 @@ export class ArtistService {
    */
   static async getArtistProfile(userId: string, userEmail?: string) {
     try {
+      // First try to get existing profile
       const { data, error } = await supabase
         .from('users')
         .select('*')
         .eq('id', userId)
         .single();
 
-      if (error) {
-        console.warn('Users table not found or error accessing it:', error);
-        // Return profile data with actual user email when table doesn't exist
-        return {
-          id: userId,
-          email: userEmail || 'artist@example.com',
-          artist_name: 'Demo Artist',
-          created_at: new Date().toISOString(),
-          viberate_artist_id: null
-        };
+      if (error && error.code === 'PGRST116') {
+        // Profile doesn't exist, create it
+        console.log('Creating new artist profile for user:', userId);
+        return await this.createArtistProfile(userId, userEmail);
+      } else if (error) {
+        console.warn('Error accessing users table:', error);
+        // Try to create the profile anyway
+        return await this.createArtistProfile(userId, userEmail);
       }
+      
       return data;
     } catch (error) {
       console.error('Error fetching artist profile:', error);
-      // Return profile data with actual user email as fallback
+      // Try to create profile as fallback
+      return await this.createArtistProfile(userId, userEmail);
+    }
+  }
+
+  /**
+   * Create a new artist profile
+   */
+  static async createArtistProfile(userId: string, userEmail?: string) {
+    try {
+      const profileData = {
+        id: userId,
+        email: userEmail || 'artist@example.com',
+        artist_name: null,
+        onboarding_completed: false,
+        created_at: new Date().toISOString(),
+        updated_at: new Date().toISOString()
+      };
+
+      const { data, error } = await supabase
+        .from('users')
+        .insert(profileData)
+        .select()
+        .single();
+
+      if (error) {
+        console.warn('Could not create profile in database:', error);
+        // Return the profile data anyway for the app to work
+        return profileData;
+      }
+
+      console.log('Successfully created artist profile:', data);
+      return data;
+    } catch (error) {
+      console.error('Error creating artist profile:', error);
+      // Return basic profile data as fallback
       return {
         id: userId,
-        email: userEmail || 'artist@example.com', 
-        artist_name: 'Demo Artist',
+        email: userEmail || 'artist@example.com',
+        artist_name: null,
+        onboarding_completed: false,
         created_at: new Date().toISOString(),
-        viberate_artist_id: null
+        updated_at: new Date().toISOString()
       };
     }
   }
@@ -256,33 +292,55 @@ export class ArtistService {
     website_url: string;
     social_links: Record<string, string>;
     viberate_artist_id?: string;
+    onboarding_completed?: boolean;
   }>) {
     try {
+      // Add updated_at timestamp
+      const updateData = {
+        ...updates,
+        updated_at: new Date().toISOString()
+      };
+
       const { data, error } = await supabase
         .from('users')
-        .update(updates)
+        .update(updateData)
         .eq('id', userId)
         .select()
         .single();
 
       if (error) {
-        console.warn('Users table not found or error updating it:', error);
-        // Return mock success response when table doesn't exist
-        return {
-          id: userId,
-          ...updates,
-          updated_at: new Date().toISOString()
-        };
+        console.error('Error updating profile in database:', error);
+        
+        // If the profile doesn't exist, try to create it first
+        if (error.code === 'PGRST116') {
+          console.log('Profile not found, creating and then updating...');
+          await this.createArtistProfile(userId);
+          
+          // Try update again
+          const { data: retryData, error: retryError } = await supabase
+            .from('users')
+            .update(updateData)
+            .eq('id', userId)
+            .select()
+            .single();
+            
+          if (retryError) {
+            console.error('Retry update also failed:', retryError);
+            return null;
+          }
+          
+          console.log('Successfully updated profile after creation:', retryData);
+          return retryData;
+        }
+        
+        return null;
       }
+      
+      console.log('Successfully updated artist profile:', data);
       return data;
     } catch (error) {
       console.error('Error updating profile:', error);
-      // Return mock success response as fallback
-      return {
-        id: userId,
-        ...updates,
-        updated_at: new Date().toISOString()
-      };
+      return null;
     }
   }
 

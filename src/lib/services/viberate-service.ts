@@ -303,6 +303,8 @@ export class VibrateService {
    */
   static async syncArtistData(userId: string, artistId: string) {
     try {
+      console.log('Starting Viberate sync for user:', userId, 'artist:', artistId);
+      
       const response = await fetch('/api/viberate/sync', {
         method: 'POST',
         headers: {
@@ -312,16 +314,22 @@ export class VibrateService {
       });
 
       if (!response.ok) {
-        throw new Error(`Sync failed: ${response.status}`);
+        const errorText = await response.text();
+        console.error('Sync API failed:', response.status, errorText);
+        throw new Error(`Sync failed: ${response.status} - ${errorText}`);
       }
 
       const result = await response.json();
+      console.log('Sync API result:', result);
       
-      // Update profile with artist ID
+      // Update profile with artist ID and mark onboarding as completed
       const { ArtistService } = await import('./artist-service');
-      await ArtistService.updateProfile(userId, {
+      const updateResult = await ArtistService.updateProfile(userId, {
         viberate_artist_id: artistId,
+        onboarding_completed: true,
       });
+      
+      console.log('Profile update result:', updateResult);
 
       return result.success;
     } catch (error) {
