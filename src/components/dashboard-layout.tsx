@@ -91,9 +91,13 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
   const [activeItem, setActiveItem] = React.useState("Dashboard")
 
   return (
-    <SidebarProvider>
-      <div className="flex min-h-screen w-full">
-        <Sidebar className="border-r border-border/40 bg-sidebar/30 backdrop-blur-xl">
+    <SidebarProvider defaultOpen={true}>
+      <div className="relative flex min-h-screen w-full">
+        <Sidebar 
+          variant="sidebar" 
+          collapsible="none"
+          className="w-64 border-r border-border/40 bg-sidebar/30 backdrop-blur-xl"
+        >
           <SidebarHeader className="border-b border-border/40 p-6">
             <div className="flex items-center gap-3">
               <div className="relative">
@@ -216,9 +220,9 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
           </SidebarFooter>
         </Sidebar>
 
-        <SidebarInset className="flex-1">
+        <SidebarInset className="flex-1 min-w-0">
           {/* Top Navigation */}
-          <header className="flex h-16 shrink-0 items-center gap-4 border-b border-border/40 bg-background/80 backdrop-blur-xl px-6">
+          <header className="sticky top-0 z-10 flex h-16 shrink-0 items-center gap-4 border-b border-border/40 bg-background/80 backdrop-blur-xl px-6">
             <SidebarTrigger className="shrink-0" />
             <Separator orientation="vertical" className="h-6" />
             

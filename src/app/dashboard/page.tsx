@@ -1,6 +1,6 @@
 "use client"
 
-import { DashboardLayout } from "@/components/dashboard-layout"
+import { SimpleDashboardLayout } from "@/components/simple-dashboard-layout"
 import { DashboardContent } from "@/components/dashboard-content"
 
 // Force dynamic rendering
@@ -8,8 +8,8 @@ export const dynamic = 'force-dynamic'
 
 export default function DashboardPage() {
   return (
-    <DashboardLayout>
+    <SimpleDashboardLayout>
       <DashboardContent />
-    </DashboardLayout>
+    </SimpleDashboardLayout>
   )
 }

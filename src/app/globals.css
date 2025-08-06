@@ -2,6 +2,17 @@
 @tailwind components;
 @tailwind utilities;
 
+/* Sidebar layout fixes */
+@layer components {
+  [data-sidebar="sidebar"] {
+    @apply flex h-full flex-col;
+  }
+  
+  [data-sidebar-inset] {
+    @apply flex flex-1 flex-col;
+  }
+}
+
 @layer base {
   :root {
     --background: 0 0% 100%;

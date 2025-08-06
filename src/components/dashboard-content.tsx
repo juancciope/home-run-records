@@ -48,10 +48,10 @@ const PipelineStage: React.FC<PipelineStageProps> = ({
   return (
     <div className="relative flex items-center">
       <motion.div
-        whileHover={{ scale: 1.05 }}
-        className="relative z-10"
+        whileHover={{ scale: 1.02 }}
+        className="relative z-10 w-full"
       >
-        <Card className={`border-2 ${color} bg-gradient-to-br ${color.replace('border', 'from')}/5 to-white hover:shadow-lg transition-all duration-300`}>
+        <Card className={`border-2 ${color} bg-gradient-to-br ${color.replace('border', 'from')}/5 to-white hover:shadow-lg transition-all duration-300 w-full`}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 rounded-xl ${color.replace('border', 'bg')}/10 flex items-center justify-center`}>
@@ -171,7 +171,7 @@ export function DashboardContent() {
   }
 
   return (
-    <div className="p-6 space-y-8">
+    <div className="w-full max-w-7xl mx-auto p-6 space-y-8">
       {/* Header */}
       <motion.div
         initial={{ opacity: 0, y: 20 }}
@@ -211,7 +211,7 @@ export function DashboardContent() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
               <PipelineStage
                 title="Unfinished"
                 value={productionData.unfinished}
@@ -271,7 +271,7 @@ export function DashboardContent() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
               <PipelineStage
                 title="Total Reach"
                 value={marketingData.totalReach}
@@ -330,7 +330,7 @@ export function DashboardContent() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
               <PipelineStage
                 title="Captured Data"
                 value={fanEngagementData.capturedData}
@@ -389,7 +389,7 @@ export function DashboardContent() {
             </div>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-3 gap-4 mb-6">
+            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
               <PipelineStage
                 title="Leads"
                 value={conversionData.leads}
