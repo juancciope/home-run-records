@@ -34,17 +34,17 @@ const staticData = {
   navMain: [
     {
       title: "Dashboard",
-      url: "#",
+      url: "/dashboard",
       icon: BarChart3,
       isActive: true,
       items: [
         {
           title: "Overview",
-          url: "#",
+          url: "/dashboard",
         },
         {
           title: "Analytics",
-          url: "#",
+          url: "/analytics",
         },
       ],
     },
