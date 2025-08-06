@@ -241,6 +241,7 @@ export class ArtistService {
     profile_image_url: string;
     website_url: string;
     social_links: Record<string, string>;
+    viberate_artist_id?: string;
   }>) {
     try {
       const { data, error } = await supabase

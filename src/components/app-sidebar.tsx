@@ -1,16 +1,14 @@
 "use client"
 
 import {
-  AudioWaveform,
-  BookOpen,
-  Bot,
-  Command,
-  Frame,
+  BarChart3,
+  Palette,
+  Megaphone,
+  CheckSquare,
+  Calendar,
   GalleryVerticalEnd,
-  Map,
-  PieChart,
-  Settings2,
-  SquareTerminal,
+  Settings,
+  Wrench,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -43,7 +41,7 @@ const data = {
     {
       title: "Dashboard",
       url: "#",
-      icon: SquareTerminal,
+      icon: BarChart3,
       isActive: true,
       items: [
         {
@@ -54,126 +52,27 @@ const data = {
           title: "Analytics",
           url: "#",
         },
-        {
-          title: "Reports",
-          url: "#",
-        },
       ],
     },
     {
-      title: "Connect Sources",
+      title: "Tools",
       url: "#",
-      icon: Bot,
+      icon: Wrench,
       items: [
         {
-          title: "Spotify",
+          title: "Brand",
           url: "#",
         },
         {
-          title: "YouTube",
+          title: "Ads",
           url: "#",
         },
         {
-          title: "Apple Music",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Releases",
-      url: "#",
-      icon: BookOpen,
-      items: [
-        {
-          title: "Singles",
+          title: "To-do",
           url: "#",
         },
         {
-          title: "Albums",
-          url: "#",
-        },
-        {
-          title: "EPs",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Reach",
-      url: "#",
-      icon: SquareTerminal,
-      items: [
-        {
-          title: "Social Media",
-          url: "#",
-        },
-        {
-          title: "Streaming",
-          url: "#",
-        },
-        {
-          title: "Radio",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Fan Engagement",
-      url: "#",
-      icon: SquareTerminal,
-      items: [
-        {
-          title: "Email List",
-          url: "#",
-        },
-        {
-          title: "Community",
-          url: "#",
-        },
-        {
-          title: "Events",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "My Brand",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "Brand Identity",
-          url: "#",
-        },
-        {
-          title: "Assets",
-          url: "#",
-        },
-        {
-          title: "Guidelines",
-          url: "#",
-        },
-      ],
-    },
-    {
-      title: "Settings",
-      url: "#",
-      icon: Settings2,
-      items: [
-        {
-          title: "General",
-          url: "#",
-        },
-        {
-          title: "Team",
-          url: "#",
-        },
-        {
-          title: "Billing",
-          url: "#",
-        },
-        {
-          title: "Limits",
+          title: "Content Calendar",
           url: "#",
         },
       ],
@@ -183,17 +82,17 @@ const data = {
     {
       name: "Production Pipeline",
       url: "#",
-      icon: Frame,
+      icon: Settings,
     },
     {
       name: "Marketing Campaigns",
       url: "#",
-      icon: PieChart,
+      icon: Megaphone,
     },
     {
       name: "Fan Engagement",
       url: "#",
-      icon: Map,
+      icon: CheckSquare,
     },
   ],
 }
