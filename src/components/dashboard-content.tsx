@@ -10,17 +10,13 @@ import {
   Package,
   Megaphone,
   Target,
-  Music,
   Star,
-  Zap,
 } from "lucide-react"
 import {
   ChartContainer,
   ChartConfig,
   ChartTooltip,
   ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
 } from "@/components/ui/chart"
 import {
   Area,
@@ -32,10 +28,7 @@ import {
   LineChart,
   XAxis,
   YAxis,
-  ResponsiveContainer,
   Cell,
-  Pie,
-  PieChart,
 } from "recharts"
 import { useArtist } from "@/contexts/artist-context"
 

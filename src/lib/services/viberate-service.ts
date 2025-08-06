@@ -98,7 +98,7 @@ export class VibrateService {
       // Combine data by date
       const combinedData: Record<string, VibrateStreamingData> = {};
       
-      streamsData.data?.forEach((entry: any) => {
+      streamsData.data?.forEach((entry: { date: string; value: number }) => {
         combinedData[entry.date] = {
           date: entry.date,
           streams: entry.value || 0,
@@ -108,19 +108,19 @@ export class VibrateService {
         };
       });
 
-      listenersData.data?.forEach((entry: any) => {
+      listenersData.data?.forEach((entry: { date: string; value: number }) => {
         if (combinedData[entry.date]) {
           combinedData[entry.date].listeners = entry.value || 0;
         }
       });
 
-      followersData.data?.forEach((entry: any) => {
+      followersData.data?.forEach((entry: { date: string; value: number }) => {
         if (combinedData[entry.date]) {
           combinedData[entry.date].followers = entry.value || 0;
         }
       });
 
-      playlistData.data?.forEach((entry: any) => {
+      playlistData.data?.forEach((entry: { date: string; value: number }) => {
         if (combinedData[entry.date]) {
           combinedData[entry.date].playlist_reach = entry.value || 0;
         }
@@ -165,7 +165,7 @@ export class VibrateService {
 
       const socialData: Record<string, VibrateSocialData> = {};
 
-      followersData.data?.forEach((entry: any) => {
+      followersData.data?.forEach((entry: { date: string; value: number }) => {
         socialData[entry.date] = {
           date: entry.date,
           platform,
@@ -175,7 +175,7 @@ export class VibrateService {
         };
       });
 
-      engagementData.data?.forEach((entry: any) => {
+      engagementData.data?.forEach((entry: { date: string; value: number }) => {
         if (socialData[entry.date]) {
           socialData[entry.date].engagement = entry.value || 0;
         }
@@ -220,7 +220,7 @@ export class VibrateService {
 
       const playlistData: Record<string, VibratePlaylistData> = {};
 
-      activeData.data?.forEach((entry: any) => {
+      activeData.data?.forEach((entry: { date: string; value: number }) => {
         playlistData[entry.date] = {
           date: entry.date,
           active_playlists: entry.value || 0,
@@ -229,7 +229,7 @@ export class VibrateService {
         };
       });
 
-      addsData.data?.forEach((entry: any) => {
+      addsData.data?.forEach((entry: { date: string; value: number }) => {
         if (playlistData[entry.date]) {
           playlistData[entry.date].playlist_adds = entry.value || 0;
         }
@@ -333,7 +333,14 @@ export class VibrateService {
       const playlistData = await this.getPlaylistData(vibrateArtistId, 'spotify');
 
       // Convert to our metrics format and batch update
-      const metrics = [];
+      const metrics: Array<{
+        user_id: string;
+        metric_type: 'streams' | 'followers' | 'engagement' | 'reach' | 'revenue';
+        platform?: string;
+        value: number;
+        date: string;
+        metadata?: Record<string, unknown>;
+      }> = [];
 
       // Streaming metrics
       streamingData.forEach(data => {

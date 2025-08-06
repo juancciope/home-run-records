@@ -2,10 +2,8 @@
 
 import {
   BarChart3,
-  Palette,
   Megaphone,
   CheckSquare,
-  Calendar,
   GalleryVerticalEnd,
   Settings,
   Wrench,
