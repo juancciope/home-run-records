@@ -40,21 +40,15 @@ export class VibrateService {
   static async searchArtist(artistName: string): Promise<VibrateArtistData[]> {
     try {
       const response = await fetch(
-        `${this.BASE_URL}/artist/search/name?q=${encodeURIComponent(artistName)}&limit=10`,
-        {
-          headers: {
-            'Authorization': `Bearer ${this.API_KEY}`,
-            'Content-Type': 'application/json',
-          },
-        }
+        `/api/viberate/search?q=${encodeURIComponent(artistName)}&limit=10`
       );
 
       if (!response.ok) {
-        throw new Error(`Viberate API error: ${response.status}`);
+        throw new Error(`API error: ${response.status}`);
       }
 
       const data = await response.json();
-      return data.artists || [];
+      return data || [];
     } catch (error) {
       console.error('Error searching for artist:', error);
       throw error;
@@ -307,109 +301,29 @@ export class VibrateService {
   /**
    * Sync all artist data to our database
    */
-  static async syncArtistData(userId: string, artistName: string) {
+  static async syncArtistData(userId: string, artistId: string) {
     try {
-      const { ArtistService } = await import('./artist-service');
-      
-      // First search for the artist
-      const artists = await this.searchArtist(artistName);
-      if (!artists || artists.length === 0) {
-        throw new Error('Artist not found in Viberate database');
+      const response = await fetch('/api/viberate/sync', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({ artistId, userId }),
+      });
+
+      if (!response.ok) {
+        throw new Error(`Sync failed: ${response.status}`);
       }
+
+      const result = await response.json();
       
-      const vibrateArtistId = artists[0].id;
-      
-      // Get streaming data
-      const streamingData = await this.getSpotifyStreamingData(vibrateArtistId);
-      
-      // Get social media data
-      const [instagramData, youtubeData, tiktokData] = await Promise.all([
-        this.getSocialMediaData(vibrateArtistId, 'instagram'),
-        this.getSocialMediaData(vibrateArtistId, 'youtube'),
-        this.getSocialMediaData(vibrateArtistId, 'tiktok'),
-      ]);
-
-      // Get playlist data
-      const playlistData = await this.getPlaylistData(vibrateArtistId, 'spotify');
-
-      // Convert to our metrics format and batch update
-      const metrics: Array<{
-        user_id: string;
-        metric_type: 'streams' | 'followers' | 'engagement' | 'reach' | 'revenue';
-        platform?: string;
-        value: number;
-        date: string;
-        metadata?: Record<string, unknown>;
-      }> = [];
-
-      // Streaming metrics
-      streamingData.forEach(data => {
-        metrics.push({
-          user_id: userId,
-          metric_type: 'streams' as const,
-          platform: 'spotify',
-          value: data.streams,
-          date: data.date,
-          metadata: { listeners: data.listeners, playlist_reach: data.playlist_reach }
-        });
-
-        metrics.push({
-          user_id: userId,
-          metric_type: 'followers' as const,
-          platform: 'spotify',
-          value: data.followers,
-          date: data.date
-        });
-
-        metrics.push({
-          user_id: userId,
-          metric_type: 'reach' as const,
-          platform: 'spotify',
-          value: data.playlist_reach,
-          date: data.date
-        });
-      });
-
-      // Social media metrics
-      [...instagramData, ...youtubeData, ...tiktokData].forEach(data => {
-        metrics.push({
-          user_id: userId,
-          metric_type: 'followers' as const,
-          platform: data.platform,
-          value: data.followers,
-          date: data.date
-        });
-
-        metrics.push({
-          user_id: userId,
-          metric_type: 'engagement' as const,
-          platform: data.platform,
-          value: data.engagement,
-          date: data.date
-        });
-      });
-
-      // Playlist engagement metrics
-      playlistData.forEach(data => {
-        metrics.push({
-          user_id: userId,
-          metric_type: 'engagement' as const,
-          platform: 'spotify_playlists',
-          value: data.playlist_adds,
-          date: data.date,
-          metadata: { active_playlists: data.active_playlists }
-        });
-      });
-
-      // Batch update metrics
-      await ArtistService.batchUpdateMetrics(metrics);
-
-      // Store the Viberate artist ID for future reference (optional)
+      // Update profile with artist ID
+      const { ArtistService } = await import('./artist-service');
       await ArtistService.updateProfile(userId, {
-        viberate_artist_id: vibrateArtistId,
+        viberate_artist_id: artistId,
       });
 
-      return true;
+      return result.success;
     } catch (error) {
       console.error('Error syncing artist data:', error);
       throw error;

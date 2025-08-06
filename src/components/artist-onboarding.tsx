@@ -66,7 +66,7 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
       if (!artist) throw new Error("Artist not found");
       
       // Sync artist data
-      await VibrateService.syncArtistData(user.id, artist.name);
+      await VibrateService.syncArtistData(user.id, artist.id);
       
       // Update profile with artist name if not already set
       await ArtistService.updateProfile(user.id, {
