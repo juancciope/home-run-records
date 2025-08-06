@@ -114,7 +114,7 @@ export function DashboardContent() {
     <div className="space-y-6">
       {/* Overview KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card>
+        <Card className="bg-sidebar">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
             <DollarSign className="h-4 w-4 text-muted-foreground" />
@@ -128,7 +128,7 @@ export function DashboardContent() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-sidebar">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
             <Users className="h-4 w-4 text-muted-foreground" />
@@ -142,7 +142,7 @@ export function DashboardContent() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-sidebar">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Super Fans</CardTitle>
             <Star className="h-4 w-4 text-muted-foreground" />
@@ -156,7 +156,7 @@ export function DashboardContent() {
           </CardContent>
         </Card>
         
-        <Card>
+        <Card className="bg-sidebar">
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
             <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
             <Package className="h-4 w-4 text-muted-foreground" />
@@ -172,26 +172,21 @@ export function DashboardContent() {
       </div>
 
       {/* Business Pipeline Realms */}
-      <div className="space-y-6">
+      <div className="space-y-8">
         {/* Production Pipeline Realm */}
-        <Card className="col-span-full">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-md">
-                  <Package className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Production Pipeline</CardTitle>
-                  <CardDescription>Your product, your releases - from idea to market</CardDescription>
-                </div>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <div className="p-2 bg-primary/10 rounded-md">
+              <Package className="h-5 w-5 text-primary" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* Unfinished */}
-              <Card className="flex flex-col">
+            <div>
+              <h3 className="text-lg font-semibold">Production Pipeline</h3>
+              <p className="text-sm text-muted-foreground">Your product, your releases - from idea to market</p>
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Unfinished */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Unfinished</CardTitle>
                   <CardDescription>Ideas & demos in progress</CardDescription>
@@ -259,8 +254,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Finished */}
-              <Card className="flex flex-col">
+            {/* Finished */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Finished</CardTitle>
                   <CardDescription>Ready for release</CardDescription>
@@ -328,8 +323,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Released */}
-              <Card className="flex flex-col">
+            {/* Released */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Released</CardTitle>
                   <CardDescription>Live in market</CardDescription>
@@ -395,30 +390,24 @@ export function DashboardContent() {
                     Published and generating revenue
                   </div>
                 </CardFooter>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+            </Card>
+          </div>
+        </div>
 
         {/* Marketing Reach Realm */}
-        <Card className="col-span-full">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-md">
-                  <Megaphone className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Marketing Reach</CardTitle>
-                  <CardDescription>Aggregate audience reach to engaged followers</CardDescription>
-                </div>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <div className="p-2 bg-primary/10 rounded-md">
+              <Megaphone className="h-5 w-5 text-primary" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* Total Reach */}
-              <Card className="flex flex-col">
+            <div>
+              <h3 className="text-lg font-semibold">Marketing Reach</h3>
+              <p className="text-sm text-muted-foreground">Aggregate audience reach to engaged followers</p>
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Total Reach */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Total Reach</CardTitle>
                   <CardDescription>Aggregate audience across platforms</CardDescription>
@@ -486,8 +475,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Engaged Audience */}
-              <Card className="flex flex-col">
+            {/* Engaged Audience */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Engaged Audience</CardTitle>
                   <CardDescription>Active listeners & viewers</CardDescription>
@@ -555,8 +544,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Followers */}
-              <Card className="flex flex-col">
+            {/* Followers */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Followers</CardTitle>
                   <CardDescription>Loyal subscriber base</CardDescription>
@@ -622,30 +611,24 @@ export function DashboardContent() {
                     Committed fans across platforms
                   </div>
                 </CardFooter>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+            </Card>
+          </div>
+        </div>
 
         {/* Fan Engagement Realm */}
-        <Card className="col-span-full">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-md">
-                  <Heart className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Fan Engagement Pipeline</CardTitle>
-                  <CardDescription>Building deeper connections with your audience</CardDescription>
-                </div>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <div className="p-2 bg-primary/10 rounded-md">
+              <Heart className="h-5 w-5 text-primary" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* Captured Data */}
-              <Card className="flex flex-col">
+            <div>
+              <h3 className="text-lg font-semibold">Fan Engagement Pipeline</h3>
+              <p className="text-sm text-muted-foreground">Building deeper connections with your audience</p>
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Captured Data */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Captured Data</CardTitle>
                   <CardDescription>Email list & contact info</CardDescription>
@@ -713,8 +696,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Fans */}
-              <Card className="flex flex-col">
+            {/* Fans */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Fans</CardTitle>
                   <CardDescription>Regular supporters</CardDescription>
@@ -782,8 +765,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Super Fans */}
-              <Card className="flex flex-col">
+            {/* Super Fans */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Super Fans</CardTitle>
                   <CardDescription>VIP community members</CardDescription>
@@ -849,30 +832,24 @@ export function DashboardContent() {
                     Highest value audience segment
                   </div>
                 </CardFooter>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+            </Card>
+          </div>
+        </div>
 
         {/* Conversion Realm */}
-        <Card className="col-span-full">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-2">
-                <div className="p-2 bg-primary/10 rounded-md">
-                  <DollarSign className="h-5 w-5 text-primary" />
-                </div>
-                <div>
-                  <CardTitle className="text-lg">Conversion Pipeline</CardTitle>
-                  <CardDescription>Revenue generation from leads to sales</CardDescription>
-                </div>
-              </div>
+        <div className="space-y-4">
+          <div className="flex items-center gap-2 px-1">
+            <div className="p-2 bg-primary/10 rounded-md">
+              <DollarSign className="h-5 w-5 text-primary" />
             </div>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 md:grid-cols-3">
-              {/* Leads */}
-              <Card className="flex flex-col">
+            <div>
+              <h3 className="text-lg font-semibold">Conversion Pipeline</h3>
+              <p className="text-sm text-muted-foreground">Revenue generation from leads to sales</p>
+            </div>
+          </div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {/* Leads */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Leads</CardTitle>
                   <CardDescription>Interested potential buyers</CardDescription>
@@ -940,8 +917,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Opportunities */}
-              <Card className="flex flex-col">
+            {/* Opportunities */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Opportunities</CardTitle>
                   <CardDescription>Active deals in progress</CardDescription>
@@ -1009,8 +986,8 @@ export function DashboardContent() {
                 </CardFooter>
               </Card>
 
-              {/* Sales */}
-              <Card className="flex flex-col">
+            {/* Sales */}
+            <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
                   <CardTitle>Sales</CardTitle>
                   <CardDescription>Closed won deals</CardDescription>
@@ -1076,10 +1053,9 @@ export function DashboardContent() {
                     Successful transactions completed
                   </div>
                 </CardFooter>
-              </Card>
-            </div>
-          </CardContent>
-        </Card>
+            </Card>
+          </div>
+        </div>
       </div>
 
       {/* Business Health Summary */}
