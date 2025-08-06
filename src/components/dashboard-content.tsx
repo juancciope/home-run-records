@@ -114,13 +114,13 @@ export function DashboardContent() {
     } finally {
       setIsLoadingMetrics(false);
     }
-  }, [user?.id]);
+  }, [user?.id, user?.email]);
 
   React.useEffect(() => {
     if (user?.id) {
       loadPipelineMetrics();
     }
-  }, [user?.id, user?.email, loadPipelineMetrics]);
+  }, [user?.id, loadPipelineMetrics]);
 
   // Use real data if available, otherwise fall back to mock data
   const productionData = pipelineMetrics?.production || {

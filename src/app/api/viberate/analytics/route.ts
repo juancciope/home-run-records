@@ -64,9 +64,9 @@ export async function GET(request: NextRequest) {
     }
 
     // Extract latest values or use defaults
-    const latestSpotify = spotifyData?.data?.data ? Object.values(spotifyData.data.data).pop() as any : null;
-    const latestInstagram = instagramData?.data?.data ? Object.values(instagramData.data.data).pop() as any : null;
-    const latestYoutube = youtubeData?.data?.data ? Object.values(youtubeData.data.data).pop() as any : null;
+    const latestSpotify = spotifyData?.data?.data ? Object.values(spotifyData.data.data).pop() as { value: number } | undefined : null;
+    const latestInstagram = instagramData?.data?.data ? Object.values(instagramData.data.data).pop() as { value: number } | undefined : null;
+    const latestYoutube = youtubeData?.data?.data ? Object.values(youtubeData.data.data).pop() as { value: number } | undefined : null;
 
     const spotifyListeners = latestSpotify?.value || 0;
     const instagramFollowers = latestInstagram?.value || 0;

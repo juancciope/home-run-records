@@ -12,7 +12,7 @@ interface ClientLayoutProps {
 }
 
 function LayoutContent({ children }: ClientLayoutProps) {
-  const { isAuthenticated, isLoading } = useArtist();
+  const { isAuthenticated } = useArtist();
   const pathname = usePathname();
   
   // Pages that should not show the sidebar

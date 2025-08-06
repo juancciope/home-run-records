@@ -62,7 +62,16 @@ export async function GET(request: NextRequest) {
     const data = await response.json();
     
     // Transform the response to match our expected format
-    const artists = data.data?.map((artist: any) => ({
+    const artists = data.data?.map((artist: {
+      uuid: string;
+      name: string;
+      spotify_id?: string;
+      rank: number;
+      verified: boolean;
+      country: object;
+      genre: object;
+      subgenres: object[];
+    }) => ({
       id: artist.uuid,
       name: artist.name,
       spotify_id: artist.spotify_id || null,

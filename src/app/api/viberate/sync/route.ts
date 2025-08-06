@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const VIBERATE_API_KEY = process.env.VIBERATE_API_KEY || '';
-const VIBERATE_BASE_URL = 'https://api.viberate.com/api/v1';
+// const VIBERATE_BASE_URL = 'https://data.viberate.com/api/v1';
 
 export async function POST(request: NextRequest) {
   try {
