@@ -278,7 +278,7 @@ export function DashboardContent() {
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
           {/* Unfinished Projects */}
           <Card className="bg-sidebar">
             <CardHeader className="pb-3">
@@ -316,8 +316,8 @@ export function DashboardContent() {
               <CardDescription className="text-xs text-muted-foreground">Live & generating revenue</CardDescription>
             </CardHeader>
             <CardContent className="pb-0">
-              <ChartContainer config={productionChartConfig} className="h-[120px] w-full">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="55%" outerRadius="85%" data={productionChartData}>
+              <ChartContainer config={productionChartConfig} className="mx-auto aspect-square max-h-[180px] w-full">
+                <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={productionChartData}>
                   <PolarGrid gridType="circle" radialLines={false} stroke="none" />
                   <RadialBar dataKey="value" cornerRadius={6} fill="hsl(var(--chart-1))" />
                   <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
@@ -328,15 +328,15 @@ export function DashboardContent() {
                             <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) - 2} 
-                                className="fill-foreground font-bold text-lg"
+                                y={(viewBox.cy || 0) - 6} 
+                                className="fill-foreground font-bold text-2xl"
                               >
                                 {productionData.released}
                               </tspan>
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) + 12} 
-                                className="fill-muted-foreground text-xs"
+                                y={(viewBox.cy || 0) + 16} 
+                                className="fill-muted-foreground text-sm"
                               >
                                 Released
                               </tspan>
@@ -365,7 +365,7 @@ export function DashboardContent() {
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
           {/* Total Reach with Area Chart */}
           <Card className="bg-sidebar">
             <CardHeader className="pb-3">
@@ -454,7 +454,7 @@ export function DashboardContent() {
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
           {/* Captured Data */}
           <Card className="bg-sidebar">
             <CardHeader className="pb-3">
@@ -505,12 +505,12 @@ export function DashboardContent() {
             <CardContent className="pb-0">
               <ChartContainer config={{
                 superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
-              }} className="h-[120px] w-full">
+              }} className="mx-auto aspect-square max-h-[180px] w-full">
                 <RadialBarChart 
                   cx="50%" 
                   cy="50%" 
-                  innerRadius="55%" 
-                  outerRadius="85%" 
+                  innerRadius="60%" 
+                  outerRadius="90%" 
                   data={[{
                     name: "superFans",
                     value: Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100),
@@ -527,15 +527,15 @@ export function DashboardContent() {
                             <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) - 2} 
-                                className="fill-foreground font-bold text-lg"
+                                y={(viewBox.cy || 0) - 6} 
+                                className="fill-foreground font-bold text-2xl"
                               >
                                 {fanEngagementData.superFans}
                               </tspan>
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) + 12} 
-                                className="fill-muted-foreground text-xs"
+                                y={(viewBox.cy || 0) + 16} 
+                                className="fill-muted-foreground text-sm"
                               >
                                 VIP Members
                               </tspan>
@@ -564,7 +564,7 @@ export function DashboardContent() {
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
           {/* Leads with Bar Chart */}
           <Card className="bg-sidebar">
             <CardHeader className="pb-3">
