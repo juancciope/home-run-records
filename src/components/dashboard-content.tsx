@@ -57,7 +57,7 @@ export function DashboardContent() {
       
       // Check if user has connected their data
       const profile = await ArtistService.getArtistProfile(user.id);
-      if (!profile?.viberate_artist_id) {
+      if (!profile?.viberate_artist_id && !profile?.artist_name) {
         setNeedsOnboarding(true);
       }
     } catch (error) {
