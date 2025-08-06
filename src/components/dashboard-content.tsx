@@ -90,7 +90,7 @@ export function DashboardContent() {
     },
     data: {
       label: "Data",
-      color: "hsl(var(--chart-2))",
+      color: "hsl(var(--primary))",
     },
   } satisfies ChartConfig
 
