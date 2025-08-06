@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   TrendingUp,
   Users,
@@ -10,7 +10,8 @@ import {
   Package,
   Megaphone,
   Target,
-  Star,
+  Zap,
+  Activity,
 } from "lucide-react"
 import {
   ChartContainer,
@@ -23,14 +24,16 @@ import {
   AreaChart,
   Bar,
   BarChart,
-  CartesianGrid,
   Line,
   LineChart,
-  XAxis,
-  YAxis,
-  Cell,
+  RadialBarChart,
+  RadialBar,
+  PolarGrid,
+  PolarRadiusAxis,
+  Label,
 } from "recharts"
 import { useArtist } from "@/contexts/artist-context"
+import { ArtistOnboarding } from "./artist-onboarding"
 
 export function DashboardContent() {
   const { user, isDashboardLoading } = useArtist();
@@ -41,6 +44,7 @@ export function DashboardContent() {
     conversion: { leads: number; opportunities: number; sales: number; revenue: number };
   } | null>(null);
   const [isLoadingMetrics, setIsLoadingMetrics] = React.useState(true);
+  const [needsOnboarding, setNeedsOnboarding] = React.useState(false);
 
   const loadPipelineMetrics = React.useCallback(async () => {
     if (!user?.id) return;
@@ -50,6 +54,12 @@ export function DashboardContent() {
       const { ArtistService } = await import('@/lib/services/artist-service');
       const metrics = await ArtistService.getPipelineMetrics(user.id);
       setPipelineMetrics(metrics);
+      
+      // Check if user has connected their data
+      const profile = await ArtistService.getArtistProfile(user.id);
+      if (!profile?.viberate_artist_id) {
+        setNeedsOnboarding(true);
+      }
     } catch (error) {
       console.error('Error loading pipeline metrics:', error);
     } finally {
@@ -88,123 +98,75 @@ export function DashboardContent() {
     sales: 45,
   };
 
-  // Strategic chart configurations optimized for business insights
+  // Chart configurations
   const productionChartConfig = {
-    unfinished: {
-      label: "Unfinished",
+    value: {
+      label: "Tracks",
       color: "hsl(var(--chart-1))",
-    },
-    finished: {
-      label: "Finished",
-      color: "hsl(var(--chart-2))",
-    },
-    released: {
-      label: "Released",
-      color: "hsl(var(--chart-3))",
     },
   } satisfies ChartConfig
 
-  const marketingChartConfig = {
-    totalReach: {
-      label: "Total Reach",
-      color: "hsl(var(--chart-1))",
+  const reachChartConfig = {
+    reach: {
+      label: "Reach",
+      color: "hsl(var(--chart-2))",
     },
     engaged: {
       label: "Engaged",
-      color: "hsl(var(--chart-2))",
-    },
-    followers: {
-      label: "Followers",
       color: "hsl(var(--chart-3))",
     },
   } satisfies ChartConfig
 
-  const fanEngagementChartConfig = {
-    conversionRate: {
-      label: "Conversion Rate",
+  const engagementChartConfig = {
+    fans: {
+      label: "Fans",
       color: "hsl(var(--chart-1))",
     },
-    superFanRate: {
-      label: "Super Fan Rate",
+    superFans: {
+      label: "Super Fans",
       color: "hsl(var(--chart-2))",
     },
   } satisfies ChartConfig
 
   const conversionChartConfig = {
-    leads: {
-      label: "Leads",
-      color: "hsl(var(--chart-1))",
-    },
-    opportunities: {
-      label: "Opportunities",
-      color: "hsl(var(--chart-2))",
-    },
-    sales: {
-      label: "Sales",
+    value: {
+      label: "Count",
       color: "hsl(var(--chart-3))",
     },
   } satisfies ChartConfig
 
-  // Strategic data transformations for actionable insights
-  const productionEfficiencyData = [
+  // Data transformations for charts
+  const productionChartData = [
     {
-      stage: "Unfinished",
-      count: productionData.unfinished,
-      percentage: Math.round((productionData.unfinished / (productionData.unfinished + productionData.finished + productionData.released)) * 100),
-      fill: "var(--color-unfinished)"
+      name: "production",
+      value: Math.round((productionData.released / (productionData.unfinished + productionData.finished + productionData.released)) * 100),
+      fill: "var(--color-value)",
     },
-    {
-      stage: "Finished",
-      count: productionData.finished,
-      percentage: Math.round((productionData.finished / (productionData.unfinished + productionData.finished + productionData.released)) * 100),
-      fill: "var(--color-finished)"
-    },
-    {
-      stage: "Released",
-      count: productionData.released,
-      percentage: Math.round((productionData.released / (productionData.unfinished + productionData.finished + productionData.released)) * 100),
-      fill: "var(--color-released)"
-    },
-  ]
+  ];
 
-  const marketingTrendData = [
-    { month: "Jan", totalReach: 186000, engaged: 24000, followers: 18000 },
-    { month: "Feb", totalReach: 205000, engaged: 26000, followers: 19200 },
-    { month: "Mar", totalReach: 237000, engaged: 30800, followers: 19800 },
-    { month: "Apr", totalReach: 273000, engaged: 35500, followers: 20400 },
-    { month: "May", totalReach: 309000, engaged: 40200, followers: 20800 },
-    { month: "Jun", totalReach: marketingData.totalReach, engaged: marketingData.engaged, followers: marketingData.followers },
-  ]
+  const reachTrendData = [
+    { month: "Jan", reach: 186000, engaged: 24000 },
+    { month: "Feb", reach: 205000, engaged: 26000 },
+    { month: "Mar", reach: 237000, engaged: 30800 },
+    { month: "Apr", reach: 273000, engaged: 35500 },
+    { month: "May", reach: 309000, engaged: 40200 },
+    { month: "Jun", reach: marketingData.totalReach, engaged: marketingData.engaged },
+  ];
 
-  const fanConversionTrendData = [
-    { month: "Jan", conversionRate: 37, superFanRate: 5 },
-    { month: "Feb", conversionRate: 37, superFanRate: 4.7 },
-    { month: "Mar", conversionRate: 37, superFanRate: 4.7 },
-    { month: "Apr", conversionRate: 37, superFanRate: 4.7 },
-    { month: "May", conversionRate: 37, superFanRate: 4.7 },
-    { month: "Jun", conversionRate: Math.round((fanEngagementData.fans / fanEngagementData.capturedData) * 100), superFanRate: Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100) },
-  ]
+  const fanEngagementTrendData = [
+    { month: "Jan", fans: 2800, superFans: 120 },
+    { month: "Feb", fans: 2900, superFans: 125 },
+    { month: "Mar", fans: 3000, superFans: 130 },
+    { month: "Apr", fans: 3050, superFans: 135 },
+    { month: "May", fans: 3100, superFans: 142 },
+    { month: "Jun", fans: fanEngagementData.fans, superFans: fanEngagementData.superFans },
+  ];
 
-  const conversionComparisonData = [
-    {
-      stage: "Leads",
-      count: conversionData.leads,
-      conversionRate: 100,
-      fill: "var(--color-leads)"
-    },
-    {
-      stage: "Opportunities",
-      count: conversionData.opportunities,
-      conversionRate: Math.round((conversionData.opportunities / conversionData.leads) * 100),
-      fill: "var(--color-opportunities)"
-    },
-    {
-      stage: "Sales",
-      count: conversionData.sales,
-      conversionRate: Math.round((conversionData.sales / conversionData.opportunities) * 100),
-      fill: "var(--color-sales)"
-    },
-  ]
+  const conversionFunnelData = [
+    { stage: "Leads", value: conversionData.leads },
+    { stage: "Opportunities", value: conversionData.opportunities },
+    { stage: "Sales", value: conversionData.sales },
+  ];
 
   if (isDashboardLoading || isLoadingMetrics) {
     return (
@@ -212,9 +174,9 @@ export function DashboardContent() {
         <div className="animate-pulse space-y-4">
           <div className="h-8 bg-muted rounded w-1/3"></div>
           <div className="h-4 bg-muted rounded w-1/2"></div>
-          <div className="grid grid-cols-1 gap-6">
-            {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-[400px] bg-muted rounded-xl"></div>
+          <div className="grid gap-6 md:grid-cols-3">
+            {[...Array(12)].map((_, i) => (
+              <div key={i} className="h-[280px] bg-muted rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -222,437 +184,347 @@ export function DashboardContent() {
     );
   }
 
-  return (
-    <div className="space-y-6">
-      {/* Overview KPI Cards */}
-      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
-        <Card className="bg-sidebar">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Revenue</CardTitle>
-            <DollarSign className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-4 w-4 inline mr-1" />
-              +20.1% from last month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-sidebar">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
-            <Users className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{marketingData.totalReach.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-4 w-4 inline mr-1" />
-              +12.5% from last month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-sidebar">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Super Fans</CardTitle>
-            <Star className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{fanEngagementData.superFans}</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-4 w-4 inline mr-1" />
-              +4.2% from last month
-            </p>
-          </CardContent>
-        </Card>
-        
-        <Card className="bg-sidebar">
-          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-            <CardTitle className="text-sm font-medium">Active Projects</CardTitle>
-            <Package className="h-4 w-4 text-muted-foreground" />
-          </CardHeader>
-          <CardContent>
-            <div className="text-2xl font-bold">{productionData.unfinished + productionData.finished}</div>
-            <p className="text-xs text-muted-foreground">
-              <TrendingUp className="h-4 w-4 inline mr-1" />
-              +2 from last week
-            </p>
-          </CardContent>
-        </Card>
-      </div>
+  if (needsOnboarding) {
+    return <ArtistOnboarding onComplete={() => setNeedsOnboarding(false)} />;
+  }
 
-      {/* Business Pipeline Realms */}
-      <div className="space-y-8">
-        {/* Production Pipeline Realm */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <div className="p-2 bg-primary/10 rounded-md">
-              <Package className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium">Production Pipeline</h3>
-              <p className="text-xs text-muted-foreground">Your product, your releases - from idea to market</p>
-            </div>
+  return (
+    <div className="space-y-8">
+      {/* Production Pipeline */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-md">
+            <Package className="h-5 w-5 text-primary" />
           </div>
-          
-          {/* Production Workflow Efficiency */}
+          <div>
+            <h2 className="text-lg font-semibold">Production Pipeline</h2>
+            <p className="text-sm text-muted-foreground">Track your creative output from idea to release</p>
+          </div>
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Unfinished Projects */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-medium">Production Workflow Efficiency</CardTitle>
-              <CardDescription className="text-xs">Focus: Complete more projects to increase revenue</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Unfinished Projects</CardTitle>
+              <CardDescription className="text-xs">Projects in progress</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{productionData.unfinished}</div>
+              <p className="text-xs text-muted-foreground mt-2">
+                <Activity className="inline h-3 w-3 mr-1" />
+                Focus on completion
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Finished Projects */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Ready to Release</CardTitle>
+              <CardDescription className="text-xs">Completed, awaiting release</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-yellow-600">{productionData.finished}</div>
+              <p className="text-xs text-muted-foreground mt-2">
+                <Target className="inline h-3 w-3 mr-1" />
+                Schedule releases
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Released with RadialBar */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Released Tracks</CardTitle>
+              <CardDescription className="text-xs">Live & generating revenue</CardDescription>
             </CardHeader>
             <CardContent className="pb-0">
-              <ChartContainer
-                config={productionChartConfig}
-                className="h-[200px] w-full"
-              >
-                <BarChart
-                  accessibilityLayer
-                  data={productionEfficiencyData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="stage"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                  />
-                  <YAxis hide />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent hideLabel />}
-                    cursor={false}
-                  />
-                  <Bar dataKey="count" fill="hsl(var(--chart-1))" radius={4}>
-                    {productionEfficiencyData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
+              <ChartContainer config={productionChartConfig} className="h-[140px] w-full">
+                <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={productionChartData}>
+                  <PolarGrid gridType="circle" radialLines={false} stroke="none" />
+                  <RadialBar dataKey="value" cornerRadius={10} fill="hsl(var(--chart-1))" />
+                  <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                    <Label
+                      content={({ viewBox }) => {
+                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                          return (
+                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                              <tspan x={viewBox.cx} y={viewBox.cy} className="text-3xl font-bold fill-foreground">
+                                {productionData.released}
+                              </tspan>
+                              <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="text-xs fill-muted-foreground">
+                                Released
+                              </tspan>
+                            </text>
+                          );
+                        }
+                      }}
+                    />
+                  </PolarRadiusAxis>
+                </RadialBarChart>
               </ChartContainer>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-red-600">{Math.round((productionData.finished / (productionData.unfinished + productionData.finished)) * 100)}%</div>
-                  <p className="text-xs text-muted-foreground">Completion Rate</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-600">{productionData.released}</div>
-                  <p className="text-xs text-muted-foreground">Generating Revenue</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-orange-600">{productionData.unfinished}</div>
-                  <p className="text-xs text-muted-foreground">Bottleneck</p>
-                </div>
-              </div>
             </CardContent>
-            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
-              <div className="flex items-center gap-2 leading-none font-medium text-orange-600">
-                <Target className="h-3 w-3" />
-                Action: Focus on completing {productionData.unfinished} unfinished projects
-              </div>
-              <div className="text-muted-foreground leading-none">
-                Each completed project = potential revenue. Prioritize finishing over starting new ones.
-              </div>
-            </CardFooter>
           </Card>
         </div>
+      </div>
 
-        {/* Marketing Reach Realm */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <div className="p-2 bg-primary/10 rounded-md">
-              <Megaphone className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium">Marketing Reach</h3>
-              <p className="text-xs text-muted-foreground">Aggregate audience reach to engaged followers</p>
-            </div>
+      {/* Marketing Reach */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-md">
+            <Megaphone className="h-5 w-5 text-primary" />
           </div>
-          
-          {/* Marketing Growth Trends */}
+          <div>
+            <h2 className="text-lg font-semibold">Marketing Reach</h2>
+            <p className="text-sm text-muted-foreground">Expand your audience and engagement</p>
+          </div>
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Total Reach with Area Chart */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-medium">Marketing Growth & Engagement Trends</CardTitle>
-              <CardDescription className="text-xs">Focus: Improve engagement rate to convert reach into followers</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
+              <CardDescription className="text-xs">6-month growth trend</CardDescription>
             </CardHeader>
-            <CardContent className="pb-0">
-              <ChartContainer config={marketingChartConfig} className="h-[250px] w-full">
-                <AreaChart
-                  accessibilityLayer
-                  data={marketingTrendData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
-                  />
-                  <YAxis hide />
-                  <ChartTooltip content={<ChartTooltipContent />} />
+            <CardContent className="pb-2">
+              <ChartContainer config={reachChartConfig} className="h-[140px] w-full">
+                <AreaChart data={reachTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
                   <defs>
-                    <linearGradient id="fillTotalReach" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-totalReach)" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="var(--color-totalReach)" stopOpacity={0.1} />
-                    </linearGradient>
-                    <linearGradient id="fillEngaged" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-engaged)" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="var(--color-engaged)" stopOpacity={0.1} />
+                    <linearGradient id="fillReach" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-reach)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="var(--color-reach)" stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
                   <Area
-                    dataKey="totalReach"
-                    type="natural"
-                    fill="url(#fillTotalReach)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-totalReach)"
-                    stackId="a"
+                    type="monotone"
+                    dataKey="reach"
+                    stroke="var(--color-reach)"
+                    fill="url(#fillReach)"
+                    strokeWidth={2}
                   />
-                  <Area
-                    dataKey="engaged"
-                    type="natural"
-                    fill="url(#fillEngaged)"
-                    fillOpacity={0.4}
-                    stroke="var(--color-engaged)"
-                    stackId="a"
-                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
                 </AreaChart>
               </ChartContainer>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-blue-600">{Math.round((marketingData.engaged / marketingData.totalReach) * 100)}%</div>
-                  <p className="text-xs text-muted-foreground">Engagement Rate</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-600">{Math.round((marketingData.followers / marketingData.engaged) * 100)}%</div>
-                  <p className="text-xs text-muted-foreground">Follower Conversion</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600">+84%</div>
-                  <p className="text-xs text-muted-foreground">6-Month Growth</p>
-                </div>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-2xl font-bold">{(marketingData.totalReach / 1000).toFixed(0)}K</span>
+                <span className="text-xs text-green-600">+84% growth</span>
               </div>
             </CardContent>
-            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
-              <div className="flex items-center gap-2 leading-none font-medium text-blue-600">
-                <TrendingUp className="h-3 w-3" />
-                Action: Improve 13% engagement rate with more interactive content
-              </div>
-              <div className="text-muted-foreground leading-none">
-                Great reach growth! Focus on engagement to convert more viewers into loyal followers.
-              </div>
-            </CardFooter>
           </Card>
-        </div>
 
-        {/* Fan Engagement Realm */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <div className="p-2 bg-primary/10 rounded-md">
-              <Heart className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium">Fan Engagement Pipeline</h3>
-              <p className="text-xs text-muted-foreground">Building deeper connections with your audience</p>
-            </div>
-          </div>
-          
-          {/* Fan Conversion Efficiency */}
+          {/* Engaged Audience */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-medium">Fan Conversion Efficiency</CardTitle>
-              <CardDescription className="text-xs">Focus: Improve super fan conversion rate for higher lifetime value</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Engaged Audience</CardTitle>
+              <CardDescription className="text-xs">Active interactions</CardDescription>
             </CardHeader>
-            <CardContent className="pb-0">
-              <ChartContainer config={fanEngagementChartConfig} className="h-[200px] w-full">
-                <LineChart
-                  accessibilityLayer
-                  data={fanConversionTrendData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="month"
-                    tickLine={false}
-                    axisLine={false}
-                    tickMargin={8}
+            <CardContent>
+              <div className="text-3xl font-bold">{(marketingData.engaged / 1000).toFixed(1)}K</div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-primary rounded-full"
+                    style={{ width: `${(marketingData.engaged / marketingData.totalReach) * 100}%` }}
                   />
-                  <YAxis hide />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                  <Line
-                    dataKey="conversionRate"
-                    type="monotone"
-                    stroke="var(--color-conversionRate)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                  <Line
-                    dataKey="superFanRate"
-                    type="monotone"
-                    stroke="var(--color-superFanRate)"
-                    strokeWidth={2}
-                    dot={false}
-                  />
-                </LineChart>
-              </ChartContainer>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-blue-600">{Math.round((fanEngagementData.fans / fanEngagementData.capturedData) * 100)}%</div>
-                  <p className="text-xs text-muted-foreground">Data → Fans</p>
                 </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-red-600">{Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100)}%</div>
-                  <p className="text-xs text-muted-foreground">Fans → Super Fans</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-600">{fanEngagementData.superFans}</div>
-                  <p className="text-xs text-muted-foreground">VIP Members</p>
-                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">13.3%</span>
               </div>
             </CardContent>
-            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
-              <div className="flex items-center gap-2 leading-none font-medium text-red-600">
-                <Heart className="h-3 w-3" />
-                Action: Low 4.7% super fan conversion - create VIP exclusive content
-              </div>
-              <div className="text-muted-foreground leading-none">
-                Super fans generate 5x more revenue. Focus on deeper engagement with existing fans.
-              </div>
-            </CardFooter>
           </Card>
-        </div>
 
-        {/* Conversion Realm */}
-        <div className="space-y-4">
-          <div className="flex items-center gap-2 px-1">
-            <div className="p-2 bg-primary/10 rounded-md">
-              <DollarSign className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <h3 className="text-sm font-medium">Conversion Pipeline</h3>
-              <p className="text-xs text-muted-foreground">Revenue generation from leads to sales</p>
-            </div>
-          </div>
-          
-          {/* Revenue Conversion Funnel */}
+          {/* Total Followers */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-4">
-              <CardTitle className="text-sm font-medium">Revenue Conversion Funnel</CardTitle>
-              <CardDescription className="text-xs">Focus: Improve 27% lead-to-opportunity conversion rate</CardDescription>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Total Followers</CardTitle>
+              <CardDescription className="text-xs">Across all platforms</CardDescription>
             </CardHeader>
-            <CardContent className="pb-0">
-              <ChartContainer config={conversionChartConfig} className="h-[250px] w-full">
-                <BarChart
-                  accessibilityLayer
-                  data={conversionComparisonData}
-                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
-                >
-                  <CartesianGrid vertical={false} />
-                  <XAxis
-                    dataKey="stage"
-                    tickLine={false}
-                    tickMargin={10}
-                    axisLine={false}
-                  />
-                  <YAxis hide />
-                  <ChartTooltip 
-                    content={<ChartTooltipContent hideLabel />}
-                    cursor={false}
-                  />
-                  <Bar dataKey="count" fill="hsl(var(--chart-1))" radius={4}>
-                    {conversionComparisonData.map((entry, index) => (
-                      <Cell key={`cell-${index}`} fill={entry.fill} />
-                    ))}
-                  </Bar>
-                </BarChart>
-              </ChartContainer>
-              <div className="flex justify-between items-center mt-4 pt-4 border-t">
-                <div className="text-center">
-                  <div className="text-lg font-bold text-red-600">27%</div>
-                  <p className="text-xs text-muted-foreground">Leads → Opportunities</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-green-600">38%</div>
-                  <p className="text-xs text-muted-foreground">Opportunities → Sales</p>
-                </div>
-                <div className="text-center">
-                  <div className="text-lg font-bold text-purple-600">10%</div>
-                  <p className="text-xs text-muted-foreground">Overall Conversion</p>
-                </div>
-              </div>
+            <CardContent>
+              <div className="text-3xl font-bold text-purple-600">{(marketingData.followers / 1000).toFixed(1)}K</div>
+              <p className="text-xs text-muted-foreground mt-2">
+                <TrendingUp className="inline h-3 w-3 mr-1" />
+                46% conversion rate
+              </p>
             </CardContent>
-            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
-              <div className="flex items-center gap-2 leading-none font-medium text-red-600">
-                <DollarSign className="h-3 w-3" />
-                Action: 27% lead conversion is low - improve qualification process
-              </div>
-              <div className="text-muted-foreground leading-none">
-                Good close rate (38%)! Focus on better lead qualification to increase opportunities.
-              </div>
-            </CardFooter>
           </Card>
         </div>
       </div>
 
-      {/* Business Health Summary */}
-      <Card className="bg-sidebar">
-        <CardHeader>
-          <CardTitle className="text-sm font-medium">Business Health Summary</CardTitle>
-          <CardDescription className="text-xs">
-            Overall performance across all pipeline realms
-          </CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-4 md:grid-cols-4">
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-red-500" />
-                <span className="text-xs font-medium">Production Health</span>
-              </div>
-              <p className="text-lg font-bold text-red-600">Needs Work</p>
-              <p className="text-xs text-muted-foreground">
-                {Math.round((productionData.finished / (productionData.unfinished + productionData.finished)) * 100)}% completion rate - complete more projects
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-blue-500" />
-                <span className="text-xs font-medium">Reach Efficiency</span>
-              </div>
-              <p className="text-lg font-bold text-blue-600">Good</p>
-              <p className="text-xs text-muted-foreground">
-                13.3% engagement rate - growing well
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-red-500" />
-                <span className="text-xs font-medium">Fan Conversion</span>
-              </div>
-              <p className="text-lg font-bold text-red-600">Critical</p>
-              <p className="text-xs text-muted-foreground">
-                4.7% super fan rate - needs VIP strategy
-              </p>
-            </div>
-            
-            <div className="space-y-2">
-              <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-yellow-500" />
-                <span className="text-xs font-medium">Sales Conversion</span>
-              </div>
-              <p className="text-lg font-bold text-yellow-600">Opportunity</p>
-              <p className="text-xs text-muted-foreground">
-                27% lead conversion - improve qualification
-              </p>
-            </div>
+      {/* Fan Engagement */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-md">
+            <Heart className="h-5 w-5 text-primary" />
           </div>
-        </CardContent>
-      </Card>
+          <div>
+            <h2 className="text-lg font-semibold">Fan Engagement</h2>
+            <p className="text-sm text-muted-foreground">Build deeper connections with your audience</p>
+          </div>
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Captured Data */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Data Captured</CardTitle>
+              <CardDescription className="text-xs">Email & contact info</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold">{(fanEngagementData.capturedData / 1000).toFixed(1)}K</div>
+              <p className="text-xs text-muted-foreground mt-2">
+                <Users className="inline h-3 w-3 mr-1" />
+                Potential fan base
+              </p>
+            </CardContent>
+          </Card>
+
+          {/* Active Fans with Line Chart */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Active Fans</CardTitle>
+              <CardDescription className="text-xs">Growth over time</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <ChartContainer config={engagementChartConfig} className="h-[100px] w-full">
+                <LineChart data={fanEngagementTrendData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <Line
+                    type="monotone"
+                    dataKey="fans"
+                    stroke="var(--color-fans)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </LineChart>
+              </ChartContainer>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-2xl font-bold">{(fanEngagementData.fans / 1000).toFixed(1)}K</span>
+                <span className="text-xs text-yellow-600">37.6% conversion</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Super Fans with RadialBar */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Super Fans</CardTitle>
+              <CardDescription className="text-xs">Your most loyal supporters</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-0">
+              <ChartContainer config={{
+                superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
+              }} className="h-[140px] w-full">
+                <RadialBarChart 
+                  cx="50%" 
+                  cy="50%" 
+                  innerRadius="60%" 
+                  outerRadius="90%" 
+                  data={[{
+                    name: "superFans",
+                    value: Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100),
+                    fill: "hsl(var(--chart-3))"
+                  }]}
+                >
+                  <PolarGrid gridType="circle" radialLines={false} stroke="none" />
+                  <RadialBar dataKey="value" cornerRadius={10} />
+                  <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                    <Label
+                      content={({ viewBox }) => {
+                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                          return (
+                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
+                              <tspan x={viewBox.cx} y={viewBox.cy} className="text-3xl font-bold fill-foreground">
+                                {fanEngagementData.superFans}
+                              </tspan>
+                              <tspan x={viewBox.cx} y={(viewBox.cy || 0) + 20} className="text-xs fill-muted-foreground">
+                                VIP Members
+                              </tspan>
+                            </text>
+                          );
+                        }
+                      }}
+                    />
+                  </PolarRadiusAxis>
+                </RadialBarChart>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Conversion Pipeline */}
+      <div className="space-y-4">
+        <div className="flex items-center gap-2">
+          <div className="p-2 bg-primary/10 rounded-md">
+            <DollarSign className="h-5 w-5 text-primary" />
+          </div>
+          <div>
+            <h2 className="text-lg font-semibold">Conversion Pipeline</h2>
+            <p className="text-sm text-muted-foreground">Transform interest into revenue</p>
+          </div>
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-3">
+          {/* Leads with Bar Chart */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Lead Generation</CardTitle>
+              <CardDescription className="text-xs">Funnel performance</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-2">
+              <ChartContainer config={conversionChartConfig} className="h-[100px] w-full">
+                <BarChart data={conversionFunnelData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+                  <Bar dataKey="value" fill="var(--color-value)" radius={4} />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                </BarChart>
+              </ChartContainer>
+              <div className="flex justify-between items-center mt-2">
+                <span className="text-2xl font-bold">{conversionData.leads}</span>
+                <span className="text-xs text-muted-foreground">Total leads</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Opportunities */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Opportunities</CardTitle>
+              <CardDescription className="text-xs">Qualified prospects</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-yellow-600">{conversionData.opportunities}</div>
+              <div className="flex items-center gap-2 mt-2">
+                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-yellow-600 rounded-full"
+                    style={{ width: `${(conversionData.opportunities / conversionData.leads) * 100}%` }}
+                  />
+                </div>
+                <span className="text-xs text-muted-foreground whitespace-nowrap">27% conversion</span>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Sales */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium">Closed Sales</CardTitle>
+              <CardDescription className="text-xs">Successful conversions</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="text-3xl font-bold text-green-600">{conversionData.sales}</div>
+              <p className="text-xs text-muted-foreground mt-2">
+                <Zap className="inline h-3 w-3 mr-1" />
+                38% close rate
+              </p>
+              <p className="text-xs font-medium mt-1">
+                Revenue: ${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}
+              </p>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
     </div>
   )
 }
