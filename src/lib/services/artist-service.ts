@@ -307,4 +307,50 @@ export class ArtistService {
       return false;
     }
   }
+
+  /**
+   * Get business pipeline metrics
+   */
+  static async getPipelineMetrics(userId: string): Promise<{
+    production: { unfinished: number; finished: number; released: number };
+    marketing: { totalReach: number; engagedAudience: number; totalFollowers: number; youtubeSubscribers: number };
+    fanEngagement: { capturedData: number; fans: number; superFans: number };
+    conversion: { leads: number; opportunities: number; sales: number; revenue: number };
+  } | null> {
+    try {
+      const { data, error } = await supabase.rpc('get_pipeline_metrics', {
+        artist_id: userId
+      });
+
+      if (error) throw error;
+      
+      return {
+        production: {
+          unfinished: data?.production?.unfinished || 0,
+          finished: data?.production?.finished || 0,
+          released: data?.production?.released || 0
+        },
+        marketing: {
+          totalReach: data?.marketing?.total_reach || 0,
+          engagedAudience: data?.marketing?.engaged_audience || 0,
+          totalFollowers: data?.marketing?.total_followers || 0,
+          youtubeSubscribers: data?.marketing?.youtube_subscribers || 0
+        },
+        fanEngagement: {
+          capturedData: data?.fan_engagement?.captured_data || 0,
+          fans: data?.fan_engagement?.fans || 0,
+          superFans: data?.fan_engagement?.super_fans || 0
+        },
+        conversion: {
+          leads: data?.conversion?.leads || 0,
+          opportunities: data?.conversion?.opportunities || 0,
+          sales: data?.conversion?.sales || 0,
+          revenue: data?.conversion?.revenue || 0
+        }
+      };
+    } catch (error) {
+      console.error('Error fetching pipeline metrics:', error);
+      return null;
+    }
+  }
 }
