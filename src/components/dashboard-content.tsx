@@ -1,7 +1,7 @@
 "use client"
 
 import * as React from "react"
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
+import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import {
   TrendingUp,
   Users,
@@ -16,22 +16,14 @@ import {
 } from "lucide-react"
 import {
   ChartContainer,
-  ChartTooltip,
-  ChartTooltipContent,
-  ChartLegend,
-  ChartLegendContent,
+  ChartConfig,
 } from "@/components/ui/chart"
-import { 
-  Area, 
-  AreaChart, 
-  Bar, 
-  BarChart, 
-  CartesianGrid, 
-  XAxis, 
-  YAxis,
-  Pie,
-  PieChart,
-  Cell
+import {
+  Label,
+  PolarGrid,
+  PolarRadiusAxis,
+  RadialBar,
+  RadialBarChart,
 } from "recharts"
 import { useArtist } from "@/contexts/artist-context"
 
@@ -91,97 +83,16 @@ export function DashboardContent() {
     sales: 45,
   };
 
-  // Chart configurations following Shadcn/UI patterns
-  const productionChartConfig = {
-    unfinished: {
-      label: "Unfinished",
-      color: "hsl(var(--chart-1))",
+  // Radial chart configurations following Shadcn/UI patterns
+  const radialChartConfig = {
+    visitors: {
+      label: "Value",
     },
-    finished: {
-      label: "Finished", 
+    data: {
+      label: "Data",
       color: "hsl(var(--chart-2))",
     },
-    released: {
-      label: "Released",
-      color: "hsl(var(--chart-3))",
-    },
-  }
-
-  const marketingChartConfig = {
-    totalReach: {
-      label: "Total Reach",
-      color: "hsl(var(--chart-1))",
-    },
-    engaged: {
-      label: "Engaged",
-      color: "hsl(var(--chart-2))",
-    },
-    followers: {
-      label: "Followers",
-      color: "hsl(var(--chart-3))",
-    },
-  }
-
-  const fanEngagementChartConfig = {
-    capturedData: {
-      label: "Captured Data",
-      color: "hsl(var(--chart-1))",
-    },
-    fans: {
-      label: "Fans",
-      color: "hsl(var(--chart-2))",
-    },
-    superFans: {
-      label: "Super Fans",
-      color: "hsl(var(--chart-3))",
-    },
-  }
-
-  const conversionChartConfig = {
-    leads: {
-      label: "Leads",
-      color: "hsl(var(--chart-1))",
-    },
-    opportunities: {
-      label: "Opportunities", 
-      color: "hsl(var(--chart-2))",
-    },
-    sales: {
-      label: "Sales",
-      color: "hsl(var(--chart-3))",
-    },
-  }
-
-  // Chart data following Shadcn/UI patterns
-  const productionChartData = [
-    { stage: "Unfinished", value: productionData.unfinished, fill: "var(--color-unfinished)" },
-    { stage: "Finished", value: productionData.finished, fill: "var(--color-finished)" },
-    { stage: "Released", value: productionData.released, fill: "var(--color-released)" },
-  ]
-
-  const marketingTrendData = [
-    { month: "January", totalReach: 186000, engaged: 24000, followers: 18000 },
-    { month: "February", totalReach: 205000, engaged: 26000, followers: 19200 },
-    { month: "March", totalReach: 237000, engaged: 30800, followers: 19800 },
-    { month: "April", totalReach: 273000, engaged: 35500, followers: 20400 },
-    { month: "May", totalReach: 309000, engaged: 40200, followers: 20800 },
-    { month: "June", totalReach: marketingData.totalReach, engaged: marketingData.engaged, followers: marketingData.followers },
-  ]
-
-  const fanEngagementTrendData = [
-    { month: "January", capturedData: 6500, fans: 2400, superFans: 120 },
-    { month: "February", capturedData: 7200, fans: 2650, superFans: 125 },
-    { month: "March", capturedData: 7600, fans: 2800, superFans: 132 },
-    { month: "April", capturedData: 7950, fans: 2920, superFans: 138 },
-    { month: "May", capturedData: 8200, fans: 3050, superFans: 144 },
-    { month: "June", capturedData: fanEngagementData.capturedData, fans: fanEngagementData.fans, superFans: fanEngagementData.superFans },
-  ]
-
-  const conversionBarData = [
-    { stage: "Leads", value: conversionData.leads, fill: "var(--color-leads)" },
-    { stage: "Opportunities", value: conversionData.opportunities, fill: "var(--color-opportunities)" },
-    { stage: "Sales", value: conversionData.sales, fill: "var(--color-sales)" },
-  ]
+  } satisfies ChartConfig
 
   if (isDashboardLoading || isLoadingMetrics) {
     return (
@@ -260,268 +171,912 @@ export function DashboardContent() {
         </Card>
       </div>
 
-      {/* Business Pipeline Charts */}
-      <div className="grid gap-6 md:grid-cols-2">
-        {/* Production Pipeline - Pie Chart */}
-        <Card>
+      {/* Business Pipeline Realms */}
+      <div className="space-y-6">
+        {/* Production Pipeline Realm */}
+        <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Production Pipeline</CardTitle>
-            <CardDescription>
-              Current distribution of your creative output
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary/10 rounded-md">
+                  <Package className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Production Pipeline</CardTitle>
+                  <CardDescription>Your product, your releases - from idea to market</CardDescription>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer
-              config={productionChartConfig}
-              className="mx-auto aspect-square max-h-[250px]"
-            >
-              <PieChart>
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-                <Pie
-                  data={productionChartData}
-                  dataKey="value"
-                  nameKey="stage"
-                  innerRadius={60}
-                  strokeWidth={5}
-                >
-                  <Cell fill="var(--color-unfinished)" />
-                  <Cell fill="var(--color-finished)" />
-                  <Cell fill="var(--color-released)" />
-                </Pie>
-              </PieChart>
-            </ChartContainer>
-            <div className="flex items-center justify-center gap-4 mt-4">
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[--color-unfinished]"></div>
-                <span className="text-sm">Unfinished: {productionData.unfinished}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[--color-finished]"></div>
-                <span className="text-sm">Finished: {productionData.finished}</span>
-              </div>
-              <div className="flex items-center gap-2">
-                <div className="w-3 h-3 rounded-full bg-[--color-released]"></div>
-                <span className="text-sm">Released: {productionData.released}</span>
-              </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Unfinished */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Unfinished</CardTitle>
+                  <CardDescription>Ideas & demos in progress</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "unfinished", visitors: productionData.unfinished, fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {productionData.unfinished.toLocaleString()}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Projects
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    In development <Music className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Active creative work in progress
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Finished */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Finished</CardTitle>
+                  <CardDescription>Ready for release</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "finished", visitors: productionData.finished, fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {productionData.finished.toLocaleString()}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Ready
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    Ready to launch <Target className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Completed projects awaiting release
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Released */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Released</CardTitle>
+                  <CardDescription>Live in market</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "released", visitors: productionData.released, fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {productionData.released.toLocaleString()}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Live
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    Available to fans <Zap className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Published and generating revenue
+                  </div>
+                </CardFooter>
+              </Card>
             </div>
           </CardContent>
         </Card>
 
-        {/* Marketing Reach - Area Chart */}
-        <Card>
+        {/* Marketing Reach Realm */}
+        <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Marketing Reach Trend</CardTitle>
-            <CardDescription>
-              Showing growth across all marketing channels
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary/10 rounded-md">
+                  <Megaphone className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Marketing Reach</CardTitle>
+                  <CardDescription>Aggregate audience reach to engaged followers</CardDescription>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={marketingChartConfig} className="min-h-[250px]">
-              <AreaChart
-                accessibilityLayer
-                data={marketingTrendData}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent />}
-                />
-                <defs>
-                  <linearGradient id="fillTotalReach" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-totalReach)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-totalReach)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillEngaged" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-engaged)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-engaged)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                </defs>
-                <Area
-                  dataKey="engaged"
-                  type="natural"
-                  fill="url(#fillEngaged)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-engaged)"
-                  stackId="a"
-                />
-                <Area
-                  dataKey="totalReach"
-                  type="natural"
-                  fill="url(#fillTotalReach)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-totalReach)"
-                  stackId="a"
-                />
-              </AreaChart>
-            </ChartContainer>
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Total Reach */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Total Reach</CardTitle>
+                  <CardDescription>Aggregate audience across platforms</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "reach", visitors: Math.round(marketingData.totalReach / 1000), fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {Math.round(marketingData.totalReach / 1000)}K
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    People
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    Trending up by 12.5% <TrendingUp className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Total audience across all platforms
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Engaged Audience */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Engaged Audience</CardTitle>
+                  <CardDescription>Active listeners & viewers</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "engaged", visitors: Math.round(marketingData.engaged / 100), fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {Math.round(marketingData.engaged / 100)}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Hundreds
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    13.3% engagement rate <Heart className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    People actively engaging with content
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Followers */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Followers</CardTitle>
+                  <CardDescription>Loyal subscriber base</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "followers", visitors: Math.round(marketingData.followers / 100), fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {Math.round(marketingData.followers / 100)}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Hundreds
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    Growing steadily <Users className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Committed fans across platforms
+                  </div>
+                </CardFooter>
+              </Card>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Fan Engagement - Area Chart */}
-        <Card>
+        {/* Fan Engagement Realm */}
+        <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Fan Engagement Pipeline</CardTitle>
-            <CardDescription>
-              Building deeper connections over time
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary/10 rounded-md">
+                  <Heart className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Fan Engagement Pipeline</CardTitle>
+                  <CardDescription>Building deeper connections with your audience</CardDescription>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={fanEngagementChartConfig} className="min-h-[250px]">
-              <AreaChart
-                accessibilityLayer
-                data={fanEngagementTrendData}
-                margin={{
-                  left: 12,
-                  right: 12,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="month"
-                  tickLine={false}
-                  axisLine={false}
-                  tickMargin={8}
-                  tickFormatter={(value) => value.slice(0, 3)}
-                />
-                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
-                <defs>
-                  <linearGradient id="fillCapturedData" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-capturedData)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-capturedData)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillFans" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-fans)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-fans)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                  <linearGradient id="fillSuperFans" x1="0" y1="0" x2="0" y2="1">
-                    <stop
-                      offset="5%"
-                      stopColor="var(--color-superFans)"
-                      stopOpacity={0.8}
-                    />
-                    <stop
-                      offset="95%"
-                      stopColor="var(--color-superFans)"
-                      stopOpacity={0.1}
-                    />
-                  </linearGradient>
-                </defs>
-                <Area
-                  dataKey="superFans"
-                  type="natural"
-                  fill="url(#fillSuperFans)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-superFans)"
-                />
-                <Area
-                  dataKey="fans"
-                  type="natural"
-                  fill="url(#fillFans)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-fans)"
-                />
-                <Area
-                  dataKey="capturedData"
-                  type="natural"
-                  fill="url(#fillCapturedData)"
-                  fillOpacity={0.4}
-                  stroke="var(--color-capturedData)"
-                />
-              </AreaChart>
-            </ChartContainer>
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Captured Data */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Captured Data</CardTitle>
+                  <CardDescription>Email list & contact info</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "captured", visitors: Math.round(fanEngagementData.capturedData / 100), fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {Math.round(fanEngagementData.capturedData / 100)}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Hundreds
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    Growing database <Users className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Direct contact information collected
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Fans */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Fans</CardTitle>
+                  <CardDescription>Regular supporters</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "fans", visitors: Math.round(fanEngagementData.fans / 10), fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {Math.round(fanEngagementData.fans / 10)}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Tens
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    4.7% conversion rate <Heart className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    People who regularly engage
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Super Fans */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Super Fans</CardTitle>
+                  <CardDescription>VIP community members</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "superfans", visitors: fanEngagementData.superFans, fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {fanEngagementData.superFans.toLocaleString()}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    VIPs
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    Premium supporters <Star className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Highest value audience segment
+                  </div>
+                </CardFooter>
+              </Card>
+            </div>
           </CardContent>
         </Card>
 
-        {/* Conversion Pipeline - Bar Chart */}
-        <Card>
+        {/* Conversion Realm */}
+        <Card className="col-span-full">
           <CardHeader>
-            <CardTitle>Conversion Pipeline</CardTitle>
-            <CardDescription>
-              Revenue generation funnel performance
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <div className="p-2 bg-primary/10 rounded-md">
+                  <DollarSign className="h-5 w-5 text-primary" />
+                </div>
+                <div>
+                  <CardTitle className="text-lg">Conversion Pipeline</CardTitle>
+                  <CardDescription>Revenue generation from leads to sales</CardDescription>
+                </div>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
-            <ChartContainer config={conversionChartConfig} className="min-h-[250px]">
-              <BarChart
-                accessibilityLayer
-                data={conversionBarData}
-                margin={{
-                  top: 20,
-                }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
-                  dataKey="stage"
-                  tickLine={false}
-                  tickMargin={10}
-                  axisLine={false}
-                />
-                <ChartTooltip
-                  cursor={false}
-                  content={<ChartTooltipContent hideLabel />}
-                />
-                <Bar dataKey="value" fill="var(--color-leads)" radius={8} />
-              </BarChart>
-            </ChartContainer>
-            <div className="flex items-center justify-center gap-6 mt-4">
-              <div className="text-center">
-                <div className="text-2xl font-bold">{conversionData.leads}</div>
-                <p className="text-xs text-muted-foreground">Leads</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">{conversionData.opportunities}</div>
-                <p className="text-xs text-muted-foreground">Opportunities</p>
-              </div>
-              <div className="text-center">
-                <div className="text-2xl font-bold">{conversionData.sales}</div>
-                <p className="text-xs text-muted-foreground">Sales</p>
-              </div>
+            <div className="grid gap-6 md:grid-cols-3">
+              {/* Leads */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Leads</CardTitle>
+                  <CardDescription>Interested potential buyers</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "leads", visitors: conversionData.leads, fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {conversionData.leads.toLocaleString()}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Prospects
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    Active pipeline <Users className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    People showing purchase intent
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Opportunities */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Opportunities</CardTitle>
+                  <CardDescription>Active deals in progress</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "opportunities", visitors: conversionData.opportunities, fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {conversionData.opportunities.toLocaleString()}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Deals
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    26.7% conversion rate <Target className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Qualified leads in negotiation
+                  </div>
+                </CardFooter>
+              </Card>
+
+              {/* Sales */}
+              <Card className="flex flex-col">
+                <CardHeader className="items-center pb-0">
+                  <CardTitle>Sales</CardTitle>
+                  <CardDescription>Closed won deals</CardDescription>
+                </CardHeader>
+                <CardContent className="flex-1 pb-0">
+                  <ChartContainer
+                    config={radialChartConfig}
+                    className="mx-auto aspect-square max-h-[250px]"
+                  >
+                    <RadialBarChart
+                      data={[{ name: "sales", visitors: conversionData.sales, fill: "var(--color-data)" }]}
+                      endAngle={100}
+                      innerRadius={80}
+                      outerRadius={140}
+                    >
+                      <PolarGrid
+                        gridType="circle"
+                        radialLines={false}
+                        stroke="none"
+                        className="first:fill-muted last:fill-background"
+                        polarRadius={[86, 74]}
+                      />
+                      <RadialBar dataKey="visitors" background />
+                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
+                        <Label
+                          content={({ viewBox }) => {
+                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
+                              return (
+                                <text
+                                  x={viewBox.cx}
+                                  y={viewBox.cy}
+                                  textAnchor="middle"
+                                  dominantBaseline="middle"
+                                >
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={viewBox.cy}
+                                    className="fill-foreground text-4xl font-bold"
+                                  >
+                                    {conversionData.sales.toLocaleString()}
+                                  </tspan>
+                                  <tspan
+                                    x={viewBox.cx}
+                                    y={(viewBox.cy || 0) + 24}
+                                    className="fill-muted-foreground"
+                                  >
+                                    Won
+                                  </tspan>
+                                </text>
+                              )
+                            }
+                          }}
+                        />
+                      </PolarRadiusAxis>
+                    </RadialBarChart>
+                  </ChartContainer>
+                </CardContent>
+                <CardFooter className="flex-col gap-2 text-sm">
+                  <div className="flex items-center gap-2 leading-none font-medium">
+                    37.5% close rate <DollarSign className="h-4 w-4" />
+                  </div>
+                  <div className="text-muted-foreground leading-none">
+                    Successful transactions completed
+                  </div>
+                </CardFooter>
+              </Card>
             </div>
           </CardContent>
         </Card>
