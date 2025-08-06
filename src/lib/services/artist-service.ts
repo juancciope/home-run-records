@@ -211,7 +211,7 @@ export class ArtistService {
   /**
    * Get artist profile with enhanced data
    */
-  static async getArtistProfile(userId: string) {
+  static async getArtistProfile(userId: string, userEmail?: string) {
     try {
       const { data, error } = await supabase
         .from('users')
@@ -221,10 +221,10 @@ export class ArtistService {
 
       if (error) {
         console.warn('Users table not found or error accessing it:', error);
-        // Return mock profile data when table doesn't exist
+        // Return profile data with actual user email when table doesn't exist
         return {
           id: userId,
-          email: 'artist@example.com',
+          email: userEmail || 'artist@example.com',
           artist_name: 'Demo Artist',
           created_at: new Date().toISOString(),
           viberate_artist_id: null
@@ -233,10 +233,10 @@ export class ArtistService {
       return data;
     } catch (error) {
       console.error('Error fetching artist profile:', error);
-      // Return mock profile data as fallback
+      // Return profile data with actual user email as fallback
       return {
         id: userId,
-        email: 'artist@example.com', 
+        email: userEmail || 'artist@example.com', 
         artist_name: 'Demo Artist',
         created_at: new Date().toISOString(),
         viberate_artist_id: null

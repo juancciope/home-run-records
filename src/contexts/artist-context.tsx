@@ -81,12 +81,12 @@ export function ArtistProvider({ children }: ArtistProviderProps) {
       const currentUser = await getCurrentUser();
       
       if (currentUser) {
-        // Get full artist profile
-        const profile = await ArtistService.getArtistProfile(currentUser.id);
+        // Get full artist profile, passing the actual user email from auth
+        const profile = await ArtistService.getArtistProfile(currentUser.id, currentUser.email);
         if (profile) {
           setUser({
             id: profile.id,
-            email: profile.email,
+            email: profile.email || currentUser.email || '',
             artist_name: profile.artist_name,
             stage_name: profile.stage_name,
             genre: profile.genre,
