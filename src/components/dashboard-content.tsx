@@ -2,9 +2,6 @@
 
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import {
   TrendingUp,
   Users,
@@ -14,7 +11,6 @@ import {
   Megaphone,
   Target,
   Music,
-  ArrowRight,
   Star,
   Zap,
 } from "lucide-react"
@@ -22,153 +18,22 @@ import {
   ChartContainer,
   ChartTooltip,
   ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart"
-import { Bar, BarChart, XAxis, YAxis, ResponsiveContainer } from "recharts"
+import { 
+  Area, 
+  AreaChart, 
+  Bar, 
+  BarChart, 
+  CartesianGrid, 
+  XAxis, 
+  YAxis,
+  Pie,
+  PieChart,
+  Cell
+} from "recharts"
 import { useArtist } from "@/contexts/artist-context"
-
-// Pipeline stage component following Shadcn/UI patterns
-interface PipelineStageProps {
-  title: string
-  value: number
-  icon: React.ElementType
-  description: string
-  isLast?: boolean
-  conversionRate?: number
-  trend?: "up" | "down" | "neutral"
-}
-
-const PipelineStage: React.FC<PipelineStageProps> = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  description, 
-  isLast = false,
-  conversionRate,
-  trend = "neutral"
-}) => {
-  const trendColor = trend === "up" ? "text-green-600" : trend === "down" ? "text-red-600" : "text-muted-foreground"
-  
-  return (
-    <div className="flex items-center gap-4">
-      <Card className="flex-1">
-        <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-          <CardTitle className="text-sm font-medium">{title}</CardTitle>
-          <Icon className="h-4 w-4 text-muted-foreground" />
-        </CardHeader>
-        <CardContent>
-          <div className="text-2xl font-bold">{value.toLocaleString()}</div>
-          <p className="text-xs text-muted-foreground">{description}</p>
-          {conversionRate && (
-            <div className="mt-2">
-              <div className="flex items-center justify-between text-xs">
-                <span>Conversion</span>
-                <span className={trendColor}>{conversionRate}%</span>
-              </div>
-              <Progress value={conversionRate} className="mt-1 h-1" />
-            </div>
-          )}
-        </CardContent>
-      </Card>
-      {!isLast && (
-        <ArrowRight className="h-6 w-6 text-muted-foreground flex-shrink-0" />
-      )}
-    </div>
-  )
-}
-
-// Business realm card component
-interface BusinessRealmCardProps {
-  title: string
-  description: string
-  icon: React.ElementType
-  stages: {
-    title: string
-    value: number
-    icon: React.ElementType
-    description: string
-    conversionRate?: number
-    trend?: "up" | "down" | "neutral"
-  }[]
-  chartData?: { name: string; value: number }[]
-}
-
-const BusinessRealmCard: React.FC<BusinessRealmCardProps> = ({ 
-  title, 
-  description, 
-  icon: Icon, 
-  stages,
-  chartData 
-}) => {
-  return (
-    <Card className="col-span-full">
-      <CardHeader>
-        <div className="flex items-center justify-between">
-          <div className="flex items-center gap-2">
-            <div className="p-2 bg-primary/10 rounded-md">
-              <Icon className="h-5 w-5 text-primary" />
-            </div>
-            <div>
-              <CardTitle className="text-lg">{title}</CardTitle>
-              <CardDescription>{description}</CardDescription>
-            </div>
-          </div>
-          <Button size="sm">
-            View Details
-          </Button>
-        </div>
-      </CardHeader>
-      <CardContent>
-        <div className="grid gap-4">
-          <div className="flex items-center gap-4">
-            {stages.map((stage, index) => (
-              <PipelineStage
-                key={stage.title}
-                title={stage.title}
-                value={stage.value}
-                icon={stage.icon}
-                description={stage.description}
-                conversionRate={stage.conversionRate}
-                trend={stage.trend}
-                isLast={index === stages.length - 1}
-              />
-            ))}
-          </div>
-          {chartData && chartData.length > 0 && (
-            <div className="mt-4">
-              <ChartContainer
-                config={{
-                  value: {
-                    label: "Value",
-                    color: "hsl(var(--primary))",
-                  },
-                }}
-                className="h-[200px] w-full"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={chartData}>
-                    <XAxis 
-                      dataKey="name" 
-                      tick={{ fontSize: 12 }}
-                      tickLine={false}
-                      axisLine={false}
-                    />
-                    <YAxis hide />
-                    <ChartTooltip content={<ChartTooltipContent />} />
-                    <Bar 
-                      dataKey="value" 
-                      fill="var(--color-value)"
-                      radius={4}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </div>
-          )}
-        </div>
-      </CardContent>
-    </Card>
-  )
-}
 
 export function DashboardContent() {
   const { user, isDashboardLoading } = useArtist();
@@ -226,6 +91,98 @@ export function DashboardContent() {
     sales: 45,
   };
 
+  // Chart configurations following Shadcn/UI patterns
+  const productionChartConfig = {
+    unfinished: {
+      label: "Unfinished",
+      color: "hsl(var(--chart-1))",
+    },
+    finished: {
+      label: "Finished", 
+      color: "hsl(var(--chart-2))",
+    },
+    released: {
+      label: "Released",
+      color: "hsl(var(--chart-3))",
+    },
+  }
+
+  const marketingChartConfig = {
+    totalReach: {
+      label: "Total Reach",
+      color: "hsl(var(--chart-1))",
+    },
+    engaged: {
+      label: "Engaged",
+      color: "hsl(var(--chart-2))",
+    },
+    followers: {
+      label: "Followers",
+      color: "hsl(var(--chart-3))",
+    },
+  }
+
+  const fanEngagementChartConfig = {
+    capturedData: {
+      label: "Captured Data",
+      color: "hsl(var(--chart-1))",
+    },
+    fans: {
+      label: "Fans",
+      color: "hsl(var(--chart-2))",
+    },
+    superFans: {
+      label: "Super Fans",
+      color: "hsl(var(--chart-3))",
+    },
+  }
+
+  const conversionChartConfig = {
+    leads: {
+      label: "Leads",
+      color: "hsl(var(--chart-1))",
+    },
+    opportunities: {
+      label: "Opportunities", 
+      color: "hsl(var(--chart-2))",
+    },
+    sales: {
+      label: "Sales",
+      color: "hsl(var(--chart-3))",
+    },
+  }
+
+  // Chart data following Shadcn/UI patterns
+  const productionChartData = [
+    { stage: "Unfinished", value: productionData.unfinished, fill: "var(--color-unfinished)" },
+    { stage: "Finished", value: productionData.finished, fill: "var(--color-finished)" },
+    { stage: "Released", value: productionData.released, fill: "var(--color-released)" },
+  ]
+
+  const marketingTrendData = [
+    { month: "January", totalReach: 186000, engaged: 24000, followers: 18000 },
+    { month: "February", totalReach: 205000, engaged: 26000, followers: 19200 },
+    { month: "March", totalReach: 237000, engaged: 30800, followers: 19800 },
+    { month: "April", totalReach: 273000, engaged: 35500, followers: 20400 },
+    { month: "May", totalReach: 309000, engaged: 40200, followers: 20800 },
+    { month: "June", totalReach: marketingData.totalReach, engaged: marketingData.engaged, followers: marketingData.followers },
+  ]
+
+  const fanEngagementTrendData = [
+    { month: "January", capturedData: 6500, fans: 2400, superFans: 120 },
+    { month: "February", capturedData: 7200, fans: 2650, superFans: 125 },
+    { month: "March", capturedData: 7600, fans: 2800, superFans: 132 },
+    { month: "April", capturedData: 7950, fans: 2920, superFans: 138 },
+    { month: "May", capturedData: 8200, fans: 3050, superFans: 144 },
+    { month: "June", capturedData: fanEngagementData.capturedData, fans: fanEngagementData.fans, superFans: fanEngagementData.superFans },
+  ]
+
+  const conversionBarData = [
+    { stage: "Leads", value: conversionData.leads, fill: "var(--color-leads)" },
+    { stage: "Opportunities", value: conversionData.opportunities, fill: "var(--color-opportunities)" },
+    { stage: "Sales", value: conversionData.sales, fill: "var(--color-sales)" },
+  ]
+
   if (isDashboardLoading || isLoadingMetrics) {
     return (
       <div className="space-y-6">
@@ -234,7 +191,7 @@ export function DashboardContent() {
           <div className="h-4 bg-muted rounded w-1/2"></div>
           <div className="grid grid-cols-1 gap-6">
             {[...Array(4)].map((_, i) => (
-              <div key={i} className="h-48 bg-muted rounded-xl"></div>
+              <div key={i} className="h-[400px] bg-muted rounded-xl"></div>
             ))}
           </div>
         </div>
@@ -244,7 +201,7 @@ export function DashboardContent() {
 
   return (
     <div className="space-y-6">
-      {/* Overview Cards */}
+      {/* Overview KPI Cards */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
         <Card>
           <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
@@ -253,7 +210,10 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+20.1% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              <TrendingUp className="h-4 w-4 inline mr-1" />
+              +20.1% from last month
+            </p>
           </CardContent>
         </Card>
         
@@ -264,7 +224,10 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{marketingData.totalReach.toLocaleString()}</div>
-            <p className="text-xs text-muted-foreground">+180.1% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              <TrendingUp className="h-4 w-4 inline mr-1" />
+              +12.5% from last month
+            </p>
           </CardContent>
         </Card>
         
@@ -275,7 +238,10 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{fanEngagementData.superFans}</div>
-            <p className="text-xs text-muted-foreground">+19% from last month</p>
+            <p className="text-xs text-muted-foreground">
+              <TrendingUp className="h-4 w-4 inline mr-1" />
+              +4.2% from last month
+            </p>
           </CardContent>
         </Card>
         
@@ -286,177 +252,300 @@ export function DashboardContent() {
           </CardHeader>
           <CardContent>
             <div className="text-2xl font-bold">{productionData.unfinished + productionData.finished}</div>
-            <p className="text-xs text-muted-foreground">+2 from last week</p>
+            <p className="text-xs text-muted-foreground">
+              <TrendingUp className="h-4 w-4 inline mr-1" />
+              +2 from last week
+            </p>
           </CardContent>
         </Card>
       </div>
 
-      {/* Business Pipeline Realms */}
-      <div className="space-y-6">
-        {/* 1. Production Pipeline */}
-        <BusinessRealmCard
-          title="Production Pipeline"
-          description="Your product, your releases - from idea to market"
-          icon={Package}
-          stages={[
-            {
-              title: "Unfinished",
-              value: productionData.unfinished,
-              icon: Music,
-              description: "Ideas & demos in progress",
-              conversionRate: 42,
-              trend: "up"
-            },
-            {
-              title: "Finished",
-              value: productionData.finished,
-              icon: Target,
-              description: "Ready for release",
-              conversionRate: 85,
-              trend: "up"
-            },
-            {
-              title: "Released",
-              value: productionData.released,
-              icon: Zap,
-              description: "Live in market",
-              trend: "up"
-            }
-          ]}
-          chartData={[
-            { name: "Unfinished", value: productionData.unfinished },
-            { name: "Finished", value: productionData.finished },
-            { name: "Released", value: productionData.released }
-          ]}
-        />
+      {/* Business Pipeline Charts */}
+      <div className="grid gap-6 md:grid-cols-2">
+        {/* Production Pipeline - Pie Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Production Pipeline</CardTitle>
+            <CardDescription>
+              Current distribution of your creative output
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer
+              config={productionChartConfig}
+              className="mx-auto aspect-square max-h-[250px]"
+            >
+              <PieChart>
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+                <Pie
+                  data={productionChartData}
+                  dataKey="value"
+                  nameKey="stage"
+                  innerRadius={60}
+                  strokeWidth={5}
+                >
+                  <Cell fill="var(--color-unfinished)" />
+                  <Cell fill="var(--color-finished)" />
+                  <Cell fill="var(--color-released)" />
+                </Pie>
+              </PieChart>
+            </ChartContainer>
+            <div className="flex items-center justify-center gap-4 mt-4">
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[--color-unfinished]"></div>
+                <span className="text-sm">Unfinished: {productionData.unfinished}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[--color-finished]"></div>
+                <span className="text-sm">Finished: {productionData.finished}</span>
+              </div>
+              <div className="flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[--color-released]"></div>
+                <span className="text-sm">Released: {productionData.released}</span>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
 
-        {/* 2. Marketing Funnel */}
-        <BusinessRealmCard
-          title="Marketing Reach"
-          description="Aggregate audience reach to engaged followers"
-          icon={Megaphone}
-          stages={[
-            {
-              title: "Total Reach",
-              value: marketingData.totalReach,
-              icon: Users,
-              description: "Aggregate audience across platforms",
-              conversionRate: 13,
-              trend: "up"
-            },
-            {
-              title: "Engaged Audience",
-              value: marketingData.engaged,
-              icon: Heart,
-              description: "Active listeners & viewers",
-              conversionRate: 6,
-              trend: "up"
-            },
-            {
-              title: "Followers",
-              value: marketingData.followers,
-              icon: Star,
-              description: "Loyal subscriber base",
-              trend: "up"
-            }
-          ]}
-          chartData={[
-            { name: "Reach", value: Math.round(marketingData.totalReach / 1000) },
-            { name: "Engaged", value: Math.round(marketingData.engaged / 1000) },
-            { name: "Followers", value: Math.round(marketingData.followers / 1000) }
-          ]}
-        />
-        
-        {/* 3. Fan Engagement Pipeline */}
-        <BusinessRealmCard
-          title="Fan Engagement Pipeline"
-          description="Building deeper connections with your audience"
-          icon={Heart}
-          stages={[
-            {
-              title: "Captured Data",
-              value: fanEngagementData.capturedData,
-              icon: Users,
-              description: "Email list & contact info",
-              conversionRate: 38,
-              trend: "up"
-            },
-            {
-              title: "Fans",
-              value: fanEngagementData.fans,
-              icon: Heart,
-              description: "Regular supporters",
-              conversionRate: 5,
-              trend: "up"
-            },
-            {
-              title: "Super Fans",
-              value: fanEngagementData.superFans,
-              icon: Star,
-              description: "VIP community members",
-              trend: "up"
-            }
-          ]}
-          chartData={[
-            { name: "Data", value: Math.round(fanEngagementData.capturedData / 100) },
-            { name: "Fans", value: Math.round(fanEngagementData.fans / 100) },
-            { name: "Super", value: fanEngagementData.superFans }
-          ]}
-        />
-        
-        {/* 4. Conversion Funnel */}
-        <BusinessRealmCard
-          title="Conversion Pipeline"
-          description="Revenue generation from leads to sales"
-          icon={DollarSign}
-          stages={[
-            {
-              title: "Leads",
-              value: conversionData.leads,
-              icon: Users,
-              description: "Interested potential buyers",
-              conversionRate: 27,
-              trend: "up"
-            },
-            {
-              title: "Opportunities",
-              value: conversionData.opportunities,
-              icon: Target,
-              description: "Active deals in progress",
-              conversionRate: 38,
-              trend: "up"
-            },
-            {
-              title: "Sales",
-              value: conversionData.sales,
-              icon: DollarSign,
-              description: "Closed won deals",
-              trend: "up"
-            }
-          ]}
-          chartData={[
-            { name: "Leads", value: conversionData.leads },
-            { name: "Opportunities", value: conversionData.opportunities },
-            { name: "Sales", value: conversionData.sales }
-          ]}
-        />
+        {/* Marketing Reach - Area Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Marketing Reach Trend</CardTitle>
+            <CardDescription>
+              Showing growth across all marketing channels
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={marketingChartConfig} className="min-h-[250px]">
+              <AreaChart
+                accessibilityLayer
+                data={marketingTrendData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent />}
+                />
+                <defs>
+                  <linearGradient id="fillTotalReach" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-totalReach)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-totalReach)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient id="fillEngaged" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-engaged)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-engaged)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <Area
+                  dataKey="engaged"
+                  type="natural"
+                  fill="url(#fillEngaged)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-engaged)"
+                  stackId="a"
+                />
+                <Area
+                  dataKey="totalReach"
+                  type="natural"
+                  fill="url(#fillTotalReach)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-totalReach)"
+                  stackId="a"
+                />
+              </AreaChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Fan Engagement - Area Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Fan Engagement Pipeline</CardTitle>
+            <CardDescription>
+              Building deeper connections over time
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={fanEngagementChartConfig} className="min-h-[250px]">
+              <AreaChart
+                accessibilityLayer
+                data={fanEngagementTrendData}
+                margin={{
+                  left: 12,
+                  right: 12,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="month"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tickFormatter={(value) => value.slice(0, 3)}
+                />
+                <ChartTooltip cursor={false} content={<ChartTooltipContent />} />
+                <defs>
+                  <linearGradient id="fillCapturedData" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-capturedData)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-capturedData)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient id="fillFans" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-fans)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-fans)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                  <linearGradient id="fillSuperFans" x1="0" y1="0" x2="0" y2="1">
+                    <stop
+                      offset="5%"
+                      stopColor="var(--color-superFans)"
+                      stopOpacity={0.8}
+                    />
+                    <stop
+                      offset="95%"
+                      stopColor="var(--color-superFans)"
+                      stopOpacity={0.1}
+                    />
+                  </linearGradient>
+                </defs>
+                <Area
+                  dataKey="superFans"
+                  type="natural"
+                  fill="url(#fillSuperFans)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-superFans)"
+                />
+                <Area
+                  dataKey="fans"
+                  type="natural"
+                  fill="url(#fillFans)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-fans)"
+                />
+                <Area
+                  dataKey="capturedData"
+                  type="natural"
+                  fill="url(#fillCapturedData)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-capturedData)"
+                />
+              </AreaChart>
+            </ChartContainer>
+          </CardContent>
+        </Card>
+
+        {/* Conversion Pipeline - Bar Chart */}
+        <Card>
+          <CardHeader>
+            <CardTitle>Conversion Pipeline</CardTitle>
+            <CardDescription>
+              Revenue generation funnel performance
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <ChartContainer config={conversionChartConfig} className="min-h-[250px]">
+              <BarChart
+                accessibilityLayer
+                data={conversionBarData}
+                margin={{
+                  top: 20,
+                }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="stage"
+                  tickLine={false}
+                  tickMargin={10}
+                  axisLine={false}
+                />
+                <ChartTooltip
+                  cursor={false}
+                  content={<ChartTooltipContent hideLabel />}
+                />
+                <Bar dataKey="value" fill="var(--color-leads)" radius={8} />
+              </BarChart>
+            </ChartContainer>
+            <div className="flex items-center justify-center gap-6 mt-4">
+              <div className="text-center">
+                <div className="text-2xl font-bold">{conversionData.leads}</div>
+                <p className="text-xs text-muted-foreground">Leads</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{conversionData.opportunities}</div>
+                <p className="text-xs text-muted-foreground">Opportunities</p>
+              </div>
+              <div className="text-center">
+                <div className="text-2xl font-bold">{conversionData.sales}</div>
+                <p className="text-xs text-muted-foreground">Sales</p>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
       </div>
 
-      {/* Summary insights */}
+      {/* Business Health Summary */}
       <Card>
         <CardHeader>
           <CardTitle>Business Health Summary</CardTitle>
-          <CardDescription>Key insights across all pipeline realms</CardDescription>
+          <CardDescription>
+            Overall performance across all pipeline realms
+          </CardDescription>
         </CardHeader>
         <CardContent>
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-green-500" />
                 <span className="text-sm font-medium">Production Health</span>
               </div>
               <p className="text-2xl font-bold text-green-600">Good</p>
-              <p className="text-xs text-muted-foreground">42% completion rate</p>
+              <p className="text-xs text-muted-foreground">
+                {Math.round((productionData.finished / (productionData.unfinished + productionData.finished)) * 100)}% completion rate
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -464,8 +553,10 @@ export function DashboardContent() {
                 <div className="h-2 w-2 rounded-full bg-blue-500" />
                 <span className="text-sm font-medium">Reach Efficiency</span>
               </div>
-              <p className="text-2xl font-bold text-blue-600">13%</p>
-              <p className="text-xs text-muted-foreground">Engagement rate</p>
+              <p className="text-2xl font-bold text-blue-600">13.3%</p>
+              <p className="text-xs text-muted-foreground">
+                Engagement rate
+              </p>
             </div>
             
             <div className="space-y-2">
@@ -473,17 +564,21 @@ export function DashboardContent() {
                 <div className="h-2 w-2 rounded-full bg-purple-500" />
                 <span className="text-sm font-medium">Fan Conversion</span>
               </div>
-              <p className="text-2xl font-bold text-purple-600">5%</p>
-              <p className="text-xs text-muted-foreground">To super fans</p>
+              <p className="text-2xl font-bold text-purple-600">4.7%</p>
+              <p className="text-xs text-muted-foreground">
+                To super fans
+              </p>
             </div>
             
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-orange-500" />
-                <span className="text-sm font-medium">Sales Close Rate</span>
+                <span className="text-sm font-medium">Sales Conversion</span>
               </div>
-              <p className="text-2xl font-bold text-orange-600">38%</p>
-              <p className="text-xs text-muted-foreground">Revenue: ${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}</p>
+              <p className="text-2xl font-bold text-orange-600">37.5%</p>
+              <p className="text-xs text-muted-foreground">
+                Opportunities to sales
+              </p>
             </div>
           </div>
         </CardContent>
