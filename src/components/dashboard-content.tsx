@@ -180,16 +180,16 @@ export function DashboardContent() {
               <Package className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Production Pipeline</h3>
-              <p className="text-sm text-muted-foreground">Your product, your releases - from idea to market</p>
+              <h3 className="text-sm font-medium">Production Pipeline</h3>
+              <p className="text-xs text-muted-foreground">Your product, your releases - from idea to market</p>
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Unfinished */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Unfinished</CardTitle>
-                  <CardDescription>Ideas & demos in progress</CardDescription>
+                  <CardTitle className="text-sm font-medium">Unfinished</CardTitle>
+                  <CardDescription className="text-xs">Ideas & demos in progress</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -224,14 +224,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {productionData.unfinished.toLocaleString()}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Projects
                                   </tspan>
@@ -244,9 +244,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    In development <Music className="h-4 w-4" />
+                    In development <Music className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Active creative work in progress
@@ -257,8 +257,8 @@ export function DashboardContent() {
             {/* Finished */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Finished</CardTitle>
-                  <CardDescription>Ready for release</CardDescription>
+                  <CardTitle className="text-sm font-medium">Finished</CardTitle>
+                  <CardDescription className="text-xs">Ready for release</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -293,14 +293,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {productionData.finished.toLocaleString()}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Ready
                                   </tspan>
@@ -313,9 +313,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    Ready to launch <Target className="h-4 w-4" />
+                    Ready to launch <Target className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Completed projects awaiting release
@@ -326,8 +326,8 @@ export function DashboardContent() {
             {/* Released */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Released</CardTitle>
-                  <CardDescription>Live in market</CardDescription>
+                  <CardTitle className="text-sm font-medium">Released</CardTitle>
+                  <CardDescription className="text-xs">Live in market</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -362,14 +362,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {productionData.released.toLocaleString()}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Live
                                   </tspan>
@@ -382,9 +382,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    Available to fans <Zap className="h-4 w-4" />
+                    Available to fans <Zap className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Published and generating revenue
@@ -401,16 +401,16 @@ export function DashboardContent() {
               <Megaphone className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Marketing Reach</h3>
-              <p className="text-sm text-muted-foreground">Aggregate audience reach to engaged followers</p>
+              <h3 className="text-sm font-medium">Marketing Reach</h3>
+              <p className="text-xs text-muted-foreground">Aggregate audience reach to engaged followers</p>
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Total Reach */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Total Reach</CardTitle>
-                  <CardDescription>Aggregate audience across platforms</CardDescription>
+                  <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
+                  <CardDescription className="text-xs">Aggregate audience across platforms</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -445,14 +445,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {Math.round(marketingData.totalReach / 1000)}K
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     People
                                   </tspan>
@@ -465,9 +465,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    Trending up by 12.5% <TrendingUp className="h-4 w-4" />
+                    Trending up by 12.5% <TrendingUp className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Total audience across all platforms
@@ -478,8 +478,8 @@ export function DashboardContent() {
             {/* Engaged Audience */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Engaged Audience</CardTitle>
-                  <CardDescription>Active listeners & viewers</CardDescription>
+                  <CardTitle className="text-sm font-medium">Engaged Audience</CardTitle>
+                  <CardDescription className="text-xs">Active listeners & viewers</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -514,14 +514,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {Math.round(marketingData.engaged / 100)}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Hundreds
                                   </tspan>
@@ -534,9 +534,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    13.3% engagement rate <Heart className="h-4 w-4" />
+                    13.3% engagement rate <Heart className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     People actively engaging with content
@@ -547,8 +547,8 @@ export function DashboardContent() {
             {/* Followers */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Followers</CardTitle>
-                  <CardDescription>Loyal subscriber base</CardDescription>
+                  <CardTitle className="text-sm font-medium">Followers</CardTitle>
+                  <CardDescription className="text-xs">Loyal subscriber base</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -583,14 +583,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {Math.round(marketingData.followers / 100)}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Hundreds
                                   </tspan>
@@ -603,9 +603,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    Growing steadily <Users className="h-4 w-4" />
+                    Growing steadily <Users className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Committed fans across platforms
@@ -622,16 +622,16 @@ export function DashboardContent() {
               <Heart className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Fan Engagement Pipeline</h3>
-              <p className="text-sm text-muted-foreground">Building deeper connections with your audience</p>
+              <h3 className="text-sm font-medium">Fan Engagement Pipeline</h3>
+              <p className="text-xs text-muted-foreground">Building deeper connections with your audience</p>
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Captured Data */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Captured Data</CardTitle>
-                  <CardDescription>Email list & contact info</CardDescription>
+                  <CardTitle className="text-sm font-medium">Captured Data</CardTitle>
+                  <CardDescription className="text-xs">Email list & contact info</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -666,14 +666,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {Math.round(fanEngagementData.capturedData / 100)}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Hundreds
                                   </tspan>
@@ -686,9 +686,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    Growing database <Users className="h-4 w-4" />
+                    Growing database <Users className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Direct contact information collected
@@ -699,8 +699,8 @@ export function DashboardContent() {
             {/* Fans */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Fans</CardTitle>
-                  <CardDescription>Regular supporters</CardDescription>
+                  <CardTitle className="text-sm font-medium">Fans</CardTitle>
+                  <CardDescription className="text-xs">Regular supporters</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -735,14 +735,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {Math.round(fanEngagementData.fans / 10)}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Tens
                                   </tspan>
@@ -755,9 +755,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    4.7% conversion rate <Heart className="h-4 w-4" />
+                    4.7% conversion rate <Heart className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     People who regularly engage
@@ -768,8 +768,8 @@ export function DashboardContent() {
             {/* Super Fans */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Super Fans</CardTitle>
-                  <CardDescription>VIP community members</CardDescription>
+                  <CardTitle className="text-sm font-medium">Super Fans</CardTitle>
+                  <CardDescription className="text-xs">VIP community members</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -804,14 +804,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {fanEngagementData.superFans.toLocaleString()}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     VIPs
                                   </tspan>
@@ -824,9 +824,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    Premium supporters <Star className="h-4 w-4" />
+                    Premium supporters <Star className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Highest value audience segment
@@ -843,16 +843,16 @@ export function DashboardContent() {
               <DollarSign className="h-5 w-5 text-primary" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Conversion Pipeline</h3>
-              <p className="text-sm text-muted-foreground">Revenue generation from leads to sales</p>
+              <h3 className="text-sm font-medium">Conversion Pipeline</h3>
+              <p className="text-xs text-muted-foreground">Revenue generation from leads to sales</p>
             </div>
           </div>
           <div className="grid gap-6 md:grid-cols-3">
             {/* Leads */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Leads</CardTitle>
-                  <CardDescription>Interested potential buyers</CardDescription>
+                  <CardTitle className="text-sm font-medium">Leads</CardTitle>
+                  <CardDescription className="text-xs">Interested potential buyers</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -887,14 +887,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {conversionData.leads.toLocaleString()}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Prospects
                                   </tspan>
@@ -907,9 +907,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    Active pipeline <Users className="h-4 w-4" />
+                    Active pipeline <Users className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     People showing purchase intent
@@ -920,8 +920,8 @@ export function DashboardContent() {
             {/* Opportunities */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Opportunities</CardTitle>
-                  <CardDescription>Active deals in progress</CardDescription>
+                  <CardTitle className="text-sm font-medium">Opportunities</CardTitle>
+                  <CardDescription className="text-xs">Active deals in progress</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -956,14 +956,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {conversionData.opportunities.toLocaleString()}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Deals
                                   </tspan>
@@ -976,9 +976,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    26.7% conversion rate <Target className="h-4 w-4" />
+                    26.7% conversion rate <Target className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Qualified leads in negotiation
@@ -989,8 +989,8 @@ export function DashboardContent() {
             {/* Sales */}
             <Card className="flex flex-col bg-sidebar">
                 <CardHeader className="items-center pb-0">
-                  <CardTitle>Sales</CardTitle>
-                  <CardDescription>Closed won deals</CardDescription>
+                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
+                  <CardDescription className="text-xs">Closed won deals</CardDescription>
                 </CardHeader>
                 <CardContent className="flex-1 pb-0">
                   <ChartContainer
@@ -1025,14 +1025,14 @@ export function DashboardContent() {
                                   <tspan
                                     x={viewBox.cx}
                                     y={viewBox.cy}
-                                    className="fill-foreground text-4xl font-bold"
+                                    className="fill-foreground text-2xl font-bold"
                                   >
                                     {conversionData.sales.toLocaleString()}
                                   </tspan>
                                   <tspan
                                     x={viewBox.cx}
                                     y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground"
+                                    className="fill-muted-foreground text-xs"
                                   >
                                     Won
                                   </tspan>
@@ -1045,9 +1045,9 @@ export function DashboardContent() {
                     </RadialBarChart>
                   </ChartContainer>
                 </CardContent>
-                <CardFooter className="flex-col gap-2 text-sm">
+                <CardFooter className="flex-col gap-2 text-xs">
                   <div className="flex items-center gap-2 leading-none font-medium">
-                    37.5% close rate <DollarSign className="h-4 w-4" />
+                    37.5% close rate <DollarSign className="h-3 w-3" />
                   </div>
                   <div className="text-muted-foreground leading-none">
                     Successful transactions completed
