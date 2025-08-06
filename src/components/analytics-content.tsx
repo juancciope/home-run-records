@@ -68,16 +68,19 @@ export function AnalyticsContent() {
       // Check if user has Viberate connection
       const profile = await ArtistService.getArtistProfile(user.id, user.email);
       const hasConnection = !!profile?.viberate_artist_id;
+      console.log('Profile loaded:', { userId: user.id, hasConnection, vibrateId: profile?.viberate_artist_id });
       setHasVibrateConnection(hasConnection);
       
       if (hasConnection && profile?.viberate_artist_id) {
         try {
           // Try to get Viberate analytics data via API route
+          console.log('Fetching analytics for artist ID:', profile.viberate_artist_id);
           const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
           const vibrateData = await response.json();
+          console.log('Analytics API response:', vibrateData);
           
           if (vibrateData && !vibrateData.error) {
-            setAnalyticsData({
+            const analyticsPayload = {
               totalReach: vibrateData.totalReach || 0,
               engagedAudience: vibrateData.engagedAudience || 0,
               totalFollowers: vibrateData.totalFollowers || 0,
@@ -91,7 +94,9 @@ export function AnalyticsContent() {
               trending: vibrateData.trending || [],
               isRealData: vibrateData.isRealData || false,
               lastUpdated: new Date().toISOString(),
-            });
+            };
+            console.log('Setting analytics data:', analyticsPayload);
+            setAnalyticsData(analyticsPayload);
           } else {
             // Fallback to enhanced mock data when real data is not available
             setAnalyticsData(getEnhancedMockData(false));
