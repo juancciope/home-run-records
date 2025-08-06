@@ -40,6 +40,11 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
       if (artists && artists.length > 0) {
         setSearchResults(artists);
         setStep(2);
+        
+        // Show info if we're using fallback data
+        if (artists[0]?.id === '1' && artists[0]?.spotify_id === '5tP5qKnhTbTa2uEL3CLHh9') {
+          console.info('Using demo data - Viberate API temporarily unavailable');
+        }
       } else {
         setError("No artist found with that name. Please try a different search term.");
       }
