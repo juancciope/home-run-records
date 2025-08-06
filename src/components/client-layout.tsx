@@ -1,6 +1,7 @@
 "use client"
 
 import { ArtistProvider } from "@/contexts/artist-context";
+import { ThemeProvider } from "@/components/theme-provider";
 import { ReactNode } from "react";
 
 interface ClientLayoutProps {
@@ -9,8 +10,15 @@ interface ClientLayoutProps {
 
 export function ClientLayout({ children }: ClientLayoutProps) {
   return (
-    <ArtistProvider>
-      {children}
-    </ArtistProvider>
+    <ThemeProvider
+      attribute="class"
+      defaultTheme="dark"
+      enableSystem
+      disableTransitionOnChange
+    >
+      <ArtistProvider>
+        {children}
+      </ArtistProvider>
+    </ThemeProvider>
   );
 }

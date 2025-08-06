@@ -51,7 +51,7 @@ const PipelineStage: React.FC<PipelineStageProps> = ({
         whileHover={{ scale: 1.02 }}
         className="relative z-10 w-full"
       >
-        <Card className={`border-2 ${color} bg-gradient-to-br ${color.replace('border', 'from')}/5 to-white hover:shadow-lg transition-all duration-300 w-full`}>
+        <Card className={`border-2 ${color} bg-gradient-to-br ${color.replace('border', 'from')}/10 to-background hover:shadow-lg hover:shadow-${color.replace('border-', '')}-500/20 transition-all duration-300 w-full`}>
           <CardContent className="p-6">
             <div className="flex items-center justify-between mb-4">
               <div className={`w-12 h-12 rounded-xl ${color.replace('border', 'bg')}/10 flex items-center justify-center`}>
@@ -178,7 +178,7 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         className="space-y-2"
       >
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-gray-900 via-gray-700 to-gray-600 bg-clip-text text-transparent">
+        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
           Business Intelligence Dashboard
         </h1>
         <p className="text-muted-foreground">
@@ -192,7 +192,7 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.1 }}
       >
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-blue-50/50 to-indigo-50/50">
+        <Card className="border border-blue-500/20 shadow-lg bg-gradient-to-r from-blue-500/5 to-indigo-500/5 hover:shadow-blue-500/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -252,7 +252,7 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.2 }}
       >
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-purple-50/50 to-pink-50/50">
+        <Card className="border border-purple-500/20 shadow-lg bg-gradient-to-r from-purple-500/5 to-pink-500/5 hover:shadow-purple-500/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -311,7 +311,7 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.3 }}
       >
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-green-50/50 to-emerald-50/50">
+        <Card className="border border-green-500/20 shadow-lg bg-gradient-to-r from-green-500/5 to-emerald-500/5 hover:shadow-green-500/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -370,7 +370,7 @@ export function DashboardContent() {
         animate={{ opacity: 1, y: 0 }}
         transition={{ delay: 0.4 }}
       >
-        <Card className="border-0 shadow-lg bg-gradient-to-r from-orange-50/50 to-red-50/50">
+        <Card className="border border-orange-500/20 shadow-lg bg-gradient-to-r from-orange-500/5 to-red-500/5 hover:shadow-orange-500/20">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div className="flex items-center gap-3">
@@ -432,7 +432,7 @@ export function DashboardContent() {
         transition={{ delay: 0.5 }}
         className="grid grid-cols-1 md:grid-cols-4 gap-4"
       >
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -446,7 +446,7 @@ export function DashboardContent() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -462,7 +462,7 @@ export function DashboardContent() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>
@@ -476,7 +476,7 @@ export function DashboardContent() {
           </CardContent>
         </Card>
 
-        <Card className="border-0 shadow-md hover:shadow-lg transition-shadow">
+        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
               <div>

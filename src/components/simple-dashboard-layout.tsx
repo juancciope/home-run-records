@@ -6,6 +6,9 @@ import { Button } from "@/components/ui/button"
 import { Avatar, AvatarFallback, AvatarImage } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Separator } from "@/components/ui/separator"
+import { Card, CardContent } from "@/components/ui/card"
+import { Input } from "@/components/ui/input"
+import { ThemeToggle } from "@/components/theme-toggle"
 import {
   LayoutDashboard,
   Plug,
@@ -20,7 +23,7 @@ import {
   TrendingUp,
   Activity,
   Radio,
-  Menu,
+  PanelLeft,
 } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -81,26 +84,26 @@ export function SimpleDashboardLayout({ children }: { children: React.ReactNode 
   const [sidebarOpen, setSidebarOpen] = React.useState(true)
 
   return (
-    <div className="flex min-h-screen bg-gray-50">
+    <div className="flex min-h-screen bg-background">
       {/* Fixed Sidebar */}
       <div className={cn(
-        "fixed inset-y-0 left-0 z-40 w-64 bg-white border-r border-gray-200 shadow-sm transition-transform duration-300 ease-in-out",
+        "fixed inset-y-0 left-0 z-40 w-64 bg-card border-r border-border shadow-sm transition-transform duration-300 ease-in-out",
         sidebarOpen ? "translate-x-0" : "-translate-x-full"
       )}>
         {/* Sidebar Header */}
-        <div className="border-b border-gray-200 p-6">
+        <div className="border-b border-border p-6">
           <div className="flex items-center gap-3">
             <div className="relative">
               <div className="w-10 h-10 rounded-xl bg-gradient-to-r from-purple-500 to-pink-500 flex items-center justify-center">
                 <Music className="w-6 h-6 text-white" />
               </div>
-              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-white animate-pulse" />
+              <div className="absolute -top-1 -right-1 w-3 h-3 rounded-full bg-green-500 border-2 border-card animate-pulse" />
             </div>
             <div>
-              <h1 className="text-lg font-bold bg-gradient-to-r from-gray-900 to-gray-600 bg-clip-text text-transparent">
+              <h1 className="text-lg font-bold bg-gradient-to-r from-foreground to-foreground/70 bg-clip-text text-transparent">
                 Home Run Records
               </h1>
-              <p className="text-xs text-gray-500">Artist Dashboard</p>
+              <p className="text-xs text-muted-foreground">Artist Dashboard</p>
             </div>
           </div>
         </div>
@@ -115,29 +118,25 @@ export function SimpleDashboardLayout({ children }: { children: React.ReactNode 
                 animate={{ opacity: 1, x: 0 }}
                 transition={{ delay: index * 0.1 }}
               >
-                <button
+                <Button
+                  variant={activeItem === item.title ? "default" : "ghost"}
                   onClick={() => setActiveItem(item.title)}
                   className={cn(
-                    "w-full flex items-center justify-between gap-3 rounded-xl p-3 transition-all duration-200 group hover:shadow-md",
+                    "w-full justify-start gap-3 h-11 px-3 transition-all duration-200",
                     activeItem === item.title
-                      ? "bg-purple-500 text-white shadow-md scale-[1.02]"
-                      : "hover:bg-gray-100"
+                      ? "bg-primary text-primary-foreground hover:bg-primary/90"
+                      : "hover:bg-accent hover:text-accent-foreground"
                   )}
                 >
-                  <div className="flex items-center gap-3">
-                    <div className={cn(
-                      "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                      activeItem === item.title
-                        ? "bg-white/20"
-                        : "bg-gray-100"
-                    )}>
-                      <item.icon className={cn(
-                        "w-4 h-4",
-                        activeItem === item.title ? "text-white" : "text-gray-600"
-                      )} />
-                    </div>
-                    <span className="font-medium">{item.title}</span>
+                  <div className={cn(
+                    "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                    activeItem === item.title
+                      ? "bg-white/20"
+                      : "bg-muted"
+                  )}>
+                    <item.icon className="w-4 h-4" />
                   </div>
+                  <span className="font-medium flex-1 text-left">{item.title}</span>
                   <div className="flex items-center gap-2">
                     {item.badge && (
                       <Badge variant={item.badge === "New" ? "default" : "secondary"} className="text-xs">
@@ -149,7 +148,7 @@ export function SimpleDashboardLayout({ children }: { children: React.ReactNode 
                       activeItem === item.title ? "rotate-90" : "group-hover:translate-x-1"
                     )} />
                   </div>
-                </button>
+                </Button>
               </motion.div>
             ))}
           </nav>
@@ -158,59 +157,69 @@ export function SimpleDashboardLayout({ children }: { children: React.ReactNode 
 
           {/* Quick Stats */}
           <div className="space-y-3">
-            <h3 className="text-sm font-semibold text-gray-500 px-3">Quick Stats</h3>
-            <div className="space-y-2">
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="p-3 rounded-xl bg-gradient-to-r from-blue-50 to-indigo-50 border border-blue-100 cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-blue-900">Total Streams</p>
-                    <p className="text-lg font-bold text-blue-700">127.2K</p>
-                  </div>
-                  <TrendingUp className="w-5 h-5 text-blue-600" />
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <Activity className="w-3 h-3 text-green-600" />
-                  <span className="text-xs text-green-600 font-medium">+12.5%</span>
-                </div>
+            <h3 className="text-sm font-semibold text-muted-foreground px-3">Quick Stats</h3>
+            <div className="space-y-3">
+              <motion.div whileHover={{ scale: 1.02 }}>
+                <Card className="cursor-pointer hover:shadow-md transition-all duration-200 bg-gradient-to-r from-blue-500/10 to-indigo-500/10 border-blue-500/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Total Streams</p>
+                        <p className="text-lg font-bold text-foreground">127.2K</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-lg bg-blue-500/20 flex items-center justify-center">
+                        <TrendingUp className="w-4 h-4 text-blue-500" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Activity className="w-3 h-3 text-green-500" />
+                      <span className="text-xs text-green-500 font-medium">+12.5%</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
 
-              <motion.div
-                whileHover={{ scale: 1.02 }}
-                className="p-3 rounded-xl bg-gradient-to-r from-purple-50 to-pink-50 border border-purple-100 cursor-pointer"
-              >
-                <div className="flex items-center justify-between">
-                  <div>
-                    <p className="text-sm font-medium text-purple-900">Followers</p>
-                    <p className="text-lg font-bold text-purple-700">8.4K</p>
-                  </div>
-                  <Users className="w-5 h-5 text-purple-600" />
-                </div>
-                <div className="flex items-center gap-1 mt-1">
-                  <Activity className="w-3 h-3 text-green-600" />
-                  <span className="text-xs text-green-600 font-medium">+8.2%</span>
-                </div>
+              <motion.div whileHover={{ scale: 1.02 }}>
+                <Card className="cursor-pointer hover:shadow-md transition-all duration-200 bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20">
+                  <CardContent className="p-3">
+                    <div className="flex items-center justify-between">
+                      <div>
+                        <p className="text-sm font-medium text-foreground">Followers</p>
+                        <p className="text-lg font-bold text-foreground">8.4K</p>
+                      </div>
+                      <div className="w-8 h-8 rounded-lg bg-purple-500/20 flex items-center justify-center">
+                        <Users className="w-4 h-4 text-purple-500" />
+                      </div>
+                    </div>
+                    <div className="flex items-center gap-1 mt-1">
+                      <Activity className="w-3 h-3 text-green-500" />
+                      <span className="text-xs text-green-500 font-medium">+8.2%</span>
+                    </div>
+                  </CardContent>
+                </Card>
               </motion.div>
             </div>
           </div>
 
           {/* Sidebar Footer */}
-          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-gray-200 bg-white">
-            <div className="flex items-center gap-3 p-3 rounded-xl bg-gray-50 hover:bg-gray-100 transition-colors cursor-pointer">
-              <Avatar className="w-9 h-9">
-                <AvatarImage src="/api/placeholder/36/36" />
-                <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold">
-                  AR
-                </AvatarFallback>
-              </Avatar>
-              <div className="flex-1">
-                <p className="text-sm font-medium">Artist Name</p>
-                <p className="text-xs text-gray-500">Premium Plan</p>
-              </div>
-              <Settings className="w-4 h-4 text-gray-400" />
-            </div>
+          <div className="absolute bottom-0 left-0 right-0 p-4 border-t border-border bg-card">
+            <Card className="hover:bg-accent/50 transition-colors cursor-pointer">
+              <CardContent className="p-3">
+                <div className="flex items-center gap-3">
+                  <Avatar className="w-9 h-9">
+                    <AvatarImage src="/api/placeholder/36/36" />
+                    <AvatarFallback className="bg-gradient-to-r from-purple-500 to-pink-500 text-white font-semibold">
+                      AR
+                    </AvatarFallback>
+                  </Avatar>
+                  <div className="flex-1">
+                    <p className="text-sm font-medium text-foreground">Artist Name</p>
+                    <p className="text-xs text-muted-foreground">Premium Plan</p>
+                  </div>
+                  <Settings className="w-4 h-4 text-muted-foreground" />
+                </div>
+              </CardContent>
+            </Card>
           </div>
         </div>
       </div>
@@ -218,29 +227,31 @@ export function SimpleDashboardLayout({ children }: { children: React.ReactNode 
       {/* Main Content Area */}
       <div className="flex-1 ml-64">
         {/* Top Navigation */}
-        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-gray-200 bg-white/80 backdrop-blur-xl px-6">
+        <header className="sticky top-0 z-30 flex h-16 shrink-0 items-center gap-4 border-b border-border bg-background/80 backdrop-blur-xl px-6">
           <Button
             variant="ghost"
             size="icon"
             onClick={() => setSidebarOpen(!sidebarOpen)}
-            className="shrink-0"
+            className="shrink-0 lg:hidden"
           >
-            <Menu className="w-5 h-5" />
+            <PanelLeft className="w-5 h-5" />
           </Button>
-          <Separator orientation="vertical" className="h-6" />
+          <Separator orientation="vertical" className="h-6 lg:hidden" />
           
           <div className="flex-1 flex items-center gap-4">
             <div className="relative flex-1 max-w-md">
-              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-gray-400" />
-              <input
+              <Search className="absolute left-3 top-1/2 transform -translate-y-1/2 w-4 h-4 text-muted-foreground" />
+              <Input
                 type="search"
                 placeholder="Search your music data..."
-                className="w-full pl-10 pr-4 py-2 bg-gray-50 border border-gray-200 rounded-xl text-sm focus:outline-none focus:ring-2 focus:ring-purple-500/20 focus:border-purple-500/40 transition-all"
+                className="pl-10 bg-muted/50 border-0 focus-visible:ring-1"
               />
             </div>
           </div>
 
-          <div className="flex items-center gap-3">
+          <div className="flex items-center gap-2">
+            <ThemeToggle />
+            
             <Button variant="ghost" size="icon" className="relative">
               <Bell className="w-5 h-5" />
               <Badge className="absolute -top-2 -right-2 w-5 h-5 rounded-full p-0 flex items-center justify-center text-xs">
@@ -258,7 +269,7 @@ export function SimpleDashboardLayout({ children }: { children: React.ReactNode 
         </header>
 
         {/* Main Content */}
-        <main className="flex-1 overflow-auto bg-gradient-to-br from-gray-50 via-gray-50/95 to-gray-100/20">
+        <main className="flex-1 overflow-auto bg-gradient-to-br from-background via-background/95 to-muted/20">
           {children}
         </main>
       </div>
@@ -266,7 +277,7 @@ export function SimpleDashboardLayout({ children }: { children: React.ReactNode 
       {/* Mobile Overlay */}
       {sidebarOpen && (
         <div 
-          className="fixed inset-0 bg-black/50 z-30 lg:hidden"
+          className="fixed inset-0 bg-background/80 backdrop-blur-sm z-30 lg:hidden"
           onClick={() => setSidebarOpen(false)}
         />
       )}
