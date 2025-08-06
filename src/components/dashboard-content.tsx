@@ -29,12 +29,14 @@ import {
   AreaChart,
   Bar,
   BarChart,
+  CartesianGrid,
   Line,
   LineChart,
   RadialBarChart,
   RadialBar,
   PolarGrid,
   PolarRadiusAxis,
+  XAxis,
   Label,
 } from "recharts"
 import { useArtist } from "@/contexts/artist-context"
@@ -317,7 +319,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="pb-0">
               <ChartContainer config={productionChartConfig} className="mx-auto aspect-square max-h-[180px] w-full">
-                <RadialBarChart cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={productionChartData}>
+                <RadialBarChart accessibilityLayer cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={productionChartData}>
                   <PolarGrid gridType="circle" radialLines={false} stroke="none" />
                   <RadialBar dataKey="value" cornerRadius={6} fill="hsl(var(--chart-1))" />
                   <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
@@ -373,20 +375,30 @@ export function DashboardContent() {
               <CardDescription className="text-xs text-muted-foreground">6-month growth trend</CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <ChartContainer config={reachChartConfig} className="h-[140px] w-full">
-                <AreaChart data={reachTrendData} margin={{ top: 10, right: 10, left: 0, bottom: 0 }}>
+              <ChartContainer config={reachChartConfig} className="aspect-auto h-[200px] w-full">
+                <AreaChart accessibilityLayer data={reachTrendData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
                   <defs>
                     <linearGradient id="fillReach" x1="0" y1="0" x2="0" y2="1">
                       <stop offset="5%" stopColor="var(--color-reach)" stopOpacity={0.8} />
                       <stop offset="95%" stopColor="var(--color-reach)" stopOpacity={0.1} />
                     </linearGradient>
                   </defs>
+                  <CartesianGrid vertical={false} />
+                  <XAxis 
+                    dataKey="month" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
                   <Area
                     type="monotone"
                     dataKey="reach"
                     stroke="var(--color-reach)"
                     fill="url(#fillReach)"
                     strokeWidth={2}
+                    dot={false}
+                    activeDot={{ r: 6 }}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                 </AreaChart>
@@ -477,14 +489,23 @@ export function DashboardContent() {
               <CardDescription className="text-xs text-muted-foreground">Growth over time</CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <ChartContainer config={engagementChartConfig} className="h-[100px] w-full">
-                <LineChart data={fanEngagementTrendData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
+              <ChartContainer config={engagementChartConfig} className="aspect-auto h-[140px] w-full">
+                <LineChart accessibilityLayer data={fanEngagementTrendData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis 
+                    dataKey="month" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                    tickFormatter={(value) => value.slice(0, 3)}
+                  />
                   <Line
                     type="monotone"
                     dataKey="fans"
                     stroke="var(--color-fans)"
                     strokeWidth={2}
                     dot={false}
+                    activeDot={{ r: 4, stroke: "var(--color-fans)", strokeWidth: 2 }}
                   />
                   <ChartTooltip content={<ChartTooltipContent />} />
                 </LineChart>
@@ -507,6 +528,7 @@ export function DashboardContent() {
                 superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
               }} className="mx-auto aspect-square max-h-[180px] w-full">
                 <RadialBarChart 
+                  accessibilityLayer
                   cx="50%" 
                   cy="50%" 
                   innerRadius="60%" 
@@ -572,9 +594,20 @@ export function DashboardContent() {
               <CardDescription className="text-xs text-muted-foreground">Funnel performance</CardDescription>
             </CardHeader>
             <CardContent className="pb-2">
-              <ChartContainer config={conversionChartConfig} className="h-[100px] w-full">
-                <BarChart data={conversionFunnelData} margin={{ top: 5, right: 10, left: 0, bottom: 0 }}>
-                  <Bar dataKey="value" fill="var(--color-value)" radius={4} />
+              <ChartContainer config={conversionChartConfig} className="aspect-auto h-[140px] w-full">
+                <BarChart accessibilityLayer data={conversionFunnelData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
+                  <CartesianGrid vertical={false} />
+                  <XAxis 
+                    dataKey="stage" 
+                    tickLine={false} 
+                    axisLine={false} 
+                    tickMargin={8}
+                  />
+                  <Bar 
+                    dataKey="value" 
+                    fill="var(--color-value)" 
+                    radius={[2, 2, 0, 0]}
+                  />
                   <ChartTooltip content={<ChartTooltipContent />} />
                 </BarChart>
               </ChartContainer>
