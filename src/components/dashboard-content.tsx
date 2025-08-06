@@ -328,17 +328,15 @@ export function DashboardContent() {
                             <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) - 4} 
-                                className="fill-foreground font-bold"
-                                fontSize="24"
+                                y={(viewBox.cy || 0) - 2} 
+                                className="fill-foreground font-bold text-lg"
                               >
                                 {productionData.released}
                               </tspan>
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) + 14} 
-                                className="fill-muted-foreground"
-                                fontSize="11"
+                                y={(viewBox.cy || 0) + 12} 
+                                className="fill-muted-foreground text-xs"
                               >
                                 Released
                               </tspan>
@@ -529,17 +527,15 @@ export function DashboardContent() {
                             <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) - 4} 
-                                className="fill-foreground font-bold"
-                                fontSize="24"
+                                y={(viewBox.cy || 0) - 2} 
+                                className="fill-foreground font-bold text-lg"
                               >
                                 {fanEngagementData.superFans}
                               </tspan>
                               <tspan 
                                 x={viewBox.cx} 
-                                y={(viewBox.cy || 0) + 14} 
-                                className="fill-muted-foreground"
-                                fontSize="10"
+                                y={(viewBox.cy || 0) + 12} 
+                                className="fill-muted-foreground text-xs"
                               >
                                 VIP Members
                               </tspan>
