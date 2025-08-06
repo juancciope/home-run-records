@@ -31,7 +31,7 @@ export interface VibratePlaylistData {
 }
 
 export class VibrateService {
-  private static readonly BASE_URL = 'https://api.viberate.com/api/v1';
+  private static readonly BASE_URL = 'https://data.viberate.com/api/v1';
   private static readonly API_KEY = process.env.VIBERATE_API_KEY || '';
   
   /**
