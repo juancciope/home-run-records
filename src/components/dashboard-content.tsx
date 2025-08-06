@@ -4,7 +4,6 @@ import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Badge } from "@/components/ui/badge"
 import { Button } from "@/components/ui/button"
-import { Progress } from "@/components/ui/progress"
 import {
   Music,
   TrendingUp,
@@ -13,88 +12,40 @@ import {
   DollarSign,
   Package,
   Megaphone,
-  UserCheck,
-  ShoppingCart,
-  AlertCircle,
-  Plus,
-  ArrowRight,
   Target,
-  Zap,
   Star,
 } from "lucide-react"
-import { motion } from "framer-motion"
 import { useArtist } from "@/contexts/artist-context"
 
-// Pipeline stage component
-interface PipelineStageProps {
+// Metric card component with clean design
+interface MetricCardProps {
   title: string
-  value: number
+  value: number | string
+  change?: string
   icon: React.ElementType
-  color: string
-  isLast?: boolean
-  percentage?: number
-  description?: string
+  trend?: "up" | "down" | "neutral"
 }
 
-const PipelineStage: React.FC<PipelineStageProps> = ({ 
-  title, 
-  value, 
-  icon: Icon, 
-  color, 
-  isLast = false,
-  percentage,
-  description 
-}) => {
+const MetricCard: React.FC<MetricCardProps> = ({ title, value, change, icon: Icon, trend = "neutral" }) => {
+  const trendColor = trend === "up" ? "text-green-600" : trend === "down" ? "text-red-600" : "text-muted-foreground"
+  
   return (
-    <div className="relative flex items-center">
-      <motion.div
-        whileHover={{ scale: 1.02 }}
-        className="relative z-10 w-full"
-      >
-        <Card className={`border-2 ${color} bg-gradient-to-br ${color.replace('border', 'from')}/10 to-background hover:shadow-lg hover:shadow-${color.replace('border-', '')}-500/20 transition-all duration-300 w-full`}>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between mb-4">
-              <div className={`w-12 h-12 rounded-xl ${color.replace('border', 'bg')}/10 flex items-center justify-center`}>
-                <Icon className={`w-6 h-6 ${color.replace('border', 'text')}`} />
-              </div>
-              {percentage !== undefined && (
-                <Badge variant="secondary" className="text-xs">
-                  {percentage}%
-                </Badge>
-              )}
-            </div>
-            <h3 className="text-2xl font-bold mb-1">{value.toLocaleString()}</h3>
-            <p className="text-sm font-medium text-gray-700">{title}</p>
-            {description && (
-              <p className="text-xs text-muted-foreground mt-1">{description}</p>
-            )}
-          </CardContent>
-        </Card>
-      </motion.div>
-      
-      {!isLast && (
-        <div className="absolute left-full top-1/2 -translate-y-1/2 z-0 w-16 flex items-center">
-          <motion.div
-            initial={{ scaleX: 0 }}
-            animate={{ scaleX: 1 }}
-            transition={{ duration: 1, delay: 0.5 }}
-            className="w-full"
-          >
-            <ArrowRight className="w-8 h-8 text-gray-300" />
-          </motion.div>
+    <Card>
+      <CardContent className="p-6">
+        <div className="flex items-center justify-between space-y-0 pb-2">
+          <CardTitle className="text-sm font-medium">{title}</CardTitle>
+          <Icon className="h-4 w-4 text-muted-foreground" />
         </div>
-      )}
-    </div>
-  )
-}
-
-// Conversion rate indicator
-const ConversionIndicator: React.FC<{ rate: number; label: string }> = ({ rate, label }) => {
-  return (
-    <div className="flex items-center gap-2">
-      <Progress value={rate} className="w-24 h-2" />
-      <span className="text-sm font-medium">{rate}% {label}</span>
-    </div>
+        <div className="space-y-1">
+          <div className="text-2xl font-bold">{typeof value === 'number' ? value.toLocaleString() : value}</div>
+          {change && (
+            <p className={`text-xs ${trendColor}`}>
+              {change}
+            </p>
+          )}
+        </div>
+      </CardContent>
+    </Card>
   )
 }
 
@@ -171,325 +122,152 @@ export function DashboardContent() {
   }
 
   return (
-    <div className="w-full max-w-7xl mx-auto p-6 space-y-8">
+    <div className="flex-1 space-y-4 p-4 md:p-8">
       {/* Header */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        className="space-y-2"
-      >
-        <h1 className="text-3xl font-bold bg-gradient-to-r from-foreground via-foreground/90 to-foreground/70 bg-clip-text text-transparent">
-          Business Intelligence Dashboard
-        </h1>
-        <p className="text-muted-foreground">
-          Track your music business across 4 key realms: Production, Marketing, Fan Engagement, and Conversion
-        </p>
-      </motion.div>
+      <div className="flex items-center justify-between space-y-2">
+        <div>
+          <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
+          <p className="text-muted-foreground">
+            Here's an overview of your music business performance.
+          </p>
+        </div>
+      </div>
 
-      {/* 1. Production Pipeline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.1 }}
-      >
-        <Card className="border border-blue-500/20 shadow-lg bg-gradient-to-r from-blue-500/5 to-indigo-500/5 hover:shadow-blue-500/20">
+      {/* Main metrics grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+        <MetricCard
+          title="Total Revenue"
+          value={`$${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}`}
+          change="+20.1% from last month"
+          icon={DollarSign}
+          trend="up"
+        />
+        <MetricCard
+          title="Followers"
+          value={marketingData.followers}
+          change="+180.1% from last month"
+          icon={Users}
+          trend="up"
+        />
+        <MetricCard
+          title="Sales"
+          value={conversionData.sales}
+          change="+19% from last month"
+          icon={Target}
+          trend="up"
+        />
+        <MetricCard
+          title="Active Projects"
+          value={productionData.unfinished + productionData.finished}
+          change="+2 from last week"
+          icon={Package}
+          trend="up"
+        />
+      </div>
+
+      {/* Detailed cards grid */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-7">
+        <Card className="col-span-4">
           <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-blue-500 flex items-center justify-center">
-                  <Package className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">Production Pipeline</CardTitle>
-                  <CardDescription>Your creative output journey</CardDescription>
-                </div>
+            <CardTitle>Production Pipeline</CardTitle>
+            <CardDescription>
+              Track your creative output from idea to release.
+            </CardDescription>
+          </CardHeader>
+          <CardContent className="pl-2">
+            <div className="grid grid-cols-3 gap-4">
+              <div className="space-y-2">
+                <p className="text-sm font-medium leading-none">Unfinished</p>
+                <p className="text-2xl font-bold">{productionData.unfinished}</p>
+                <p className="text-xs text-muted-foreground">Ideas & demos</p>
               </div>
-              <Button size="sm" variant="outline" className="gap-2">
-                <Plus className="w-4 h-4" />
-                New Release
-              </Button>
+              <div className="space-y-2">
+                <p className="text-sm font-medium leading-none">Finished</p>
+                <p className="text-2xl font-bold">{productionData.finished}</p>
+                <p className="text-xs text-muted-foreground">Ready to release</p>
+              </div>
+              <div className="space-y-2">
+                <p className="text-sm font-medium leading-none">Released</p>
+                <p className="text-2xl font-bold">{productionData.released}</p>
+                <p className="text-xs text-muted-foreground">Live tracks</p>
+              </div>
             </div>
+          </CardContent>
+        </Card>
+        <Card className="col-span-3">
+          <CardHeader>
+            <CardTitle>Fan Engagement</CardTitle>
+            <CardDescription>
+              Building deeper connections with your audience.
+            </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
-              <PipelineStage
-                title="Unfinished"
-                value={productionData.unfinished}
-                icon={AlertCircle}
-                color="border-yellow-500"
-                percentage={27}
-                description="Ideas & demos"
-              />
-              <PipelineStage
-                title="Finished"
-                value={productionData.finished}
-                icon={Target}
-                color="border-blue-500"
-                percentage={11}
-                description="Ready to release"
-              />
-              <PipelineStage
-                title="Released"
-                value={productionData.released}
-                icon={Zap}
-                color="border-green-500"
-                isLast
-                percentage={62}
-                description="Live tracks"
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <ConversionIndicator rate={42} label="completion rate" />
-              <span className="text-muted-foreground">Goal: 50 releases this year</span>
+            <div className="space-y-4">
+              <div className="flex items-center space-x-4">
+                <Heart className="h-4 w-4" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium leading-none">Super Fans</p>
+                  <p className="text-sm text-muted-foreground">{fanEngagementData.superFans}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Users className="h-4 w-4" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium leading-none">Total Fans</p>
+                  <p className="text-sm text-muted-foreground">{fanEngagementData.fans.toLocaleString()}</p>
+                </div>
+              </div>
+              <div className="flex items-center space-x-4">
+                <Megaphone className="h-4 w-4" />
+                <div className="space-y-1">
+                  <p className="text-sm font-medium leading-none">Email List</p>
+                  <p className="text-sm text-muted-foreground">{fanEngagementData.capturedData.toLocaleString()}</p>
+                </div>
+              </div>
             </div>
           </CardContent>
         </Card>
-      </motion.div>
+      </div>
 
-      {/* 2. Marketing Funnel */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.2 }}
-      >
-        <Card className="border border-purple-500/20 shadow-lg bg-gradient-to-r from-purple-500/5 to-pink-500/5 hover:shadow-purple-500/20">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-purple-500 flex items-center justify-center">
-                  <Megaphone className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">Marketing Funnel</CardTitle>
-                  <CardDescription>Audience reach and growth metrics</CardDescription>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" className="gap-2">
-                <TrendingUp className="w-4 h-4" />
-                Boost Reach
-              </Button>
-            </div>
+      {/* Bottom grid with marketing and conversion data */}
+      <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-3">
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-base font-medium">Marketing Reach</CardTitle>
+            <Megaphone className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
-              <PipelineStage
-                title="Total Reach"
-                value={marketingData.totalReach}
-                icon={Users}
-                color="border-purple-500"
-                description="Aggregate audience"
-              />
-              <PipelineStage
-                title="Engaged"
-                value={marketingData.engaged}
-                icon={UserCheck}
-                color="border-pink-500"
-                percentage={13}
-                description="Active listeners"
-              />
-              <PipelineStage
-                title="Followers"
-                value={marketingData.followers}
-                icon={Heart}
-                color="border-red-500"
-                isLast
-                percentage={6}
-                description="Loyal fans"
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <ConversionIndicator rate={13} label="engagement rate" />
-              <span className="text-muted-foreground">Target: 50K followers by year end</span>
-            </div>
+            <div className="text-2xl font-bold">{marketingData.totalReach.toLocaleString()}</div>
+            <p className="text-xs text-muted-foreground">
+              {marketingData.engaged.toLocaleString()} engaged (13% rate)
+            </p>
           </CardContent>
         </Card>
-      </motion.div>
-
-      {/* 3. Fan Engagement Pipeline */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.3 }}
-      >
-        <Card className="border border-green-500/20 shadow-lg bg-gradient-to-r from-green-500/5 to-emerald-500/5 hover:shadow-green-500/20">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-green-500 flex items-center justify-center">
-                  <Heart className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">Fan Engagement Pipeline</CardTitle>
-                  <CardDescription>Building deeper connections</CardDescription>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" className="gap-2">
-                <Star className="w-4 h-4" />
-                Engage Fans
-              </Button>
-            </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-base font-medium">Conversion Pipeline</CardTitle>
+            <Target className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
-              <PipelineStage
-                title="Captured Data"
-                value={fanEngagementData.capturedData}
-                icon={Users}
-                color="border-green-500"
-                description="Email list"
-              />
-              <PipelineStage
-                title="Fans"
-                value={fanEngagementData.fans}
-                icon={Heart}
-                color="border-emerald-500"
-                percentage={38}
-                description="Regular supporters"
-              />
-              <PipelineStage
-                title="Super Fans"
-                value={fanEngagementData.superFans}
-                icon={Star}
-                color="border-teal-500"
-                isLast
-                percentage={5}
-                description="VIP community"
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <ConversionIndicator rate={38} label="fan conversion" />
-              <span className="text-muted-foreground">Goal: 500 super fans</span>
-            </div>
+            <div className="text-2xl font-bold">{conversionData.leads}</div>
+            <p className="text-xs text-muted-foreground">
+              {conversionData.opportunities} opportunities → {conversionData.sales} sales
+            </p>
           </CardContent>
         </Card>
-      </motion.div>
-
-      {/* 4. Conversion Funnel */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.4 }}
-      >
-        <Card className="border border-orange-500/20 shadow-lg bg-gradient-to-r from-orange-500/5 to-red-500/5 hover:shadow-orange-500/20">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div className="flex items-center gap-3">
-                <div className="w-10 h-10 rounded-xl bg-orange-500 flex items-center justify-center">
-                  <DollarSign className="w-6 h-6 text-white" />
-                </div>
-                <div>
-                  <CardTitle className="text-xl">Conversion Funnel</CardTitle>
-                  <CardDescription>Revenue generation pipeline</CardDescription>
-                </div>
-              </div>
-              <Button size="sm" variant="outline" className="gap-2">
-                <ShoppingCart className="w-4 h-4" />
-                View Sales
-              </Button>
-            </div>
+        <Card>
+          <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
+            <CardTitle className="text-base font-medium">Performance</CardTitle>
+            <TrendingUp className="h-4 w-4 text-muted-foreground" />
           </CardHeader>
           <CardContent>
-            <div className="grid grid-cols-1 md:grid-cols-3 gap-4 mb-6 overflow-x-auto">
-              <PipelineStage
-                title="Leads"
-                value={conversionData.leads}
-                icon={Users}
-                color="border-orange-500"
-                description="Interested buyers"
-              />
-              <PipelineStage
-                title="Opportunities"
-                value={conversionData.opportunities}
-                icon={Target}
-                color="border-red-500"
-                percentage={27}
-                description="Active deals"
-              />
-              <PipelineStage
-                title="Sales"
-                value={conversionData.sales}
-                icon={DollarSign}
-                color="border-rose-500"
-                isLast
-                percentage={38}
-                description="Closed won"
-              />
-            </div>
-            <div className="flex items-center justify-between text-sm">
-              <ConversionIndicator rate={10} label="close rate" />
-              <span className="text-muted-foreground">
-                Revenue: ${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()} this month
-              </span>
-            </div>
+            <div className="text-2xl font-bold">+24%</div>
+            <p className="text-xs text-muted-foreground">
+              Overall growth rate this quarter
+            </p>
           </CardContent>
         </Card>
-      </motion.div>
-
-      {/* Summary Stats */}
-      <motion.div
-        initial={{ opacity: 0, y: 20 }}
-        animate={{ opacity: 1, y: 0 }}
-        transition={{ delay: 0.5 }}
-        className="grid grid-cols-1 md:grid-cols-4 gap-4"
-      >
-        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Pipeline Health</p>
-                <p className="text-2xl font-bold text-green-600">Good</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-green-100 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-green-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Monthly Revenue</p>
-                <p className="text-2xl font-bold">
-                  ${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}
-                </p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-orange-100 flex items-center justify-center">
-                <DollarSign className="w-6 h-6 text-orange-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Active Projects</p>
-                <p className="text-2xl font-bold">17</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-blue-100 flex items-center justify-center">
-                <Music className="w-6 h-6 text-blue-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-
-        <Card className="border border-border shadow-md hover:shadow-lg transition-all duration-200 hover:border-primary/20">
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm text-muted-foreground">Growth Rate</p>
-                <p className="text-2xl font-bold text-green-600">+24%</p>
-              </div>
-              <div className="w-12 h-12 rounded-full bg-purple-100 flex items-center justify-center">
-                <TrendingUp className="w-6 h-6 text-purple-600" />
-              </div>
-            </div>
-          </CardContent>
-        </Card>
-      </motion.div>
+      </div>
     </div>
   )
 }
