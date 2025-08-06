@@ -20,14 +20,10 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
+import { useArtist } from "@/contexts/artist-context"
 
 // This is sample data.
-const data = {
-  user: {
-    name: "Artist Name",
-    email: "artist@example.com",
-    avatar: "",
-  },
+const staticData = {
   teams: [
     {
       name: "Home Run Records",
@@ -96,17 +92,26 @@ const data = {
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
+  const { user } = useArtist();
+  
+  // Prepare user data for NavUser component
+  const userData = {
+    name: user?.artist_name || user?.email?.split('@')[0] || "Artist",
+    email: user?.email || "artist@example.com",
+    avatar: user?.profile_image_url || "",
+  };
+
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={data.teams} />
+        <TeamSwitcher teams={staticData.teams} />
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={data.navMain} />
-        <NavProjects projects={data.projects} />
+        <NavMain items={staticData.navMain} />
+        <NavProjects projects={staticData.projects} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={data.user} />
+        <NavUser user={userData} />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

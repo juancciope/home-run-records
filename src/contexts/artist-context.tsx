@@ -141,12 +141,19 @@ export function ArtistProvider({ children }: ArtistProviderProps) {
 
   const logout = async () => {
     try {
+      // Import signOut function
+      const { signOut } = await import('@/lib/supabaseClient');
+      
+      // Sign out from Supabase
+      const { error } = await signOut();
+      if (error) throw error;
+      
       // Clear local state
       setUser(null);
       setDashboardSummary(null);
       
-      // Note: Actual logout should be handled by the auth system
-      // This is just for context cleanup
+      // Redirect to login
+      window.location.href = '/login';
     } catch (error) {
       console.error('Error during logout:', error);
     }
