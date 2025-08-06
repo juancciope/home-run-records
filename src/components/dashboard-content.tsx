@@ -2,10 +2,7 @@
 
 import * as React from "react"
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
-import { Badge } from "@/components/ui/badge"
-import { Button } from "@/components/ui/button"
 import {
-  Music,
   TrendingUp,
   Users,
   Heart,
@@ -13,7 +10,6 @@ import {
   Package,
   Megaphone,
   Target,
-  Star,
 } from "lucide-react"
 import { useArtist } from "@/contexts/artist-context"
 
@@ -128,7 +124,7 @@ export function DashboardContent() {
         <div>
           <h2 className="text-3xl font-bold tracking-tight">Dashboard</h2>
           <p className="text-muted-foreground">
-            Here's an overview of your music business performance.
+            Here&apos;s an overview of your music business performance.
           </p>
         </div>
       </div>
