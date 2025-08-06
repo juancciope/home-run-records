@@ -213,9 +213,9 @@ export class ArtistService {
    */
   static async getArtistProfile(userId: string, userEmail?: string) {
     try {
-      // First try to get existing profile
+      // First try to get existing profile from artist_profiles table
       const { data, error } = await supabase
-        .from('users')
+        .from('artist_profiles')
         .select('*')
         .eq('id', userId)
         .single();
@@ -253,7 +253,7 @@ export class ArtistService {
       };
 
       const { data, error } = await supabase
-        .from('users')
+        .from('artist_profiles')
         .insert(profileData)
         .select()
         .single();
@@ -302,7 +302,7 @@ export class ArtistService {
       };
 
       const { data, error } = await supabase
-        .from('users')
+        .from('artist_profiles')
         .update(updateData)
         .eq('id', userId)
         .select()
@@ -318,7 +318,7 @@ export class ArtistService {
           
           // Try update again
           const { data: retryData, error: retryError } = await supabase
-            .from('users')
+            .from('artist_profiles')
             .update(updateData)
             .eq('id', userId)
             .select()
