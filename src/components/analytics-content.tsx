@@ -64,7 +64,6 @@ export function AnalyticsContent() {
     try {
       setIsLoadingAnalytics(true);
       const { ArtistService } = await import('@/lib/services/artist-service');
-      const { VibrateService } = await import('@/lib/services/viberate-service');
       
       // Check if user has Viberate connection
       const profile = await ArtistService.getArtistProfile(user.id, user.email);
@@ -73,10 +72,11 @@ export function AnalyticsContent() {
       
       if (hasConnection && profile?.viberate_artist_id) {
         try {
-          // Try to get real Viberate data
-          const vibrateData = await VibrateService.getArtistAnalytics(profile.viberate_artist_id);
+          // Try to get Viberate analytics data via API route
+          const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
+          const vibrateData = await response.json();
           
-          if (vibrateData) {
+          if (vibrateData && !vibrateData.error) {
             setAnalyticsData({
               totalReach: vibrateData.totalReach || 0,
               engagedAudience: vibrateData.engagedAudience || 0,
@@ -89,7 +89,7 @@ export function AnalyticsContent() {
                 facebook: { followers: 0, engagement: 0 },
               },
               trending: vibrateData.trending || [],
-              isRealData: true,
+              isRealData: vibrateData.isRealData || false,
               lastUpdated: new Date().toISOString(),
             });
           } else {

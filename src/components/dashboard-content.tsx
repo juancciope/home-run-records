@@ -79,21 +79,21 @@ export function DashboardContent() {
       // Load real marketing data if Viberate is connected
       if (hasConnection && profile?.viberate_artist_id) {
         try {
-          const { VibrateService } = await import('@/lib/services/viberate-service');
-          const vibrateData = await VibrateService.getArtistAnalytics(profile.viberate_artist_id);
+          const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
+          const vibrateData = await response.json();
           
-          if (vibrateData) {
-            console.log('Loaded real Viberate data:', vibrateData);
+          if (vibrateData && !vibrateData.error) {
+            console.log('Loaded Viberate analytics data:', vibrateData);
             setMarketingData({
               totalReach: vibrateData.totalReach,
               engaged: vibrateData.engagedAudience,
               followers: vibrateData.totalFollowers,
-              isRealData: true,
+              isRealData: vibrateData.isRealData || false,
             });
           }
         } catch (error) {
-          console.error('Error loading Vibrate analytics:', error);
-          // Keep mock data if real data fails
+          console.warn('Error loading Viberate analytics:', error);
+          // Keep mock data if API call fails
         }
       } else {
         // Use mock data for demo
