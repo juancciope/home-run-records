@@ -73,17 +73,17 @@ export class VibrateService {
         .toISOString().split('T')[0];
 
       const [streamsResponse, listenersResponse, followersResponse, playlistResponse] = await Promise.all([
-        fetch(`${this.BASE_URL}/artist/spotify/streams/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/spotify/streams-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
-        fetch(`${this.BASE_URL}/artist/spotify/listeners/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/spotify/listeners-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
-        fetch(`${this.BASE_URL}/artist/spotify/fanbase/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/spotify/fanbase-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
-        fetch(`${this.BASE_URL}/artist/spotify/playlist/reach/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/spotify/playlist-reach-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
       ]);
 
@@ -149,11 +149,11 @@ export class VibrateService {
         .toISOString().split('T')[0];
 
       const [followersResponse, engagementResponse] = await Promise.all([
-        fetch(`${this.BASE_URL}/artist/${platform}/fanbase/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/${platform}/fanbase-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
-        fetch(`${this.BASE_URL}/artist/${platform}/likes/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/${platform}/likes-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
       ]);
 
@@ -204,11 +204,11 @@ export class VibrateService {
         .toISOString().split('T')[0];
 
       const [activeResponse, addsResponse] = await Promise.all([
-        fetch(`${this.BASE_URL}/artist/${platform}/active/playlists/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/${platform}/active-playlists-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
-        fetch(`${this.BASE_URL}/artist/${platform}/playlists/adds/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`, {
-          headers: { 'Authorization': `Bearer ${this.API_KEY}` }
+        fetch(`${this.BASE_URL}/artist/${artistId}/${platform}/playlist-adds-historical?date-from=${startDate}&date-to=${endDate}`, {
+          headers: { 'Access-Key': this.API_KEY, 'Accept': 'application/json' }
         }),
       ]);
 
@@ -250,11 +250,11 @@ export class VibrateService {
   static async getArtistTracks(artistId: string) {
     try {
       const response = await fetch(
-        `${this.BASE_URL}/artist/tracks?artist_id=${artistId}`,
+        `${this.BASE_URL}/artist/${artistId}/viberate/tracks`,
         {
           headers: {
-            'Authorization': `Bearer ${this.API_KEY}`,
-            'Content-Type': 'application/json',
+            'Access-Key': this.API_KEY,
+            'Accept': 'application/json',
           },
         }
       );
@@ -283,11 +283,11 @@ export class VibrateService {
         .toISOString().split('T')[0];
 
       const response = await fetch(
-        `${this.BASE_URL}/artist/shazam/historical?artist_id=${artistId}&start=${startDate}&end=${endDate}`,
+        `${this.BASE_URL}/artist/${artistId}/shazam/shazams-historical?date-from=${startDate}&date-to=${endDate}`,
         {
           headers: {
-            'Authorization': `Bearer ${this.API_KEY}`,
-            'Content-Type': 'application/json',
+            'Access-Key': this.API_KEY,
+            'Accept': 'application/json',
           },
         }
       );
@@ -438,11 +438,11 @@ export class VibrateService {
   static async testConnection(): Promise<boolean> {
     try {
       const response = await fetch(
-        `${this.BASE_URL}/artist/search/name?q=test&limit=1`,
+        `${this.BASE_URL}/artist/search?q=test&limit=1`,
         {
           headers: {
-            'Authorization': `Bearer ${this.API_KEY}`,
-            'Content-Type': 'application/json',
+            'Access-Key': this.API_KEY,
+            'Accept': 'application/json',
           },
         }
       );

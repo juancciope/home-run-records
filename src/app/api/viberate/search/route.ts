@@ -1,7 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 
 const VIBERATE_API_KEY = process.env.VIBERATE_API_KEY || '';
-const VIBERATE_BASE_URL = 'https://api.viberate.com/api/v1';
+const VIBERATE_BASE_URL = 'https://data.viberate.com/api/v1';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -31,11 +31,11 @@ export async function GET(request: NextRequest) {
 
   try {
     const response = await fetch(
-      `${VIBERATE_BASE_URL}/artist/search/name?q=${encodeURIComponent(query)}&limit=${limit}`,
+      `${VIBERATE_BASE_URL}/artist/search?q=${encodeURIComponent(query)}&limit=${limit}`,
       {
         headers: {
-          'Authorization': `Bearer ${VIBERATE_API_KEY}`,
-          'Content-Type': 'application/json',
+          'Access-Key': VIBERATE_API_KEY,
+          'Accept': 'application/json',
         },
         // Add timeout to prevent hanging requests
         signal: AbortSignal.timeout(10000) // 10 second timeout
@@ -60,7 +60,20 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
-    return NextResponse.json(data.artists || []);
+    
+    // Transform the response to match our expected format
+    const artists = data.data?.map((artist: any) => ({
+      id: artist.uuid,
+      name: artist.name,
+      spotify_id: artist.spotify_id || null,
+      rank: artist.rank,
+      verified: artist.verified,
+      country: artist.country,
+      genre: artist.genre,
+      subgenres: artist.subgenres
+    })) || [];
+    
+    return NextResponse.json(artists);
   } catch (error) {
     // Log but don't re-throw - graceful degradation
     if (error instanceof Error) {
