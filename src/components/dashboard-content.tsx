@@ -17,13 +17,25 @@ import {
 import {
   ChartContainer,
   ChartConfig,
+  ChartTooltip,
+  ChartTooltipContent,
+  ChartLegend,
+  ChartLegendContent,
 } from "@/components/ui/chart"
 import {
-  Label,
-  PolarGrid,
-  PolarRadiusAxis,
-  RadialBar,
-  RadialBarChart,
+  Area,
+  AreaChart,
+  Bar,
+  BarChart,
+  CartesianGrid,
+  Line,
+  LineChart,
+  XAxis,
+  YAxis,
+  ResponsiveContainer,
+  Cell,
+  Pie,
+  PieChart,
 } from "recharts"
 import { useArtist } from "@/contexts/artist-context"
 
@@ -83,16 +95,123 @@ export function DashboardContent() {
     sales: 45,
   };
 
-  // Radial chart configurations following Shadcn/UI patterns
-  const radialChartConfig = {
-    visitors: {
-      label: "Value",
+  // Strategic chart configurations optimized for business insights
+  const productionChartConfig = {
+    unfinished: {
+      label: "Unfinished",
+      color: "hsl(var(--chart-1))",
     },
-    data: {
-      label: "Data",
-      color: "hsl(var(--primary))",
+    finished: {
+      label: "Finished",
+      color: "hsl(var(--chart-2))",
+    },
+    released: {
+      label: "Released",
+      color: "hsl(var(--chart-3))",
     },
   } satisfies ChartConfig
+
+  const marketingChartConfig = {
+    totalReach: {
+      label: "Total Reach",
+      color: "hsl(var(--chart-1))",
+    },
+    engaged: {
+      label: "Engaged",
+      color: "hsl(var(--chart-2))",
+    },
+    followers: {
+      label: "Followers",
+      color: "hsl(var(--chart-3))",
+    },
+  } satisfies ChartConfig
+
+  const fanEngagementChartConfig = {
+    conversionRate: {
+      label: "Conversion Rate",
+      color: "hsl(var(--chart-1))",
+    },
+    superFanRate: {
+      label: "Super Fan Rate",
+      color: "hsl(var(--chart-2))",
+    },
+  } satisfies ChartConfig
+
+  const conversionChartConfig = {
+    leads: {
+      label: "Leads",
+      color: "hsl(var(--chart-1))",
+    },
+    opportunities: {
+      label: "Opportunities",
+      color: "hsl(var(--chart-2))",
+    },
+    sales: {
+      label: "Sales",
+      color: "hsl(var(--chart-3))",
+    },
+  } satisfies ChartConfig
+
+  // Strategic data transformations for actionable insights
+  const productionEfficiencyData = [
+    {
+      stage: "Unfinished",
+      count: productionData.unfinished,
+      percentage: Math.round((productionData.unfinished / (productionData.unfinished + productionData.finished + productionData.released)) * 100),
+      fill: "var(--color-unfinished)"
+    },
+    {
+      stage: "Finished",
+      count: productionData.finished,
+      percentage: Math.round((productionData.finished / (productionData.unfinished + productionData.finished + productionData.released)) * 100),
+      fill: "var(--color-finished)"
+    },
+    {
+      stage: "Released",
+      count: productionData.released,
+      percentage: Math.round((productionData.released / (productionData.unfinished + productionData.finished + productionData.released)) * 100),
+      fill: "var(--color-released)"
+    },
+  ]
+
+  const marketingTrendData = [
+    { month: "Jan", totalReach: 186000, engaged: 24000, followers: 18000 },
+    { month: "Feb", totalReach: 205000, engaged: 26000, followers: 19200 },
+    { month: "Mar", totalReach: 237000, engaged: 30800, followers: 19800 },
+    { month: "Apr", totalReach: 273000, engaged: 35500, followers: 20400 },
+    { month: "May", totalReach: 309000, engaged: 40200, followers: 20800 },
+    { month: "Jun", totalReach: marketingData.totalReach, engaged: marketingData.engaged, followers: marketingData.followers },
+  ]
+
+  const fanConversionTrendData = [
+    { month: "Jan", conversionRate: 37, superFanRate: 5 },
+    { month: "Feb", conversionRate: 37, superFanRate: 4.7 },
+    { month: "Mar", conversionRate: 37, superFanRate: 4.7 },
+    { month: "Apr", conversionRate: 37, superFanRate: 4.7 },
+    { month: "May", conversionRate: 37, superFanRate: 4.7 },
+    { month: "Jun", conversionRate: Math.round((fanEngagementData.fans / fanEngagementData.capturedData) * 100), superFanRate: Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100) },
+  ]
+
+  const conversionComparisonData = [
+    {
+      stage: "Leads",
+      count: conversionData.leads,
+      conversionRate: 100,
+      fill: "var(--color-leads)"
+    },
+    {
+      stage: "Opportunities",
+      count: conversionData.opportunities,
+      conversionRate: Math.round((conversionData.opportunities / conversionData.leads) * 100),
+      fill: "var(--color-opportunities)"
+    },
+    {
+      stage: "Sales",
+      count: conversionData.sales,
+      conversionRate: Math.round((conversionData.sales / conversionData.opportunities) * 100),
+      fill: "var(--color-sales)"
+    },
+  ]
 
   if (isDashboardLoading || isLoadingMetrics) {
     return (
@@ -184,214 +303,67 @@ export function DashboardContent() {
               <p className="text-xs text-muted-foreground">Your product, your releases - from idea to market</p>
             </div>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Unfinished */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Unfinished</CardTitle>
-                  <CardDescription className="text-xs">Ideas & demos in progress</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "unfinished", visitors: productionData.unfinished, fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {productionData.unfinished.toLocaleString()}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Projects
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    In development <Music className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Active creative work in progress
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Finished */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Finished</CardTitle>
-                  <CardDescription className="text-xs">Ready for release</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "finished", visitors: productionData.finished, fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {productionData.finished.toLocaleString()}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Ready
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Ready to launch <Target className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Completed projects awaiting release
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Released */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Released</CardTitle>
-                  <CardDescription className="text-xs">Live in market</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "released", visitors: productionData.released, fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {productionData.released.toLocaleString()}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Live
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Available to fans <Zap className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Published and generating revenue
-                  </div>
-                </CardFooter>
-            </Card>
-          </div>
+          
+          {/* Production Workflow Efficiency */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-sm font-medium">Production Workflow Efficiency</CardTitle>
+              <CardDescription className="text-xs">Focus: Complete more projects to increase revenue</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-0">
+              <ChartContainer
+                config={productionChartConfig}
+                className="h-[200px] w-full"
+              >
+                <BarChart
+                  accessibilityLayer
+                  data={productionEfficiencyData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="stage"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                  />
+                  <YAxis hide />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent hideLabel />}
+                    cursor={false}
+                  />
+                  <Bar dataKey="count" fill="hsl(var(--chart-1))" radius={4}>
+                    {productionEfficiencyData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+              <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-red-600">{Math.round((productionData.finished / (productionData.unfinished + productionData.finished)) * 100)}%</div>
+                  <p className="text-xs text-muted-foreground">Completion Rate</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">{productionData.released}</div>
+                  <p className="text-xs text-muted-foreground">Generating Revenue</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-orange-600">{productionData.unfinished}</div>
+                  <p className="text-xs text-muted-foreground">Bottleneck</p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
+              <div className="flex items-center gap-2 leading-none font-medium text-orange-600">
+                <Target className="h-3 w-3" />
+                Action: Focus on completing {productionData.unfinished} unfinished projects
+              </div>
+              <div className="text-muted-foreground leading-none">
+                Each completed project = potential revenue. Prioritize finishing over starting new ones.
+              </div>
+            </CardFooter>
+          </Card>
         </div>
 
         {/* Marketing Reach Realm */}
@@ -405,214 +377,82 @@ export function DashboardContent() {
               <p className="text-xs text-muted-foreground">Aggregate audience reach to engaged followers</p>
             </div>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Total Reach */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
-                  <CardDescription className="text-xs">Aggregate audience across platforms</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "reach", visitors: Math.round(marketingData.totalReach / 1000), fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {Math.round(marketingData.totalReach / 1000)}K
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    People
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Trending up by 12.5% <TrendingUp className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Total audience across all platforms
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Engaged Audience */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Engaged Audience</CardTitle>
-                  <CardDescription className="text-xs">Active listeners & viewers</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "engaged", visitors: Math.round(marketingData.engaged / 100), fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {Math.round(marketingData.engaged / 100)}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Hundreds
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    13.3% engagement rate <Heart className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    People actively engaging with content
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Followers */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Followers</CardTitle>
-                  <CardDescription className="text-xs">Loyal subscriber base</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "followers", visitors: Math.round(marketingData.followers / 100), fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {Math.round(marketingData.followers / 100)}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Hundreds
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Growing steadily <Users className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Committed fans across platforms
-                  </div>
-                </CardFooter>
-            </Card>
-          </div>
+          
+          {/* Marketing Growth Trends */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-sm font-medium">Marketing Growth & Engagement Trends</CardTitle>
+              <CardDescription className="text-xs">Focus: Improve engagement rate to convert reach into followers</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-0">
+              <ChartContainer config={marketingChartConfig} className="h-[250px] w-full">
+                <AreaChart
+                  accessibilityLayer
+                  data={marketingTrendData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                  />
+                  <YAxis hide />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <defs>
+                    <linearGradient id="fillTotalReach" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-totalReach)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="var(--color-totalReach)" stopOpacity={0.1} />
+                    </linearGradient>
+                    <linearGradient id="fillEngaged" x1="0" y1="0" x2="0" y2="1">
+                      <stop offset="5%" stopColor="var(--color-engaged)" stopOpacity={0.8} />
+                      <stop offset="95%" stopColor="var(--color-engaged)" stopOpacity={0.1} />
+                    </linearGradient>
+                  </defs>
+                  <Area
+                    dataKey="totalReach"
+                    type="natural"
+                    fill="url(#fillTotalReach)"
+                    fillOpacity={0.4}
+                    stroke="var(--color-totalReach)"
+                    stackId="a"
+                  />
+                  <Area
+                    dataKey="engaged"
+                    type="natural"
+                    fill="url(#fillEngaged)"
+                    fillOpacity={0.4}
+                    stroke="var(--color-engaged)"
+                    stackId="a"
+                  />
+                </AreaChart>
+              </ChartContainer>
+              <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-600">{Math.round((marketingData.engaged / marketingData.totalReach) * 100)}%</div>
+                  <p className="text-xs text-muted-foreground">Engagement Rate</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">{Math.round((marketingData.followers / marketingData.engaged) * 100)}%</div>
+                  <p className="text-xs text-muted-foreground">Follower Conversion</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-purple-600">+84%</div>
+                  <p className="text-xs text-muted-foreground">6-Month Growth</p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
+              <div className="flex items-center gap-2 leading-none font-medium text-blue-600">
+                <TrendingUp className="h-3 w-3" />
+                Action: Improve 13% engagement rate with more interactive content
+              </div>
+              <div className="text-muted-foreground leading-none">
+                Great reach growth! Focus on engagement to convert more viewers into loyal followers.
+              </div>
+            </CardFooter>
+          </Card>
         </div>
 
         {/* Fan Engagement Realm */}
@@ -626,214 +466,70 @@ export function DashboardContent() {
               <p className="text-xs text-muted-foreground">Building deeper connections with your audience</p>
             </div>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Captured Data */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Captured Data</CardTitle>
-                  <CardDescription className="text-xs">Email list & contact info</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "captured", visitors: Math.round(fanEngagementData.capturedData / 100), fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {Math.round(fanEngagementData.capturedData / 100)}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Hundreds
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Growing database <Users className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Direct contact information collected
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Fans */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Fans</CardTitle>
-                  <CardDescription className="text-xs">Regular supporters</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "fans", visitors: Math.round(fanEngagementData.fans / 10), fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {Math.round(fanEngagementData.fans / 10)}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Tens
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    4.7% conversion rate <Heart className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    People who regularly engage
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Super Fans */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Super Fans</CardTitle>
-                  <CardDescription className="text-xs">VIP community members</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "superfans", visitors: fanEngagementData.superFans, fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {fanEngagementData.superFans.toLocaleString()}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    VIPs
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Premium supporters <Star className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Highest value audience segment
-                  </div>
-                </CardFooter>
-            </Card>
-          </div>
+          
+          {/* Fan Conversion Efficiency */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-sm font-medium">Fan Conversion Efficiency</CardTitle>
+              <CardDescription className="text-xs">Focus: Improve super fan conversion rate for higher lifetime value</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-0">
+              <ChartContainer config={fanEngagementChartConfig} className="h-[200px] w-full">
+                <LineChart
+                  accessibilityLayer
+                  data={fanConversionTrendData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="month"
+                    tickLine={false}
+                    axisLine={false}
+                    tickMargin={8}
+                  />
+                  <YAxis hide />
+                  <ChartTooltip content={<ChartTooltipContent />} />
+                  <Line
+                    dataKey="conversionRate"
+                    type="monotone"
+                    stroke="var(--color-conversionRate)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                  <Line
+                    dataKey="superFanRate"
+                    type="monotone"
+                    stroke="var(--color-superFanRate)"
+                    strokeWidth={2}
+                    dot={false}
+                  />
+                </LineChart>
+              </ChartContainer>
+              <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-blue-600">{Math.round((fanEngagementData.fans / fanEngagementData.capturedData) * 100)}%</div>
+                  <p className="text-xs text-muted-foreground">Data → Fans</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-red-600">{Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100)}%</div>
+                  <p className="text-xs text-muted-foreground">Fans → Super Fans</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">{fanEngagementData.superFans}</div>
+                  <p className="text-xs text-muted-foreground">VIP Members</p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
+              <div className="flex items-center gap-2 leading-none font-medium text-red-600">
+                <Heart className="h-3 w-3" />
+                Action: Low 4.7% super fan conversion - create VIP exclusive content
+              </div>
+              <div className="text-muted-foreground leading-none">
+                Super fans generate 5x more revenue. Focus on deeper engagement with existing fans.
+              </div>
+            </CardFooter>
+          </Card>
         </div>
 
         {/* Conversion Realm */}
@@ -847,222 +543,72 @@ export function DashboardContent() {
               <p className="text-xs text-muted-foreground">Revenue generation from leads to sales</p>
             </div>
           </div>
-          <div className="grid gap-6 md:grid-cols-3">
-            {/* Leads */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Leads</CardTitle>
-                  <CardDescription className="text-xs">Interested potential buyers</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "leads", visitors: conversionData.leads, fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {conversionData.leads.toLocaleString()}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Prospects
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    Active pipeline <Users className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    People showing purchase intent
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Opportunities */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Opportunities</CardTitle>
-                  <CardDescription className="text-xs">Active deals in progress</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "opportunities", visitors: conversionData.opportunities, fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {conversionData.opportunities.toLocaleString()}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Deals
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    26.7% conversion rate <Target className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Qualified leads in negotiation
-                  </div>
-                </CardFooter>
-              </Card>
-
-            {/* Sales */}
-            <Card className="flex flex-col bg-sidebar">
-                <CardHeader className="items-center pb-0">
-                  <CardTitle className="text-sm font-medium">Sales</CardTitle>
-                  <CardDescription className="text-xs">Closed won deals</CardDescription>
-                </CardHeader>
-                <CardContent className="flex-1 pb-0">
-                  <ChartContainer
-                    config={radialChartConfig}
-                    className="mx-auto aspect-square max-h-[250px]"
-                  >
-                    <RadialBarChart
-                      data={[{ name: "sales", visitors: conversionData.sales, fill: "var(--color-data)" }]}
-                      endAngle={100}
-                      innerRadius={80}
-                      outerRadius={140}
-                    >
-                      <PolarGrid
-                        gridType="circle"
-                        radialLines={false}
-                        stroke="none"
-                        className="first:fill-muted last:fill-background"
-                        polarRadius={[86, 74]}
-                      />
-                      <RadialBar dataKey="visitors" background />
-                      <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                        <Label
-                          content={({ viewBox }) => {
-                            if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                              return (
-                                <text
-                                  x={viewBox.cx}
-                                  y={viewBox.cy}
-                                  textAnchor="middle"
-                                  dominantBaseline="middle"
-                                >
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={viewBox.cy}
-                                    className="fill-foreground text-2xl font-bold"
-                                  >
-                                    {conversionData.sales.toLocaleString()}
-                                  </tspan>
-                                  <tspan
-                                    x={viewBox.cx}
-                                    y={(viewBox.cy || 0) + 24}
-                                    className="fill-muted-foreground text-xs"
-                                  >
-                                    Won
-                                  </tspan>
-                                </text>
-                              )
-                            }
-                          }}
-                        />
-                      </PolarRadiusAxis>
-                    </RadialBarChart>
-                  </ChartContainer>
-                </CardContent>
-                <CardFooter className="flex-col gap-2 text-xs">
-                  <div className="flex items-center gap-2 leading-none font-medium">
-                    37.5% close rate <DollarSign className="h-3 w-3" />
-                  </div>
-                  <div className="text-muted-foreground leading-none">
-                    Successful transactions completed
-                  </div>
-                </CardFooter>
-            </Card>
-          </div>
+          
+          {/* Revenue Conversion Funnel */}
+          <Card className="bg-sidebar">
+            <CardHeader className="pb-4">
+              <CardTitle className="text-sm font-medium">Revenue Conversion Funnel</CardTitle>
+              <CardDescription className="text-xs">Focus: Improve 27% lead-to-opportunity conversion rate</CardDescription>
+            </CardHeader>
+            <CardContent className="pb-0">
+              <ChartContainer config={conversionChartConfig} className="h-[250px] w-full">
+                <BarChart
+                  accessibilityLayer
+                  data={conversionComparisonData}
+                  margin={{ top: 20, right: 30, left: 20, bottom: 5 }}
+                >
+                  <CartesianGrid vertical={false} />
+                  <XAxis
+                    dataKey="stage"
+                    tickLine={false}
+                    tickMargin={10}
+                    axisLine={false}
+                  />
+                  <YAxis hide />
+                  <ChartTooltip 
+                    content={<ChartTooltipContent hideLabel />}
+                    cursor={false}
+                  />
+                  <Bar dataKey="count" fill="hsl(var(--chart-1))" radius={4}>
+                    {conversionComparisonData.map((entry, index) => (
+                      <Cell key={`cell-${index}`} fill={entry.fill} />
+                    ))}
+                  </Bar>
+                </BarChart>
+              </ChartContainer>
+              <div className="flex justify-between items-center mt-4 pt-4 border-t">
+                <div className="text-center">
+                  <div className="text-lg font-bold text-red-600">27%</div>
+                  <p className="text-xs text-muted-foreground">Leads → Opportunities</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-green-600">38%</div>
+                  <p className="text-xs text-muted-foreground">Opportunities → Sales</p>
+                </div>
+                <div className="text-center">
+                  <div className="text-lg font-bold text-purple-600">10%</div>
+                  <p className="text-xs text-muted-foreground">Overall Conversion</p>
+                </div>
+              </div>
+            </CardContent>
+            <CardFooter className="flex-col gap-2 text-xs border-t pt-4">
+              <div className="flex items-center gap-2 leading-none font-medium text-red-600">
+                <DollarSign className="h-3 w-3" />
+                Action: 27% lead conversion is low - improve qualification process
+              </div>
+              <div className="text-muted-foreground leading-none">
+                Good close rate (38%)! Focus on better lead qualification to increase opportunities.
+              </div>
+            </CardFooter>
+          </Card>
         </div>
       </div>
 
       {/* Business Health Summary */}
-      <Card>
+      <Card className="bg-sidebar">
         <CardHeader>
-          <CardTitle>Business Health Summary</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-sm font-medium">Business Health Summary</CardTitle>
+          <CardDescription className="text-xs">
             Overall performance across all pipeline realms
           </CardDescription>
         </CardHeader>
@@ -1070,45 +616,45 @@ export function DashboardContent() {
           <div className="grid gap-4 md:grid-cols-4">
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-green-500" />
-                <span className="text-sm font-medium">Production Health</span>
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="text-xs font-medium">Production Health</span>
               </div>
-              <p className="text-2xl font-bold text-green-600">Good</p>
+              <p className="text-lg font-bold text-red-600">Needs Work</p>
               <p className="text-xs text-muted-foreground">
-                {Math.round((productionData.finished / (productionData.unfinished + productionData.finished)) * 100)}% completion rate
+                {Math.round((productionData.finished / (productionData.unfinished + productionData.finished)) * 100)}% completion rate - complete more projects
               </p>
             </div>
             
             <div className="space-y-2">
               <div className="flex items-center gap-2">
                 <div className="h-2 w-2 rounded-full bg-blue-500" />
-                <span className="text-sm font-medium">Reach Efficiency</span>
+                <span className="text-xs font-medium">Reach Efficiency</span>
               </div>
-              <p className="text-2xl font-bold text-blue-600">13.3%</p>
+              <p className="text-lg font-bold text-blue-600">Good</p>
               <p className="text-xs text-muted-foreground">
-                Engagement rate
+                13.3% engagement rate - growing well
               </p>
             </div>
             
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-purple-500" />
-                <span className="text-sm font-medium">Fan Conversion</span>
+                <div className="h-2 w-2 rounded-full bg-red-500" />
+                <span className="text-xs font-medium">Fan Conversion</span>
               </div>
-              <p className="text-2xl font-bold text-purple-600">4.7%</p>
+              <p className="text-lg font-bold text-red-600">Critical</p>
               <p className="text-xs text-muted-foreground">
-                To super fans
+                4.7% super fan rate - needs VIP strategy
               </p>
             </div>
             
             <div className="space-y-2">
               <div className="flex items-center gap-2">
-                <div className="h-2 w-2 rounded-full bg-orange-500" />
-                <span className="text-sm font-medium">Sales Conversion</span>
+                <div className="h-2 w-2 rounded-full bg-yellow-500" />
+                <span className="text-xs font-medium">Sales Conversion</span>
               </div>
-              <p className="text-2xl font-bold text-orange-600">37.5%</p>
+              <p className="text-lg font-bold text-yellow-600">Opportunity</p>
               <p className="text-xs text-muted-foreground">
-                Opportunities to sales
+                27% lead conversion - improve qualification
               </p>
             </div>
           </div>
