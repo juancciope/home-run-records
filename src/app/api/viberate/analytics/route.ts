@@ -155,7 +155,10 @@ export async function GET(request: NextRequest) {
       totalFollowers: analyticsData.totalFollowers,
       totalReach: analyticsData.totalReach,
       hasRealData: analyticsData.isRealData,
-      platforms: Object.keys(analyticsData.platforms).filter(p => analyticsData.platforms[p as keyof typeof analyticsData.platforms].followers > 0)
+      platforms: Object.keys(analyticsData.platforms).filter(p => {
+        const platform = analyticsData.platforms[p as keyof typeof analyticsData.platforms];
+        return ('followers' in platform && platform.followers > 0) || ('subscribers' in platform && platform.subscribers > 0);
+      })
     });
 
     return NextResponse.json(analyticsData);
