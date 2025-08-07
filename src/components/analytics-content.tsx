@@ -39,6 +39,9 @@ interface VibrateAnalytics {
     instagram: { followers: number; engagement: number };
     tiktok: { followers: number; views: number };
     facebook: { followers: number; engagement: number };
+    twitter?: { followers: number; engagement: number };
+    deezer?: { fans: number; streams: number };
+    soundcloud?: { followers: number; plays: number };
   };
   trending: {
     date: string;
@@ -90,6 +93,9 @@ export function AnalyticsContent() {
                 instagram: { followers: 0, engagement: 0 },
                 tiktok: { followers: 0, views: 0 },
                 facebook: { followers: 0, engagement: 0 },
+                twitter: { followers: 0, engagement: 0 },
+                deezer: { fans: 0, streams: 0 },
+                soundcloud: { followers: 0, plays: 0 },
               },
               trending: vibrateData.trending || [],
               isRealData: vibrateData.isRealData || false,
@@ -396,6 +402,48 @@ export function AnalyticsContent() {
               </div>
             </CardContent>
           </DataCard>
+
+          {/* Facebook */}
+          <DataCard>
+            <CardHeader className="pb-2">
+              <CardTitle className="text-sm font-medium flex items-center gap-2">
+                <div className="w-3 h-3 rounded-full bg-[#1877F2]" />
+                Facebook
+              </CardTitle>
+              <CardDescription className="text-xs">Social media</CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="space-y-2">
+                <div className="text-2xl font-bold">{analyticsData.platforms.facebook.followers.toLocaleString()}</div>
+                <p className="text-xs text-muted-foreground">Followers</p>
+                <div className="text-lg font-semibold text-[#1877F2]">
+                  {analyticsData.platforms.facebook.engagement}% engagement
+                </div>
+              </div>
+            </CardContent>
+          </DataCard>
+
+          {/* Twitter */}
+          {analyticsData.platforms.twitter && analyticsData.platforms.twitter.followers > 0 && (
+            <DataCard>
+              <CardHeader className="pb-2">
+                <CardTitle className="text-sm font-medium flex items-center gap-2">
+                  <div className="w-3 h-3 rounded-full bg-black" />
+                  Twitter
+                </CardTitle>
+                <CardDescription className="text-xs">Social media</CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-2">
+                  <div className="text-2xl font-bold">{analyticsData.platforms.twitter.followers.toLocaleString()}</div>
+                  <p className="text-xs text-muted-foreground">Followers</p>
+                  <div className="text-lg font-semibold">
+                    {analyticsData.platforms.twitter.engagement}% engagement
+                  </div>
+                </div>
+              </CardContent>
+            </DataCard>
+          )}
 
           {/* Total Reach Summary */}
           <DataCard className="md:col-span-2">
