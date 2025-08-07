@@ -64,6 +64,11 @@ export async function GET(request: NextRequest) {
       tracks: tracksCount || 0
     });
 
+    console.log('Raw fanbase data structure:', JSON.stringify({
+      distribution: fanbase?.distribution,
+      data: fanbase?.data
+    }, null, 2));
+
     // Extract platform-specific data from fanbase distribution
     const distribution = fanbase?.distribution || {};
     const fanbaseData = fanbase?.data || {};
@@ -95,6 +100,14 @@ export async function GET(request: NextRequest) {
     if (!youtubeSubscribers && fanbaseData.youtube) youtubeSubscribers = fanbaseData.youtube;
     if (!tiktokFollowers && fanbaseData.tiktok) tiktokFollowers = fanbaseData.tiktok;
     if (!facebookFollowers && fanbaseData.facebook) facebookFollowers = fanbaseData.facebook;
+
+    console.log('Extracted platform values:', {
+      spotifyFollowers,
+      instagramFollowers,
+      youtubeSubscribers,
+      tiktokFollowers,
+      facebookFollowers
+    });
 
     // Use total_fans if available, otherwise sum individual platforms
     const totalFans = fanbase?.total_fans || 0;
