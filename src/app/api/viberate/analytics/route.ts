@@ -69,7 +69,7 @@ export async function GET(request: NextRequest) {
       data: fanbase?.data
     }, null, 2));
 
-    // Extract platform-specific data from fanbase distribution
+    // Extract platform-specific data from fanbase distribution and data
     const distribution = fanbase?.distribution || {};
     const fanbaseData = fanbase?.data || {};
     
@@ -80,39 +80,62 @@ export async function GET(request: NextRequest) {
     let tiktokFollowers = 0;
     let facebookFollowers = 0;
 
-    // Try to extract from distribution first (simple keys)
-    if (distribution.spotify) spotifyFollowers = distribution.spotify;
-    if (distribution.instagram) instagramFollowers = distribution.instagram;
-    if (distribution.youtube) youtubeSubscribers = distribution.youtube;
-    if (distribution.tiktok) tiktokFollowers = distribution.tiktok;
-    if (distribution.facebook) facebookFollowers = distribution.facebook;
+    // The sync route stores artistData.fanbase.data in the distribution field
+    // So we need to check distribution for the hyphenated keys first
+    if (distribution['spotify-followers']) spotifyFollowers = distribution['spotify-followers'];
+    if (distribution['instagram-followers']) instagramFollowers = distribution['instagram-followers'];
+    if (distribution['youtube-subscribers']) youtubeSubscribers = distribution['youtube-subscribers'];
+    if (distribution['tiktok-followers']) tiktokFollowers = distribution['tiktok-followers'];
+    if (distribution['facebook-followers']) facebookFollowers = distribution['facebook-followers'];
 
-    // If no distribution data, try from fanbase.data structure (hyphenated keys)
+    // Try nested data structure: fanbase.data.data (full nested structure)
+    const nestedData = fanbaseData?.data || {};
+    if (!spotifyFollowers && nestedData['spotify-followers']) spotifyFollowers = nestedData['spotify-followers'];
+    if (!instagramFollowers && nestedData['instagram-followers']) instagramFollowers = nestedData['instagram-followers'];
+    if (!youtubeSubscribers && nestedData['youtube-subscribers']) youtubeSubscribers = nestedData['youtube-subscribers'];
+    if (!tiktokFollowers && nestedData['tiktok-followers']) tiktokFollowers = nestedData['tiktok-followers'];
+    if (!facebookFollowers && nestedData['facebook-followers']) facebookFollowers = nestedData['facebook-followers'];
+
+    // Fallback: try fanbase.data directly for hyphenated keys
     if (!spotifyFollowers && fanbaseData['spotify-followers']) spotifyFollowers = fanbaseData['spotify-followers'];
     if (!instagramFollowers && fanbaseData['instagram-followers']) instagramFollowers = fanbaseData['instagram-followers'];
     if (!youtubeSubscribers && fanbaseData['youtube-subscribers']) youtubeSubscribers = fanbaseData['youtube-subscribers'];
     if (!tiktokFollowers && fanbaseData['tiktok-followers']) tiktokFollowers = fanbaseData['tiktok-followers'];
     if (!facebookFollowers && fanbaseData['facebook-followers']) facebookFollowers = fanbaseData['facebook-followers'];
 
-    // Also try simple keys in fanbase.data as fallback
-    if (!spotifyFollowers && fanbaseData.spotify) spotifyFollowers = fanbaseData.spotify;
-    if (!instagramFollowers && fanbaseData.instagram) instagramFollowers = fanbaseData.instagram;
-    if (!youtubeSubscribers && fanbaseData.youtube) youtubeSubscribers = fanbaseData.youtube;
-    if (!tiktokFollowers && fanbaseData.tiktok) tiktokFollowers = fanbaseData.tiktok;
-    if (!facebookFollowers && fanbaseData.facebook) facebookFollowers = fanbaseData.facebook;
+    // Also extract additional platforms from the data
+    let twitterFollowers = 0;
+    let deezerFans = 0;
+    let soundcloudFollowers = 0;
+
+    // Extract additional platforms
+    if (distribution['twitter-followers']) twitterFollowers = distribution['twitter-followers'];
+    if (distribution['deezer-fans']) deezerFans = distribution['deezer-fans'];
+    if (distribution['soundcloud-followers']) soundcloudFollowers = distribution['soundcloud-followers'];
+    
+    if (!twitterFollowers && nestedData['twitter-followers']) twitterFollowers = nestedData['twitter-followers'];
+    if (!deezerFans && nestedData['deezer-fans']) deezerFans = nestedData['deezer-fans'];
+    if (!soundcloudFollowers && nestedData['soundcloud-followers']) soundcloudFollowers = nestedData['soundcloud-followers'];
+    
+    if (!twitterFollowers && fanbaseData['twitter-followers']) twitterFollowers = fanbaseData['twitter-followers'];
+    if (!deezerFans && fanbaseData['deezer-fans']) deezerFans = fanbaseData['deezer-fans'];
+    if (!soundcloudFollowers && fanbaseData['soundcloud-followers']) soundcloudFollowers = fanbaseData['soundcloud-followers'];
 
     console.log('Extracted platform values:', {
       spotifyFollowers,
       instagramFollowers,
       youtubeSubscribers,
       tiktokFollowers,
-      facebookFollowers
+      facebookFollowers,
+      twitterFollowers,
+      deezerFans,
+      soundcloudFollowers
     });
 
     // Use total_fans if available, otherwise sum individual platforms
     const totalFans = fanbase?.total_fans || 0;
     const totalFollowers = totalFans > 0 ? totalFans : 
-      spotifyFollowers + instagramFollowers + youtubeSubscribers + tiktokFollowers + facebookFollowers;
+      spotifyFollowers + instagramFollowers + youtubeSubscribers + tiktokFollowers + facebookFollowers + twitterFollowers + deezerFans + soundcloudFollowers;
 
     // Calculate derived metrics
     const totalReach = Math.round(totalFollowers * 1.8); // Reach multiplier
@@ -128,7 +151,9 @@ export async function GET(request: NextRequest) {
         spotify: Math.round(spotifyFollowers * (0.4 + growthFactor * 0.6)),
         youtube: Math.round(youtubeSubscribers * (0.5 + growthFactor * 0.5)),
         instagram: Math.round(instagramFollowers * (0.6 + growthFactor * 0.4)),
-        tiktok: Math.round(tiktokFollowers * (0.3 + growthFactor * 0.7))
+        tiktok: Math.round(tiktokFollowers * (0.3 + growthFactor * 0.7)),
+        facebook: Math.round(facebookFollowers * (0.8 + growthFactor * 0.2)), // Facebook grows slower
+        twitter: Math.round(twitterFollowers * (0.7 + growthFactor * 0.3))
       });
     }
 
@@ -157,7 +182,19 @@ export async function GET(request: NextRequest) {
         },
         facebook: { 
           followers: facebookFollowers, 
-          engagement: facebookFollowers > 0 ? 8.2 : 0
+          engagement: facebookFollowers > 0 ? Math.round((facebookFollowers / totalFollowers) * 100) : 0
+        },
+        twitter: {
+          followers: twitterFollowers,
+          engagement: twitterFollowers > 0 ? Math.round((twitterFollowers / totalFollowers) * 100) : 0
+        },
+        deezer: {
+          fans: deezerFans,
+          streams: deezerFans * 15 // Estimate streams from fans
+        },
+        soundcloud: {
+          followers: soundcloudFollowers,
+          plays: soundcloudFollowers * 25 // Estimate plays from followers
         }
       },
       trending: trendingData,
