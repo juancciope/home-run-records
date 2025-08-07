@@ -1,7 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-
-const VIBERATE_API_KEY = process.env.VIBERATE_API_KEY || '';
-const VIBERATE_BASE_URL = 'https://data.viberate.com/api/v1';
+import { supabase } from '@/lib/supabaseClient';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,156 +9,176 @@ export async function GET(request: NextRequest) {
     return NextResponse.json({ error: 'Artist ID is required' }, { status: 400 });
   }
 
-  if (!VIBERATE_API_KEY) {
-    // Return mock analytics data when API key is not configured
-    console.warn('Viberate API key not configured, returning mock analytics data');
-    return NextResponse.json({
-      totalReach: 342000,
-      engagedAudience: 45600,
-      totalFollowers: 21200,
-      youtubeSubscribers: 18500,
-      spotifyStreams: 127000,
-      isRealData: false
-    });
-  }
-
   try {
-    // Get current date and 30 days ago for API calls
-    const endDate = new Date().toISOString().split('T')[0];
-    const startDate = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000)
-      .toISOString().split('T')[0];
+    console.log('Fetching analytics data from database for artist UUID:', artistId);
 
-    // Fetch real analytics data from multiple Viberate endpoints
-    const [spotifyResponse, instagramResponse, youtubeResponse] = await Promise.all([
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/spotify/listeners-historical?date-from=${startDate}&date-to=${endDate}`, {
-        headers: { 'Access-Key': VIBERATE_API_KEY, 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(10000)
-      }).catch(() => null),
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/instagram/fanbase-historical?date-from=${startDate}&date-to=${endDate}`, {
-        headers: { 'Access-Key': VIBERATE_API_KEY, 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(10000)
-      }).catch(() => null),
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/youtube/fanbase-historical?date-from=${startDate}&date-to=${endDate}`, {
-        headers: { 'Access-Key': VIBERATE_API_KEY, 'Accept': 'application/json' },
-        signal: AbortSignal.timeout(10000)
-      }).catch(() => null)
-    ]);
+    // Query artist data from database
+    const { data: artist, error: artistError } = await supabase
+      .from('artists')
+      .select('*')
+      .eq('uuid', artistId)
+      .single();
 
-    let spotifyData, instagramData, youtubeData;
-    let hasRealData = false;
-
-    // Parse responses if available
-    if (spotifyResponse?.ok) {
-      spotifyData = await spotifyResponse.json();
-      hasRealData = true;
-    }
-    if (instagramResponse?.ok) {
-      instagramData = await instagramResponse.json();
-      hasRealData = true;
-    }
-    if (youtubeResponse?.ok) {
-      youtubeData = await youtubeResponse.json();
-      hasRealData = true;
-    }
-
-    // Extract latest values or use defaults
-    const latestSpotify = spotifyData?.data?.data ? Object.values(spotifyData.data.data).pop() as { value: number } | undefined : null;
-    const latestInstagram = instagramData?.data?.data ? Object.values(instagramData.data.data).pop() as { value: number } | undefined : null;
-    const latestYoutube = youtubeData?.data?.data ? Object.values(youtubeData.data.data).pop() as { value: number } | undefined : null;
-
-    const spotifyListeners = latestSpotify?.value || 0;
-    const instagramFollowers = latestInstagram?.value || 0;
-    const youtubeSubscribers = latestYoutube?.value || 0;
-    
-    const totalFollowers = spotifyListeners + instagramFollowers + youtubeSubscribers;
-    const totalReach = Math.round(totalFollowers * 1.8); // Estimate reach multiplier
-    const engagedAudience = Math.round(totalReach * 0.12); // Estimate 12% engagement
-
-    if (hasRealData) {
+    if (artistError || !artist) {
+      console.warn('Artist not found in database:', artistError);
       return NextResponse.json({
-        totalReach,
-        engagedAudience,
-        totalFollowers,
+        totalReach: 0,
+        engagedAudience: 0,
+        totalFollowers: 0,
         platforms: {
-          spotify: { followers: spotifyListeners, streams: spotifyListeners * 12 }, // Estimate streams from listeners
-          youtube: { subscribers: youtubeSubscribers, views: youtubeSubscribers * 8 },
-          instagram: { followers: instagramFollowers, engagement: Math.round((instagramFollowers / totalFollowers) * 100) },
-          tiktok: { followers: Math.round(totalFollowers * 0.1), views: Math.round(totalFollowers * 0.8) },
-          facebook: { followers: Math.round(totalFollowers * 0.05), engagement: 5.2 }
+          spotify: { followers: 0, streams: 0 },
+          youtube: { subscribers: 0, views: 0 },
+          instagram: { followers: 0, engagement: 0 },
+          tiktok: { followers: 0, views: 0 },
+          facebook: { followers: 0, engagement: 0 }
         },
-        trending: [
-          { date: "Jan", spotify: Math.round(spotifyListeners * 0.7), youtube: Math.round(youtubeSubscribers * 0.8), instagram: Math.round(instagramFollowers * 0.9), tiktok: Math.round(totalFollowers * 0.08) },
-          { date: "Feb", spotify: Math.round(spotifyListeners * 0.75), youtube: Math.round(youtubeSubscribers * 0.85), instagram: Math.round(instagramFollowers * 0.92), tiktok: Math.round(totalFollowers * 0.09) },
-          { date: "Mar", spotify: Math.round(spotifyListeners * 0.85), youtube: Math.round(youtubeSubscribers * 0.9), instagram: Math.round(instagramFollowers * 0.95), tiktok: Math.round(totalFollowers * 0.095) },
-          { date: "Apr", spotify: Math.round(spotifyListeners * 0.92), youtube: Math.round(youtubeSubscribers * 0.95), instagram: Math.round(instagramFollowers * 0.97), tiktok: Math.round(totalFollowers * 0.098) },
-          { date: "May", spotify: Math.round(spotifyListeners * 0.97), youtube: Math.round(youtubeSubscribers * 0.98), instagram: Math.round(instagramFollowers * 0.99), tiktok: Math.round(totalFollowers * 0.099) },
-          { date: "Jun", spotify: spotifyListeners, youtube: youtubeSubscribers, instagram: instagramFollowers, tiktok: Math.round(totalFollowers * 0.1) }
-        ],
-        isRealData: true
-      });
-    } else {
-      // Fallback to mock data if no real data available
-      console.warn('No real Viberate data available, using mock analytics');
-      const mockTotalReach = 342000 + Math.floor(Math.random() * 10000);
-      const mockEngagedAudience = 45600 + Math.floor(Math.random() * 5000);
-      const mockTotalFollowers = 21200 + Math.floor(Math.random() * 1000);
-      const mockSpotifyListeners = 12400 + Math.floor(Math.random() * 1000);
-      const mockYoutubeSubscribers = 18500 + Math.floor(Math.random() * 500);
-      const mockInstagramFollowers = 5200 + Math.floor(Math.random() * 300);
-      
-      return NextResponse.json({
-        totalReach: mockTotalReach,
-        engagedAudience: mockEngagedAudience,
-        totalFollowers: mockTotalFollowers,
-        platforms: {
-          spotify: { followers: mockSpotifyListeners, streams: 127000 + Math.floor(Math.random() * 20000) },
-          youtube: { subscribers: mockYoutubeSubscribers, views: 95000 + Math.floor(Math.random() * 10000) },
-          instagram: { followers: mockInstagramFollowers, engagement: 15.6 + Math.random() * 2 },
-          tiktok: { followers: 2100 + Math.floor(Math.random() * 200), views: 42000 + Math.floor(Math.random() * 5000) },
-          facebook: { followers: 300 + Math.floor(Math.random() * 50), engagement: 8.2 + Math.random() }
-        },
-        trending: [
-          { date: "Jan", spotify: Math.round(mockSpotifyListeners * 0.66), youtube: Math.round(mockYoutubeSubscribers * 0.7), instagram: Math.round(mockInstagramFollowers * 0.79), tiktok: 1200 },
-          { date: "Feb", spotify: Math.round(mockSpotifyListeners * 0.73), youtube: Math.round(mockYoutubeSubscribers * 0.78), instagram: Math.round(mockInstagramFollowers * 0.85), tiktok: 1400 },
-          { date: "Mar", spotify: Math.round(mockSpotifyListeners * 0.79), youtube: Math.round(mockYoutubeSubscribers * 0.84), instagram: Math.round(mockInstagramFollowers * 0.9), tiktok: 1600 },
-          { date: "Apr", spotify: Math.round(mockSpotifyListeners * 0.85), youtube: Math.round(mockYoutubeSubscribers * 0.89), instagram: Math.round(mockInstagramFollowers * 0.94), tiktok: 1800 },
-          { date: "May", spotify: Math.round(mockSpotifyListeners * 0.9), youtube: Math.round(mockYoutubeSubscribers * 0.93), instagram: Math.round(mockInstagramFollowers * 0.98), tiktok: 1900 },
-          { date: "Jun", spotify: mockSpotifyListeners, youtube: mockYoutubeSubscribers, instagram: mockInstagramFollowers, tiktok: 2100 }
-        ],
-        isRealData: false
+        trending: [],
+        isRealData: false,
+        message: 'Artist not found in database'
       });
     }
-  } catch (error) {
-    console.warn('Error fetching analytics data:', error);
+
+    // Get fanbase data
+    const { data: fanbase } = await supabase
+      .from('artist_fanbase')
+      .select('*')
+      .eq('artist_id', artist.id)
+      .single();
+
+    // Get social links
+    const { data: socialLinks } = await supabase
+      .from('artist_social_links')
+      .select('*')
+      .eq('artist_id', artist.id);
+
+    // Get tracks count
+    const { count: tracksCount } = await supabase
+      .from('artist_tracks')
+      .select('*', { count: 'exact', head: true })
+      .eq('artist_id', artist.id);
+
+    console.log('Database data retrieved:', {
+      artist: artist.name,
+      fanbase: fanbase?.total_fans || 0,
+      socialLinks: socialLinks?.length || 0,
+      tracks: tracksCount || 0
+    });
+
+    // Extract platform-specific data from fanbase distribution
+    const distribution = fanbase?.distribution || {};
+    const fanbaseData = fanbase?.data || {};
     
-    // Return fallback mock data
-    const fallbackTotalReach = 342000;
-    const fallbackEngagedAudience = 45600;
-    const fallbackTotalFollowers = 21200;
-    const fallbackSpotifyListeners = 12400;
-    const fallbackYoutubeSubscribers = 18500;
-    const fallbackInstagramFollowers = 5200;
-    
-    return NextResponse.json({
-      totalReach: fallbackTotalReach,
-      engagedAudience: fallbackEngagedAudience,
-      totalFollowers: fallbackTotalFollowers,
+    // Parse platform followers from distribution or fanbase data
+    let spotifyFollowers = 0;
+    let instagramFollowers = 0;
+    let youtubeSubscribers = 0;
+    let tiktokFollowers = 0;
+    let facebookFollowers = 0;
+
+    // Try to extract from distribution first
+    if (distribution.spotify) spotifyFollowers = distribution.spotify;
+    if (distribution.instagram) instagramFollowers = distribution.instagram;
+    if (distribution.youtube) youtubeSubscribers = distribution.youtube;
+    if (distribution.tiktok) tiktokFollowers = distribution.tiktok;
+    if (distribution.facebook) facebookFollowers = distribution.facebook;
+
+    // If no distribution data, try from fanbase.data structure
+    if (!spotifyFollowers && fanbaseData.spotify) spotifyFollowers = fanbaseData.spotify;
+    if (!instagramFollowers && fanbaseData.instagram) instagramFollowers = fanbaseData.instagram;
+    if (!youtubeSubscribers && fanbaseData.youtube) youtubeSubscribers = fanbaseData.youtube;
+    if (!tiktokFollowers && fanbaseData.tiktok) tiktokFollowers = fanbaseData.tiktok;
+    if (!facebookFollowers && fanbaseData.facebook) facebookFollowers = fanbaseData.facebook;
+
+    // Use total_fans if available, otherwise sum individual platforms
+    const totalFans = fanbase?.total_fans || 0;
+    const totalFollowers = totalFans > 0 ? totalFans : 
+      spotifyFollowers + instagramFollowers + youtubeSubscribers + tiktokFollowers + facebookFollowers;
+
+    // Calculate derived metrics
+    const totalReach = Math.round(totalFollowers * 1.8); // Reach multiplier
+    const engagedAudience = Math.round(totalReach * 0.12); // 12% engagement rate
+
+    // Generate trending data based on current values (simulated historical growth)
+    const trendingData = [];
+    const months = ["Jan", "Feb", "Mar", "Apr", "May", "Jun"];
+    for (let i = 0; i < 6; i++) {
+      const growthFactor = (i + 1) / 6; // Progressive growth
+      trendingData.push({
+        date: months[i],
+        spotify: Math.round(spotifyFollowers * (0.4 + growthFactor * 0.6)),
+        youtube: Math.round(youtubeSubscribers * (0.5 + growthFactor * 0.5)),
+        instagram: Math.round(instagramFollowers * (0.6 + growthFactor * 0.4)),
+        tiktok: Math.round(tiktokFollowers * (0.3 + growthFactor * 0.7))
+      });
+    }
+
+    const hasRealData = totalFollowers > 0 || (socialLinks && socialLinks.length > 0);
+
+    const analyticsData = {
+      totalReach,
+      engagedAudience,
+      totalFollowers,
       platforms: {
-        spotify: { followers: fallbackSpotifyListeners, streams: 127000 },
-        youtube: { subscribers: fallbackYoutubeSubscribers, views: 95000 },
-        instagram: { followers: fallbackInstagramFollowers, engagement: 15.6 },
-        tiktok: { followers: 2100, views: 42000 },
-        facebook: { followers: 300, engagement: 8.2 }
+        spotify: { 
+          followers: spotifyFollowers, 
+          streams: spotifyFollowers * 12 // Estimate streams from followers
+        },
+        youtube: { 
+          subscribers: youtubeSubscribers, 
+          views: youtubeSubscribers * 8 // Estimate views from subscribers
+        },
+        instagram: { 
+          followers: instagramFollowers, 
+          engagement: totalFollowers > 0 ? Math.round((instagramFollowers / totalFollowers) * 100) : 0
+        },
+        tiktok: { 
+          followers: tiktokFollowers, 
+          views: tiktokFollowers * 20 // TikTok typically has higher view-to-follower ratio
+        },
+        facebook: { 
+          followers: facebookFollowers, 
+          engagement: facebookFollowers > 0 ? 8.2 : 0
+        }
       },
-      trending: [
-        { date: "Jan", spotify: 8200, youtube: 6800, instagram: 4100, tiktok: 1200 },
-        { date: "Feb", spotify: 9100, youtube: 7200, instagram: 4400, tiktok: 1400 },
-        { date: "Mar", spotify: 9800, youtube: 7800, instagram: 4700, tiktok: 1600 },
-        { date: "Apr", spotify: 10500, youtube: 8200, instagram: 4900, tiktok: 1800 },
-        { date: "May", spotify: 11200, youtube: 8600, instagram: 5100, tiktok: 1900 },
-        { date: "Jun", spotify: fallbackSpotifyListeners, youtube: fallbackYoutubeSubscribers, instagram: fallbackInstagramFollowers, tiktok: 2100 }
-      ],
-      isRealData: false
+      trending: trendingData,
+      isRealData: hasRealData,
+      artist: {
+        name: artist.name,
+        rank: artist.rank || 0,
+        verified: artist.verified || false
+      },
+      dataSource: 'database',
+      lastUpdated: fanbase?.updated_at || artist.updated_at
+    };
+
+    console.log('Returning analytics data:', {
+      totalFollowers: analyticsData.totalFollowers,
+      totalReach: analyticsData.totalReach,
+      hasRealData: analyticsData.isRealData,
+      platforms: Object.keys(analyticsData.platforms).filter(p => analyticsData.platforms[p as keyof typeof analyticsData.platforms].followers > 0)
+    });
+
+    return NextResponse.json(analyticsData);
+
+  } catch (error) {
+    console.error('Error fetching analytics data from database:', error);
+    
+    // Return fallback data with error info
+    return NextResponse.json({
+      totalReach: 0,
+      engagedAudience: 0,
+      totalFollowers: 0,
+      platforms: {
+        spotify: { followers: 0, streams: 0 },
+        youtube: { subscribers: 0, views: 0 },
+        instagram: { followers: 0, engagement: 0 },
+        tiktok: { followers: 0, views: 0 },
+        facebook: { followers: 0, engagement: 0 }
+      },
+      trending: [],
+      isRealData: false,
+      error: 'Database error',
+      message: 'Failed to fetch analytics data from database'
     });
   }
 }
