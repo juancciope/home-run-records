@@ -75,14 +75,21 @@ export async function GET(request: NextRequest) {
     let tiktokFollowers = 0;
     let facebookFollowers = 0;
 
-    // Try to extract from distribution first
+    // Try to extract from distribution first (simple keys)
     if (distribution.spotify) spotifyFollowers = distribution.spotify;
     if (distribution.instagram) instagramFollowers = distribution.instagram;
     if (distribution.youtube) youtubeSubscribers = distribution.youtube;
     if (distribution.tiktok) tiktokFollowers = distribution.tiktok;
     if (distribution.facebook) facebookFollowers = distribution.facebook;
 
-    // If no distribution data, try from fanbase.data structure
+    // If no distribution data, try from fanbase.data structure (hyphenated keys)
+    if (!spotifyFollowers && fanbaseData['spotify-followers']) spotifyFollowers = fanbaseData['spotify-followers'];
+    if (!instagramFollowers && fanbaseData['instagram-followers']) instagramFollowers = fanbaseData['instagram-followers'];
+    if (!youtubeSubscribers && fanbaseData['youtube-subscribers']) youtubeSubscribers = fanbaseData['youtube-subscribers'];
+    if (!tiktokFollowers && fanbaseData['tiktok-followers']) tiktokFollowers = fanbaseData['tiktok-followers'];
+    if (!facebookFollowers && fanbaseData['facebook-followers']) facebookFollowers = fanbaseData['facebook-followers'];
+
+    // Also try simple keys in fanbase.data as fallback
     if (!spotifyFollowers && fanbaseData.spotify) spotifyFollowers = fanbaseData.spotify;
     if (!instagramFollowers && fanbaseData.instagram) instagramFollowers = fanbaseData.instagram;
     if (!youtubeSubscribers && fanbaseData.youtube) youtubeSubscribers = fanbaseData.youtube;
