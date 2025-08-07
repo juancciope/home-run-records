@@ -47,6 +47,7 @@ export async function GET(
     };
 
     console.log('Fetching complete artist data for UUID:', uuid);
+    console.log('API Key available:', !!VIBERATE_API_KEY);
 
     // Fetch all artist data endpoints in parallel as specified in instructions
     const [
@@ -93,32 +94,67 @@ export async function GET(
       }).catch(() => null),
     ]);
 
-    // Parse responses
+    // Parse responses with detailed logging
     let details, bio, links, fanbase, events, tracks, similar, ranks;
+
+    console.log('Response statuses:', {
+      details: detailsResponse?.status,
+      bio: bioResponse?.status,
+      links: linksResponse?.status,
+      fanbase: fanbaseResponse?.status,
+      events: eventsResponse?.status,
+      tracks: tracksResponse?.status,
+      similar: similarResponse?.status,
+      ranks: ranksResponse?.status,
+    });
 
     if (detailsResponse?.ok) {
       details = await detailsResponse.json();
+      console.log('Details data:', details);
+    } else {
+      console.log('Details failed:', detailsResponse?.status, await detailsResponse?.text?.());
     }
+    
     if (bioResponse?.ok) {
       bio = await bioResponse.json();
+    } else {
+      console.log('Bio failed:', bioResponse?.status);
     }
+    
     if (linksResponse?.ok) {
       links = await linksResponse.json();
+    } else {
+      console.log('Links failed:', linksResponse?.status);
     }
+    
     if (fanbaseResponse?.ok) {
       fanbase = await fanbaseResponse.json();
+    } else {
+      console.log('Fanbase failed:', fanbaseResponse?.status);
     }
+    
     if (eventsResponse?.ok) {
       events = await eventsResponse.json();
+    } else {
+      console.log('Events failed:', eventsResponse?.status);
     }
+    
     if (tracksResponse?.ok) {
       tracks = await tracksResponse.json();
+    } else {
+      console.log('Tracks failed:', tracksResponse?.status);
     }
+    
     if (similarResponse?.ok) {
       similar = await similarResponse.json();
+    } else {
+      console.log('Similar failed:', similarResponse?.status);
     }
+    
     if (ranksResponse?.ok) {
       ranks = await ranksResponse.json();
+    } else {
+      console.log('Ranks failed:', ranksResponse?.status);
     }
 
     // Combine all data into a single artist profile object

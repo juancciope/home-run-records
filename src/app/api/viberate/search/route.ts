@@ -41,17 +41,21 @@ export async function GET(request: NextRequest) {
 
   try {
     // Always use name search since instant match endpoints are not available
+    const searchUrl = `${VIBERATE_BASE_URL}/artist/search?q=${encodeURIComponent(query)}&limit=${limit}`;
     console.log('Searching for artist:', query);
-    const response = await fetch(
-      `${VIBERATE_BASE_URL}/artist/search?q=${encodeURIComponent(query)}&limit=${limit}`,
-      {
-        headers: {
-          'Access-Key': VIBERATE_API_KEY,
-          'Accept': 'application/json',
-        },
-        signal: AbortSignal.timeout(10000) // 10 second timeout
-      }
-    );
+    console.log('Search URL:', searchUrl);
+    console.log('API Key available:', !!VIBERATE_API_KEY);
+    
+    const response = await fetch(searchUrl, {
+      headers: {
+        'Access-Key': VIBERATE_API_KEY,
+        'Accept': 'application/json',
+      },
+      signal: AbortSignal.timeout(10000) // 10 second timeout
+    });
+    
+    console.log('Response status:', response.status);
+    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
 
     if (!response.ok) {
       console.warn(`Viberate API returned ${response.status}. Using fallback data.`);
@@ -81,6 +85,7 @@ export async function GET(request: NextRequest) {
     }
 
     const data = await response.json();
+    console.log('Raw Viberate search response:', JSON.stringify(data, null, 2));
     
     // Transform the response to include the image and proper fields
     const artists = data.data?.map((artist: {

@@ -12,16 +12,18 @@ export async function POST(request: NextRequest) {
     console.log('Starting comprehensive artist sync for UUID:', artistId, 'User:', userId);
 
     // Fetch complete artist data from our new endpoint
-    const artistDataResponse = await fetch(
-      `${request.nextUrl.origin}/api/viberate/artist/${artistId}`,
-      {
-        headers: {
-          'Accept': 'application/json',
-        },
-      }
-    );
+    const fetchUrl = `${request.nextUrl.origin}/api/viberate/artist/${artistId}`;
+    console.log('Fetching artist data from:', fetchUrl);
+    
+    const artistDataResponse = await fetch(fetchUrl, {
+      headers: {
+        'Accept': 'application/json',
+      },
+    });
 
+    console.log('Artist data response status:', artistDataResponse.status);
     const artistDataResult = await artistDataResponse.json();
+    console.log('Artist data result:', JSON.stringify(artistDataResult, null, 2));
     
     if (!artistDataResult.success) {
       console.warn('Failed to fetch artist data, proceeding with basic sync');
@@ -31,6 +33,13 @@ export async function POST(request: NextRequest) {
 
     // Store artist data in Supabase
     try {
+      console.log('Attempting to store artist data in Supabase...');
+      console.log('Artist data to store:', {
+        uuid: artistData.uuid,
+        name: artistData.name,
+        image: artistData.image
+      });
+      
       // Insert or update artist record
       const { data: artistRecord, error: artistError } = await supabase
         .from('artists')

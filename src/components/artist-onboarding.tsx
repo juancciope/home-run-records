@@ -158,6 +158,7 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
                         width={48}
                         height={48}
                         className="w-12 h-12 rounded-full object-cover"
+                        unoptimized={!artist.image?.includes('.')} // Disable optimization for URLs without extensions
                         onError={(e) => {
                           const target = e.target as HTMLImageElement;
                           target.src = 'https://via.placeholder.com/60x60?text=Artist';
