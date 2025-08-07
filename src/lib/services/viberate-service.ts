@@ -1,7 +1,12 @@
 export interface VibrateArtistData {
   id: string;
+  uuid: string;
   name: string;
+  image: string;
+  slug: string;
   spotify_id?: string;
+  rank?: number;
+  verified?: boolean;
   instagram_id?: string;
   youtube_id?: string;
   tiktok_id?: string;
@@ -53,8 +58,13 @@ export class VibrateService {
       return [
         {
           id: '1',
+          uuid: '1',
           name: artistName,
-          spotify_id: '5tP5qKnhTbTa2uEL3CLHh9'
+          image: 'https://via.placeholder.com/150x150?text=Artist',
+          slug: artistName.toLowerCase().replace(/\s+/g, '-'),
+          spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
+          rank: 1,
+          verified: false
         }
       ];
     }

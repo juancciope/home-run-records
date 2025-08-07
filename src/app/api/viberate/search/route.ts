@@ -18,13 +18,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([
       {
         id: '1',
+        uuid: '1',
         name: query,
-        spotify_id: '5tP5qKnhTbTa2uEL3CLHh9'
+        image: 'https://via.placeholder.com/150x150?text=Artist',
+        slug: query.toLowerCase().replace(/\s+/g, '-'),
+        spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
+        rank: 1,
+        verified: false
       },
       {
-        id: '2', 
+        id: '2',
+        uuid: '2', 
         name: `${query} (Alternative)`,
-        spotify_id: '3TVXtAsR1Inumwj472S9r4'
+        image: 'https://via.placeholder.com/150x150?text=Alt',
+        slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
+        spotify_id: '3TVXtAsR1Inumwj472S9r4',
+        rank: 2,
+        verified: false
       }
     ]);
   }
@@ -49,23 +59,35 @@ export async function GET(request: NextRequest) {
       return NextResponse.json([
         {
           id: '1',
+          uuid: '1',
           name: query,
-          spotify_id: '5tP5qKnhTbTa2uEL3CLHh9'
+          image: 'https://via.placeholder.com/150x150?text=Artist',
+          slug: query.toLowerCase().replace(/\s+/g, '-'),
+          spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
+          rank: 1,
+          verified: false
         },
         {
-          id: '2', 
+          id: '2',
+          uuid: '2', 
           name: `${query} (Alternative)`,
-          spotify_id: '3TVXtAsR1Inumwj472S9r4'
+          image: 'https://via.placeholder.com/150x150?text=Alt',
+          slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
+          spotify_id: '3TVXtAsR1Inumwj472S9r4',
+          rank: 2,
+          verified: false
         }
       ]);
     }
 
     const data = await response.json();
     
-    // Transform the response to match our expected format
+    // Transform the response to include the image and proper fields
     const artists = data.data?.map((artist: {
       uuid: string;
       name: string;
+      image: string;
+      slug: string;
       spotify_id?: string;
       rank: number;
       verified: boolean;
@@ -74,7 +96,10 @@ export async function GET(request: NextRequest) {
       subgenres: object[];
     }) => ({
       id: artist.uuid,
+      uuid: artist.uuid,
       name: artist.name,
+      image: artist.image,
+      slug: artist.slug,
       spotify_id: artist.spotify_id || null,
       rank: artist.rank,
       verified: artist.verified,
@@ -96,13 +121,23 @@ export async function GET(request: NextRequest) {
     return NextResponse.json([
       {
         id: '1',
+        uuid: '1',
         name: query,
-        spotify_id: '5tP5qKnhTbTa2uEL3CLHh9'
+        image: 'https://via.placeholder.com/150x150?text=Artist',
+        slug: query.toLowerCase().replace(/\s+/g, '-'),
+        spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
+        rank: 1,
+        verified: false
       },
       {
-        id: '2', 
+        id: '2',
+        uuid: '2', 
         name: `${query} (Alternative)`,
-        spotify_id: '3TVXtAsR1Inumwj472S9r4'
+        image: 'https://via.placeholder.com/150x150?text=Alt',
+        slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
+        spotify_id: '3TVXtAsR1Inumwj472S9r4',
+        rank: 2,
+        verified: false
       }
     ]);
   }

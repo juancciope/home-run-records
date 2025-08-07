@@ -1,6 +1,7 @@
 "use client"
 
 import React, { useState } from "react"
+import Image from "next/image"
 import { Card, CardContent, CardDescription, CardFooter, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Input } from "@/components/ui/input"
@@ -19,7 +20,16 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
   const [step, setStep] = useState(1);
   const [artistName, setArtistName] = useState("");
   const [isSearching, setIsSearching] = useState(false);
-  const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; spotify_id?: string }>>([]);
+  const [searchResults, setSearchResults] = useState<Array<{ 
+    id: string; 
+    uuid: string;
+    name: string; 
+    image: string;
+    slug: string;
+    spotify_id?: string; 
+    rank?: number;
+    verified?: boolean;
+  }>>([]);
   const [selectedArtist, setSelectedArtist] = useState<string>("");
   const [isSyncing, setIsSyncing] = useState(false);
   const [error, setError] = useState<string>("");
@@ -134,17 +144,38 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
                   <label
                     key={artist.id}
                     htmlFor={artist.id}
-                    className={`flex items-center space-x-3 p-4 rounded-lg border cursor-pointer transition-colors ${
+                    className={`flex items-center space-x-4 p-4 rounded-lg border cursor-pointer transition-colors ${
                       selectedArtist === artist.id 
                         ? 'border-primary bg-primary/5' 
                         : 'border-muted hover:border-primary/50'
                     }`}
                   >
                     <RadioGroupItem value={artist.id} id={artist.id} />
-                    <div className="flex-1">
-                      <div className="font-medium">{artist.name}</div>
+                    <div className="flex-shrink-0">
+                      <Image 
+                        src={artist.image || 'https://via.placeholder.com/60x60?text=Artist'} 
+                        alt={artist.name}
+                        width={48}
+                        height={48}
+                        className="w-12 h-12 rounded-full object-cover"
+                        onError={(e) => {
+                          const target = e.target as HTMLImageElement;
+                          target.src = 'https://via.placeholder.com/60x60?text=Artist';
+                        }}
+                      />
+                    </div>
+                    <div className="flex-1 min-w-0">
+                      <div className="font-medium truncate">{artist.name}</div>
+                      <div className="flex items-center gap-2 text-xs text-muted-foreground">
+                        {artist.verified && (
+                          <span className="text-blue-500 font-medium">✓ Verified</span>
+                        )}
+                        {artist.rank && (
+                          <span>Rank: #{artist.rank}</span>
+                        )}
+                      </div>
                       {artist.spotify_id && (
-                        <div className="text-xs text-muted-foreground">
+                        <div className="text-xs text-muted-foreground mt-1 truncate">
                           Spotify ID: {artist.spotify_id}
                         </div>
                       )}
