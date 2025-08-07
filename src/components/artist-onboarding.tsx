@@ -17,9 +17,7 @@ interface ArtistOnboardingProps {
 export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
   const { user } = useArtist();
   const [step, setStep] = useState(1);
-  const [identifierType, setIdentifierType] = useState<"name" | "spotify">("name");
   const [artistName, setArtistName] = useState("");
-  const [spotifyId, setSpotifyId] = useState("");
   const [isSearching, setIsSearching] = useState(false);
   const [searchResults, setSearchResults] = useState<Array<{ id: string; name: string; spotify_id?: string }>>([]);
   const [selectedArtist, setSelectedArtist] = useState<string>("");
@@ -33,9 +31,8 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
     try {
       const { VibrateService } = await import('@/lib/services/viberate-service');
       
-      // Search for artist
-      const searchTerm = identifierType === "name" ? artistName : spotifyId;
-      const artists = await VibrateService.searchArtist(searchTerm);
+      // Search for artist by name
+      const artists = await VibrateService.searchArtist(artistName);
       
       if (artists && artists.length > 0) {
         setSearchResults(artists);
@@ -211,61 +208,23 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
           </CardDescription>
         </CardHeader>
         <CardContent className="space-y-4">
-          <div className="space-y-3">
-            <Label>How would you like us to find your data?</Label>
-            <RadioGroup value={identifierType} onValueChange={(value) => setIdentifierType(value as "name" | "spotify")}>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="name" id="name" />
-                <Label htmlFor="name" className="cursor-pointer">
-                  Search by artist name
-                </Label>
-              </div>
-              <div className="flex items-center space-x-2">
-                <RadioGroupItem value="spotify" id="spotify" />
-                <Label htmlFor="spotify" className="cursor-pointer">
-                  Search by Spotify artist ID
-                </Label>
-              </div>
-            </RadioGroup>
+          <div className="space-y-2">
+            <Label htmlFor="artistName">Artist Name</Label>
+            <Input
+              id="artistName"
+              placeholder="Enter your artist or band name"
+              value={artistName}
+              onChange={(e) => setArtistName(e.target.value)}
+              onKeyDown={(e) => {
+                if (e.key === 'Enter' && artistName) {
+                  handleSearch();
+                }
+              }}
+            />
+            <p className="text-xs text-muted-foreground">
+              Enter your exact artist name as it appears on streaming platforms
+            </p>
           </div>
-
-          {identifierType === "name" ? (
-            <div className="space-y-2">
-              <Label htmlFor="artistName">Artist Name</Label>
-              <Input
-                id="artistName"
-                placeholder="Enter your artist or band name"
-                value={artistName}
-                onChange={(e) => setArtistName(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && artistName) {
-                    handleSearch();
-                  }
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                Enter your exact artist name as it appears on streaming platforms
-              </p>
-            </div>
-          ) : (
-            <div className="space-y-2">
-              <Label htmlFor="spotifyId">Spotify Artist ID</Label>
-              <Input
-                id="spotifyId"
-                placeholder="e.g., 3TVXtAsR1Inumwj472S9r4"
-                value={spotifyId}
-                onChange={(e) => setSpotifyId(e.target.value)}
-                onKeyDown={(e) => {
-                  if (e.key === 'Enter' && spotifyId) {
-                    handleSearch();
-                  }
-                }}
-              />
-              <p className="text-xs text-muted-foreground">
-                You can find this in your Spotify for Artists or from your Spotify artist URL
-              </p>
-            </div>
-          )}
 
           {error && (
             <Alert variant="destructive">
@@ -279,7 +238,7 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
           <Button
             className="w-full"
             onClick={handleSearch}
-            disabled={isSearching || (identifierType === "name" ? !artistName : !spotifyId)}
+            disabled={isSearching || !artistName}
           >
             {isSearching ? (
               <>

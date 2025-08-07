@@ -30,6 +30,8 @@ export async function GET(request: NextRequest) {
   }
 
   try {
+    // Always use name search since instant match endpoints are not available
+    console.log('Searching for artist:', query);
     const response = await fetch(
       `${VIBERATE_BASE_URL}/artist/search?q=${encodeURIComponent(query)}&limit=${limit}`,
       {
@@ -37,7 +39,6 @@ export async function GET(request: NextRequest) {
           'Access-Key': VIBERATE_API_KEY,
           'Accept': 'application/json',
         },
-        // Add timeout to prevent hanging requests
         signal: AbortSignal.timeout(10000) // 10 second timeout
       }
     );

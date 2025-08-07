@@ -68,6 +68,8 @@ export function AnalyticsContent() {
       // Check if user has Viberate connection
       const profile = await ArtistService.getArtistProfile(user.id, user.email);
       const hasConnection = !!profile?.viberate_artist_id;
+      console.log('Analytics loaded profile:', profile);
+      console.log(`hasConnection: ${hasConnection}, vibrateId: "${profile?.viberate_artist_id}"`);
       setHasVibrateConnection(hasConnection);
       
       if (hasConnection && profile?.viberate_artist_id) {
@@ -76,6 +78,7 @@ export function AnalyticsContent() {
           const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
           const vibrateData = await response.json();
           
+          console.log('Analytics API response:', vibrateData);
           if (vibrateData && !vibrateData.error) {
             setAnalyticsData({
               totalReach: vibrateData.totalReach || 0,
