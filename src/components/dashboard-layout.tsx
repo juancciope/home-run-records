@@ -33,6 +33,8 @@ import {
   Activity,
   Radio,
 } from "lucide-react"
+import { usePathname } from "next/navigation"
+import Link from "next/link"
 import { motion } from "framer-motion"
 
 const menuItems = [
@@ -88,7 +90,7 @@ const menuItems = [
 ]
 
 export function DashboardLayout({ children }: { children: React.ReactNode }) {
-  const [activeItem, setActiveItem] = React.useState("Dashboard")
+  const pathname = usePathname()
 
   return (
     <SidebarProvider defaultOpen={true}>
@@ -125,35 +127,37 @@ export function DashboardLayout({ children }: { children: React.ReactNode }) {
                     transition={{ delay: index * 0.1 }}
                   >
                     <SidebarMenuButton
-                      onClick={() => setActiveItem(item.title)}
+                      asChild
                       className={cn(
                         "w-full justify-start gap-3 rounded-xl p-3 transition-all duration-200 group hover:shadow-lg",
-                        activeItem === item.title
+                        pathname === item.url
                           ? "bg-primary text-primary-foreground shadow-md scale-[1.02]"
                           : "hover:bg-accent/50"
                       )}
                     >
-                      <div className={cn(
-                        "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
-                        activeItem === item.title
-                          ? "bg-white/20"
-                          : item.gradient ? `${item.gradient} opacity-80` : "bg-muted"
-                      )}>
-                        <item.icon className={cn(
-                          "w-4 h-4",
-                          activeItem === item.title ? "text-white" : "text-white"
+                      <Link href={item.url}>
+                        <div className={cn(
+                          "w-8 h-8 rounded-lg flex items-center justify-center transition-colors",
+                          pathname === item.url
+                            ? "bg-white/20"
+                            : item.gradient ? `${item.gradient} opacity-80` : "bg-muted"
+                        )}>
+                          <item.icon className={cn(
+                            "w-4 h-4",
+                            pathname === item.url ? "text-white" : "text-white"
+                          )} />
+                        </div>
+                        <span className="font-medium">{item.title}</span>
+                        {item.badge && (
+                          <Badge variant={item.badge === "New" ? "default" : "secondary"} className="ml-auto text-xs">
+                            {item.badge}
+                          </Badge>
+                        )}
+                        <ChevronRight className={cn(
+                          "w-4 h-4 ml-auto transition-transform",
+                          pathname === item.url ? "rotate-90" : "group-hover:translate-x-1"
                         )} />
-                      </div>
-                      <span className="font-medium">{item.title}</span>
-                      {item.badge && (
-                        <Badge variant={item.badge === "New" ? "default" : "secondary"} className="ml-auto text-xs">
-                          {item.badge}
-                        </Badge>
-                      )}
-                      <ChevronRight className={cn(
-                        "w-4 h-4 ml-auto transition-transform",
-                        activeItem === item.title ? "rotate-90" : "group-hover:translate-x-1"
-                      )} />
+                      </Link>
                     </SidebarMenuButton>
                   </motion.div>
                 </SidebarMenuItem>
