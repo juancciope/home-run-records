@@ -244,64 +244,54 @@ export function DashboardContent() {
   }
 
   return (
-    <div className="space-y-8">
-      {/* Dashboard Header with Connect Data Button */}
+    <div className="space-y-6">
+      {/* Dashboard Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-2xl font-bold">Business Intelligence Dashboard</h1>
-          <div className="flex items-center gap-3 mt-1">
-            <p className="text-muted-foreground">Your complete view of performance across all business realms</p>
-            <div className="flex items-center gap-2">
-              {hasVibrateConnection ? (
-                <>
-                  <Wifi className="h-4 w-4 text-green-500" />
-                  <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400">
-                    Connected
-                  </Badge>
-                </>
-              ) : (
-                <>
-                  <WifiOff className="h-4 w-4 text-orange-500" />
-                  <Badge variant="secondary" className="bg-orange-500/10 text-orange-700 dark:text-orange-400">
-                    Demo Data
-                  </Badge>
-                </>
-              )}
-            </div>
-          </div>
+          <h1 className="text-3xl font-bold">Business Intelligence Dashboard</h1>
+          <p className="text-muted-foreground">
+            Your complete view of performance across all business realms
+          </p>
         </div>
-        <Button 
-          variant="outline" 
-          onClick={() => setNeedsOnboarding(true)}
-          className="flex items-center gap-2"
-        >
-          <Database className="h-4 w-4" />
-          {hasVibrateConnection ? 'Manage Connection' : 'Connect Data'}
-        </Button>
+        <div className="flex items-center gap-4">
+          {hasVibrateConnection ? (
+            <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400">
+              <Wifi className="h-3 w-3 mr-1" />
+              Live Data
+            </Badge>
+          ) : (
+            <Badge variant="secondary">
+              <WifiOff className="h-3 w-3 mr-1" />
+              Demo Mode
+            </Badge>
+          )}
+          <Button variant="outline" size="sm" onClick={() => setNeedsOnboarding(true)}>
+            <Database className="h-4 w-4 mr-2" />
+            {hasVibrateConnection ? 'Manage Connection' : 'Connect Data'}
+          </Button>
+        </div>
       </div>
 
       {/* Production Pipeline */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-md">
-            <Package className="h-5 w-5 text-primary" />
-          </div>
+          <Package className="h-5 w-5 text-primary" />
           <div>
-            <h2 className="text-lg font-semibold">Production Pipeline</h2>
-            <p className="text-sm text-muted-foreground">Track your creative output from idea to release</p>
+            <h2 className="text-xl font-semibold">Production Pipeline</h2>
+            <p className="text-muted-foreground">Track your creative output from idea to release</p>
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
+        <div className="grid gap-6 md:grid-cols-3">
           {/* Unfinished Projects */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Unfinished Projects</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Projects in progress</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Unfinished Projects</CardTitle>
+              <CardDescription>Projects in progress</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <div className="text-2xl font-bold">{productionData.unfinished}</div>
-              <p className="text-xs text-muted-foreground mt-3 flex items-center">
+              <p className="text-sm text-muted-foreground mt-3 flex items-center">
                 <Activity className="h-3 w-3 mr-1" />
                 Focus on completion
               </p>
@@ -310,13 +300,13 @@ export function DashboardContent() {
 
           {/* Finished Projects */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Ready to Release</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Completed, awaiting release</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Ready to Release</CardTitle>
+              <CardDescription>Completed, awaiting release</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <div className="text-2xl font-bold text-yellow-600">{productionData.finished}</div>
-              <p className="text-xs text-muted-foreground mt-3 flex items-center">
+              <p className="text-sm text-muted-foreground mt-3 flex items-center">
                 <Target className="h-3 w-3 mr-1" />
                 Schedule releases
               </p>
@@ -325,11 +315,11 @@ export function DashboardContent() {
 
           {/* Released with RadialBar */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Released Tracks</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Live & generating revenue</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Released Tracks</CardTitle>
+              <CardDescription>Live & generating revenue</CardDescription>
             </CardHeader>
-            <CardContent className="pb-0">
+            <CardContent>
               <ChartContainer config={productionChartConfig} className="mx-auto aspect-square max-h-[180px] w-full">
                 <RadialBarChart accessibilityLayer cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={productionChartData}>
                   <PolarGrid gridType="circle" radialLines={false} stroke="none" />
@@ -370,23 +360,21 @@ export function DashboardContent() {
       {/* Marketing Reach */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-md">
-            <Megaphone className="h-5 w-5 text-primary" />
-          </div>
+          <Megaphone className="h-5 w-5 text-primary" />
           <div>
-            <h2 className="text-lg font-semibold">Marketing Reach</h2>
-            <p className="text-sm text-muted-foreground">Expand your audience and engagement</p>
+            <h2 className="text-xl font-semibold">Marketing Reach</h2>
+            <p className="text-muted-foreground">Expand your audience and engagement</p>
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
+        <div className="grid gap-6 md:grid-cols-3">
           {/* Total Reach with Area Chart */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">6-month growth trend</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Total Reach</CardTitle>
+              <CardDescription>6-month growth trend</CardDescription>
             </CardHeader>
-            <CardContent className="pb-2">
+            <CardContent>
               <ChartContainer config={reachChartConfig} className="aspect-auto h-[200px] w-full">
                 <AreaChart accessibilityLayer data={reachTrendData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
                   <defs>
@@ -418,7 +406,7 @@ export function DashboardContent() {
               <div className="flex justify-between items-center mt-2">
                 <span className="text-2xl font-bold">{(marketingData.totalReach / 1000).toFixed(0)}K</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-xs text-green-600">+84% growth</span>
+                  <span className="text-sm text-green-600">+84% growth</span>
                   {marketingData.isRealData && (
                     <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-200">
                       Live
@@ -431,11 +419,11 @@ export function DashboardContent() {
 
           {/* Engaged Audience */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Engaged Audience</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Active interactions</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Engaged Audience</CardTitle>
+              <CardDescription>Active interactions</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <div className="text-2xl font-bold">{(marketingData.engaged / 1000).toFixed(1)}K</div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -444,20 +432,20 @@ export function DashboardContent() {
                     style={{ width: `${(marketingData.engaged / marketingData.totalReach) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">13.3%</span>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">13.3%</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Total Followers */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Total Followers</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Across all platforms</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Total Followers</CardTitle>
+              <CardDescription>Across all platforms</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <div className="text-2xl font-bold text-purple-600">{(marketingData.followers / 1000).toFixed(1)}K</div>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 <TrendingUp className="inline h-3 w-3 mr-1" />
                 46% conversion rate
               </p>
@@ -469,25 +457,23 @@ export function DashboardContent() {
       {/* Fan Engagement */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-md">
-            <Heart className="h-5 w-5 text-primary" />
-          </div>
+          <Heart className="h-5 w-5 text-primary" />
           <div>
-            <h2 className="text-lg font-semibold">Fan Engagement</h2>
-            <p className="text-sm text-muted-foreground">Build deeper connections with your audience</p>
+            <h2 className="text-xl font-semibold">Fan Engagement</h2>
+            <p className="text-muted-foreground">Build deeper connections with your audience</p>
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
+        <div className="grid gap-6 md:grid-cols-3">
           {/* Captured Data */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Data Captured</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Email & contact info</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Data Captured</CardTitle>
+              <CardDescription>Email & contact info</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <div className="text-2xl font-bold">{(fanEngagementData.capturedData / 1000).toFixed(1)}K</div>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 <Users className="inline h-3 w-3 mr-1" />
                 Potential fan base
               </p>
@@ -496,11 +482,11 @@ export function DashboardContent() {
 
           {/* Active Fans with Line Chart */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Active Fans</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Growth over time</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Active Fans</CardTitle>
+              <CardDescription>Growth over time</CardDescription>
             </CardHeader>
-            <CardContent className="pb-2">
+            <CardContent>
               <ChartContainer config={engagementChartConfig} className="aspect-auto h-[140px] w-full">
                 <LineChart accessibilityLayer data={fanEngagementTrendData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
                   <CartesianGrid vertical={false} />
@@ -524,18 +510,18 @@ export function DashboardContent() {
               </ChartContainer>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-2xl font-bold">{(fanEngagementData.fans / 1000).toFixed(1)}K</span>
-                <span className="text-xs text-yellow-600">37.6% conversion</span>
+                <span className="text-sm text-yellow-600">37.6% conversion</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Super Fans with RadialBar */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Super Fans</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Your most loyal supporters</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Super Fans</CardTitle>
+              <CardDescription>Your most loyal supporters</CardDescription>
             </CardHeader>
-            <CardContent className="pb-0">
+            <CardContent>
               <ChartContainer config={{
                 superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
               }} className="mx-auto aspect-square max-h-[180px] w-full">
@@ -589,23 +575,21 @@ export function DashboardContent() {
       {/* Conversion Pipeline */}
       <div className="space-y-4">
         <div className="flex items-center gap-2">
-          <div className="p-2 bg-primary/10 rounded-md">
-            <DollarSign className="h-5 w-5 text-primary" />
-          </div>
+          <DollarSign className="h-5 w-5 text-primary" />
           <div>
-            <h2 className="text-lg font-semibold">Conversion Pipeline</h2>
-            <p className="text-sm text-muted-foreground">Transform interest into revenue</p>
+            <h2 className="text-xl font-semibold">Conversion Pipeline</h2>
+            <p className="text-muted-foreground">Transform interest into revenue</p>
           </div>
         </div>
         
-        <div className="grid gap-4 md:grid-cols-3 min-h-[200px]">
+        <div className="grid gap-6 md:grid-cols-3">
           {/* Leads with Bar Chart */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Lead Generation</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Funnel performance</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Lead Generation</CardTitle>
+              <CardDescription>Funnel performance</CardDescription>
             </CardHeader>
-            <CardContent className="pb-2">
+            <CardContent>
               <ChartContainer config={conversionChartConfig} className="aspect-auto h-[140px] w-full">
                 <BarChart accessibilityLayer data={conversionFunnelData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
                   <CartesianGrid vertical={false} />
@@ -625,18 +609,18 @@ export function DashboardContent() {
               </ChartContainer>
               <div className="flex justify-between items-center mt-2">
                 <span className="text-2xl font-bold">{conversionData.leads}</span>
-                <span className="text-xs text-muted-foreground">Total leads</span>
+                <span className="text-sm text-muted-foreground">Total leads</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Opportunities */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Opportunities</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Qualified prospects</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Opportunities</CardTitle>
+              <CardDescription>Qualified prospects</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <div className="text-2xl font-bold text-yellow-600">{conversionData.opportunities}</div>
               <div className="flex items-center gap-2 mt-2">
                 <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
@@ -645,24 +629,24 @@ export function DashboardContent() {
                     style={{ width: `${(conversionData.opportunities / conversionData.leads) * 100}%` }}
                   />
                 </div>
-                <span className="text-xs text-muted-foreground whitespace-nowrap">27% conversion</span>
+                <span className="text-sm text-muted-foreground whitespace-nowrap">27% conversion</span>
               </div>
             </CardContent>
           </Card>
 
           {/* Sales */}
           <Card className="bg-sidebar">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-medium">Closed Sales</CardTitle>
-              <CardDescription className="text-xs text-muted-foreground">Successful conversions</CardDescription>
+            <CardHeader>
+              <CardTitle className="text-base">Closed Sales</CardTitle>
+              <CardDescription>Successful conversions</CardDescription>
             </CardHeader>
-            <CardContent className="pt-0">
+            <CardContent>
               <div className="text-2xl font-bold text-green-600">{conversionData.sales}</div>
-              <p className="text-xs text-muted-foreground mt-2">
+              <p className="text-sm text-muted-foreground mt-2">
                 <Zap className="inline h-3 w-3 mr-1" />
                 38% close rate
               </p>
-              <p className="text-xs font-medium mt-1">
+              <p className="text-sm font-medium mt-1">
                 Revenue: ${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}
               </p>
             </CardContent>

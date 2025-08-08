@@ -384,6 +384,105 @@ export function ReachDashboard() {
         </Card>
       </div>
 
+      {/* Artist Insights */}
+      <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-200 dark:border-amber-800">
+        <CardHeader>
+          <CardTitle className="text-base flex items-center gap-2">
+            <Award className="h-5 w-5 text-amber-600" />
+            Artist Insights
+          </CardTitle>
+          <CardDescription>Profile overview and market positioning</CardDescription>
+        </CardHeader>
+        <CardContent>
+          <div className="grid gap-6 lg:grid-cols-3">
+            {/* Artist Status & Verification */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Status & Verification</h4>
+              <div className="space-y-2">
+                {analyticsData.artist?.verified && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-blue-500" />
+                    <span className="text-sm">Verified Artist</span>
+                  </div>
+                )}
+                {analyticsData.artist?.rank && (
+                  <div className="flex items-center gap-2">
+                    <div className="w-2 h-2 rounded-full bg-purple-500" />
+                    <span className="text-sm">Global Rank #{analyticsData.artist.rank.toLocaleString()}</span>
+                  </div>
+                )}
+                <div className="flex items-center gap-2">
+                  <div className="w-2 h-2 rounded-full bg-green-500" />
+                  <span className="text-sm">Active Profile</span>
+                </div>
+              </div>
+            </div>
+
+            {/* Geographic Information */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Geographic Reach</h4>
+              <div className="space-y-2">
+                {analyticsData.artist?.country && (
+                  <div className="flex items-center justify-between text-sm">
+                    <span>Origin</span>
+                    <Badge variant="outline" className="text-xs">
+                      {analyticsData.artist.country.name || analyticsData.artist.country}
+                    </Badge>
+                  </div>
+                )}
+                <div className="flex items-center justify-between text-sm">
+                  <span>Estimated Countries</span>
+                  <Badge variant="outline" className="text-xs">
+                    {Math.max(1, Math.floor(analyticsData.totalFollowers / 15000))} countries
+                  </Badge>
+                </div>
+                <div className="flex items-center justify-between text-sm">
+                  <span>Market Penetration</span>
+                  <span className={`font-medium ${
+                    analyticsData.totalFollowers > 100000 ? 'text-green-600' : 
+                    analyticsData.totalFollowers > 50000 ? 'text-yellow-600' : 
+                    'text-blue-600'
+                  }`}>
+                    {analyticsData.totalFollowers > 100000 ? 'High' : 
+                     analyticsData.totalFollowers > 50000 ? 'Medium' : 
+                     'Growing'}
+                  </span>
+                </div>
+              </div>
+            </div>
+
+            {/* Music Classification */}
+            <div className="space-y-3">
+              <h4 className="text-sm font-medium text-muted-foreground">Music Classification</h4>
+              <div className="space-y-2">
+                <div className="flex items-center gap-2">
+                  <Music className="h-4 w-4 text-muted-foreground" />
+                  <span className="text-sm">Genre Classification</span>
+                </div>
+                <div className="flex flex-wrap gap-1">
+                  {analyticsData.artist?.genre && (
+                    <Badge variant="secondary" className="text-xs">
+                      {analyticsData.artist.genre.name || analyticsData.artist.genre}
+                    </Badge>
+                  )}
+                  {analyticsData.artist?.subgenres?.slice(0, 2).map((subgenre, index) => (
+                    <Badge key={index} variant="outline" className="text-xs">
+                      {subgenre.name || subgenre}
+                    </Badge>
+                  ))}
+                  {!analyticsData.artist?.genre && (
+                    <Badge variant="secondary" className="text-xs">Uncategorized</Badge>
+                  )}
+                </div>
+                <div className="text-xs text-muted-foreground mt-2">
+                  {analyticsData.artist?.genre ? 'From Viberate data' : 'Awaiting classification'}
+                </div>
+              </div>
+            </div>
+          </div>
+        </CardContent>
+      </Card>
+
       {/* Platform Categories */}
       <div className="grid gap-6 lg:grid-cols-3">
         {/* Streaming Platforms */}

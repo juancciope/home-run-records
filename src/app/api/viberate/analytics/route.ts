@@ -165,7 +165,12 @@ export async function GET(request: NextRequest) {
       artist: {
         name: artist.name,
         rank: artist.rank || 0,
-        verified: artist.verified || false
+        verified: artist.verified || false,
+        country: artist.country,
+        genre: artist.genre,
+        subgenres: artist.subgenres || [],
+        status: artist.status,
+        image: artist.image
       },
       dataSource: 'database',
       lastUpdated: fanbase?.updated_at || artist.updated_at
