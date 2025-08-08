@@ -303,22 +303,6 @@ export function ReachDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          {/* Time Range Selector */}
-          <div className="flex items-center gap-2">
-            <Clock className="h-4 w-4 text-muted-foreground" />
-            <select
-              value={selectedTimeRange}
-              onChange={(e) => setSelectedTimeRange(e.target.value)}
-              className="text-sm border rounded px-2 py-1 bg-background"
-            >
-              {Object.entries(TIME_RANGES).map(([key, range]) => (
-                <option key={key} value={key}>
-                  {range.label}
-                </option>
-              ))}
-            </select>
-          </div>
-
           {hasVibrateConnection ? (
             <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400">
               <Wifi className="h-3 w-3 mr-1" />
@@ -614,11 +598,30 @@ export function ReachDashboard() {
         {/* Growth Trend */}
         <Card className="bg-sidebar">
           <CardHeader>
-            <CardTitle className="text-base">Growth Trend</CardTitle>
-            <CardDescription>
-              {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES].label.toLowerCase()} growth by platform category
-              ({dateRange[0]?.fullDate} - {dateRange[dateRange.length - 1]?.fullDate})
-            </CardDescription>
+            <div className="flex items-center justify-between">
+              <div>
+                <CardTitle className="text-base">Growth Trend</CardTitle>
+                <CardDescription>
+                  {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES].label.toLowerCase()} growth by platform category
+                  ({dateRange[0]?.fullDate} - {dateRange[dateRange.length - 1]?.fullDate})
+                </CardDescription>
+              </div>
+              {/* Time Range Selector */}
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <select
+                  value={selectedTimeRange}
+                  onChange={(e) => setSelectedTimeRange(e.target.value)}
+                  className="text-sm border rounded px-2 py-1 bg-background"
+                >
+                  {Object.entries(TIME_RANGES).map(([key, range]) => (
+                    <option key={key} value={key}>
+                      {range.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            </div>
           </CardHeader>
           <CardContent>
             <ChartContainer 
