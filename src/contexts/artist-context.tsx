@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { getCurrentUser } from '@/lib/supabaseClient';
+import { getCurrentUser, supabase } from '@/lib/supabaseClient';
 import { ArtistService, DashboardSummary } from '@/lib/services/artist-service';
 
 interface ArtistProfile {
@@ -49,9 +49,27 @@ export function ArtistProvider({ children }: ArtistProviderProps) {
 
   const isAuthenticated = !!user;
 
-  // Load user on mount and auth changes
+  // Load user on mount and listen to auth changes
   useEffect(() => {
     loadUser();
+
+    // Subscribe to auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+      console.log('Auth state changed:', event);
+      if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        // Reload user data when signed in or token refreshed
+        loadUser();
+      } else if (event === 'SIGNED_OUT') {
+        // Clear user data when signed out
+        setUser(null);
+        setDashboardSummary(null);
+      }
+    });
+
+    // Cleanup subscription on unmount
+    return () => {
+      authListener?.subscription.unsubscribe();
+    };
   }, []);
 
   const loadDashboardSummary = useCallback(async () => {

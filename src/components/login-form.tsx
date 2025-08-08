@@ -43,11 +43,8 @@ export function LoginForm({
       }
 
       if (data.user) {
-        // Use replace instead of push to ensure proper navigation
-        // and add a small delay to ensure auth state is propagated
-        setTimeout(() => {
-          router.replace('/dashboard');
-        }, 100);
+        // Navigate to dashboard immediately - auth listener will handle state update
+        router.replace('/dashboard');
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
