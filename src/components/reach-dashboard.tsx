@@ -27,7 +27,6 @@ import {
 import {
   ChartContainer,
   ChartTooltip,
-  ChartTooltipContent,
 } from "@/components/ui/chart"
 import {
   Area,
@@ -72,6 +71,11 @@ interface ReachAnalytics {
     name: string;
     rank: number;
     verified: boolean;
+    country?: any;
+    genre?: any;
+    subgenres?: any[];
+    status?: string;
+    image?: string;
   };
   dataSource?: string;
   lastUpdated?: string;
@@ -227,7 +231,7 @@ export function ReachDashboard() {
 
   // Platform distribution for pie chart
   const platformDistribution = Object.entries(analyticsData.platforms)
-    .filter(([_, data]) => {
+    .filter(([, data]) => {
       const value = 'followers' in data ? data.followers : 
                    'subscribers' in data ? data.subscribers : 
                    'fans' in data ? data.fans : 0;
