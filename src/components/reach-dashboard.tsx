@@ -8,7 +8,6 @@ import { Progress } from "@/components/ui/progress"
 import { Skeleton } from "@/components/ui/skeleton"
 import {
   TrendingUp,
-  TrendingDown,
   Users,
   Globe,
   Activity,
@@ -19,51 +18,27 @@ import {
   MessageCircle,
   Radio,
   Headphones,
-  Share2,
-  BarChart3,
-  Eye,
-  Target,
-  Zap,
   Award,
-  ChevronUp,
-  ChevronDown,
-  Minus,
   AlertCircle,
   Info,
 } from "lucide-react"
 import {
   ChartContainer,
-  ChartConfig,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   Cell,
-  Line,
-  LineChart,
   PieChart,
   Pie,
-  RadialBarChart,
-  RadialBar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
-  Radar,
-  RadarChart,
   ResponsiveContainer,
   XAxis,
   YAxis,
   CartesianGrid,
-  Label,
-  LabelList,
 } from "recharts"
 import { useArtist } from "@/contexts/artist-context"
-import { ArtistOnboarding } from "./artist-onboarding"
-import { cn } from "@/lib/utils"
 
 interface PlatformData {
   spotify: { followers: number; streams: number };
@@ -81,7 +56,15 @@ interface ReachAnalytics {
   engagedAudience: number;
   totalFollowers: number;
   platforms: PlatformData;
-  trending: any[];
+  trending: Array<{
+    date: string;
+    spotify?: number;
+    youtube?: number;
+    instagram?: number;
+    tiktok?: number;
+    facebook?: number;
+    twitter?: number;
+  }>;
   isRealData: boolean;
   artist?: {
     name: string;
@@ -99,11 +82,6 @@ const formatNumber = (num: number): string => {
   return num.toString();
 }
 
-// Helper function to calculate growth
-const calculateGrowth = (current: number, previous: number): number => {
-  if (previous === 0) return 0;
-  return ((current - previous) / previous) * 100;
-}
 
 // Platform metadata
 const PLATFORM_META = {
@@ -122,7 +100,6 @@ export function ReachDashboard() {
   const [analyticsData, setAnalyticsData] = React.useState<ReachAnalytics | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = React.useState(true);
   const [hasVibrateConnection, setHasVibrateConnection] = React.useState(false);
-  const [selectedTimeRange, setSelectedTimeRange] = React.useState("30d");
 
   const loadAnalyticsData = React.useCallback(async () => {
     if (!user?.id) return;
@@ -236,9 +213,9 @@ export function ReachDashboard() {
     .sort((a, b) => b.value - a.value);
 
   // Growth trend data
-  const growthTrend = analyticsData.trending?.map((item, index) => ({
+  const growthTrend = analyticsData.trending?.map((item) => ({
     month: item.date,
-    streaming: (item.spotify || 0) + (item.deezer || 0) + (item.soundcloud || 0),
+    streaming: (item.spotify || 0),
     video: (item.youtube || 0) + (item.tiktok || 0),
     social: (item.instagram || 0) + (item.facebook || 0) + (item.twitter || 0),
   })) || [];

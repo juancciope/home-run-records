@@ -54,7 +54,7 @@ export function ArtistProvider({ children }: ArtistProviderProps) {
     loadUser();
 
     // Subscribe to auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange((event, session) => {
+    const { data: authListener } = supabase.auth.onAuthStateChange((event) => {
       console.log('Auth state changed:', event);
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         // Reload user data when signed in or token refreshed
