@@ -32,14 +32,10 @@ export async function GET(request: NextRequest) {
     const [
       spotifyStreamsResponse,
       spotifyListenersResponse,
-      spotifyPlaylistReachResponse,
-      youtubeViewsResponse,
-      shazamResponse,
-      instagramLikesResponse,
-      tiktokViewsResponse,
-      soundcloudPlaysResponse,
-      performancePointsResponse,
-      ranksHistoricalResponse
+      spotifyPopularityResponse,
+      spotifyTracksOnPlaylistsResponse,
+      spotifyFanbaseResponse,
+      facebookFanbaseResponse
     ] = await Promise.allSettled([
       // Spotify streaming data
       fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/spotify/streams-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
@@ -53,50 +49,26 @@ export async function GET(request: NextRequest) {
         signal: AbortSignal.timeout(10000)
       }).catch(() => null),
       
-      // Spotify playlist reach
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/spotify/playlist-reach-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
+      // Spotify popularity
+      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/spotify/popularity-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
         headers,
         signal: AbortSignal.timeout(10000)
       }).catch(() => null),
       
-      // YouTube views
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/youtube/views-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
+      // Spotify tracks on playlists
+      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/spotify/tracks-on-playlists-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
         headers,
         signal: AbortSignal.timeout(10000)
       }).catch(() => null),
       
-      // Shazam discoveries
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/shazam/shazams-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
+      // Spotify fanbase daily
+      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/spotify/fanbase-historical/daily?date-from=${dateFrom}&date-to=${dateTo}`, {
         headers,
         signal: AbortSignal.timeout(10000)
       }).catch(() => null),
       
-      // Instagram engagement
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/instagram/likes-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
-        headers,
-        signal: AbortSignal.timeout(10000)
-      }).catch(() => null),
-      
-      // TikTok views
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/tiktok/views-historical/daily?date-from=${dateFrom}&date-to=${dateTo}`, {
-        headers,
-        signal: AbortSignal.timeout(10000)
-      }).catch(() => null),
-      
-      // SoundCloud plays
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/soundcloud/plays-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
-        headers,
-        signal: AbortSignal.timeout(10000)
-      }).catch(() => null),
-      
-      // Overall performance points
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/viberate/performance-points-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
-        headers,
-        signal: AbortSignal.timeout(10000)
-      }).catch(() => null),
-      
-      // Historical ranks
-      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/viberate/ranks-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
+      // Facebook fanbase
+      fetch(`${VIBERATE_BASE_URL}/artist/${artistId}/facebook/fanbase-historical?date-from=${dateFrom}&date-to=${dateTo}`, {
         headers,
         signal: AbortSignal.timeout(10000)
       }).catch(() => null)
@@ -106,9 +78,10 @@ export async function GET(request: NextRequest) {
     const processResponse = async (response: PromiseSettledResult<Response | null>, name: string) => {
       if (response.status === 'fulfilled' && response.value?.ok) {
         try {
-          const data = await response.value.json();
-          console.log(`Successfully fetched ${name}:`, data.data ? Object.keys(data.data).length : 'no data');
-          return data;
+          const responseData = await response.value.json();
+          console.log(`Successfully fetched ${name}:`, responseData.data?.data ? Object.keys(responseData.data.data).length : 'no data');
+          console.log(`${name} sample data:`, responseData);
+          return responseData;
         } catch (error) {
           console.warn(`Error parsing ${name}:`, error);
           return null;
@@ -122,25 +95,17 @@ export async function GET(request: NextRequest) {
     const [
       spotifyStreams,
       spotifyListeners, 
-      spotifyPlaylistReach,
-      youtubeViews,
-      shazamData,
-      instagramLikes,
-      tiktokViews,
-      soundcloudPlays,
-      performancePoints,
-      ranksHistorical
+      spotifyPopularity,
+      spotifyTracksOnPlaylists,
+      spotifyFanbase,
+      facebookFanbase
     ] = await Promise.all([
       processResponse(spotifyStreamsResponse, 'Spotify Streams'),
       processResponse(spotifyListenersResponse, 'Spotify Listeners'),
-      processResponse(spotifyPlaylistReachResponse, 'Spotify Playlist Reach'),
-      processResponse(youtubeViewsResponse, 'YouTube Views'),
-      processResponse(shazamResponse, 'Shazam Data'),
-      processResponse(instagramLikesResponse, 'Instagram Likes'),
-      processResponse(tiktokViewsResponse, 'TikTok Views'),
-      processResponse(soundcloudPlaysResponse, 'SoundCloud Plays'),
-      processResponse(performancePointsResponse, 'Performance Points'),
-      processResponse(ranksHistoricalResponse, 'Historical Ranks')
+      processResponse(spotifyPopularityResponse, 'Spotify Popularity'),
+      processResponse(spotifyTracksOnPlaylistsResponse, 'Spotify Tracks on Playlists'),
+      processResponse(spotifyFanbaseResponse, 'Spotify Fanbase Daily'),
+      processResponse(facebookFanbaseResponse, 'Facebook Fanbase')
     ]);
 
     const historicalData = {
@@ -148,31 +113,17 @@ export async function GET(request: NextRequest) {
       dateRange: { from: dateFrom, to: dateTo },
       streaming: {
         spotify: {
-          streams: { data: spotifyStreams?.data || {} },
-          listeners: { data: spotifyListeners?.data || {} },
-          playlistReach: { data: spotifyPlaylistReach?.data || {} }
-        },
-        youtube: {
-          views: { data: youtubeViews?.data || {} }
-        },
-        soundcloud: {
-          plays: { data: soundcloudPlays?.data || {} }
+          streams: { data: spotifyStreams?.data?.data || {} },
+          listeners: { data: spotifyListeners?.data?.data || {} },
+          popularity: { data: spotifyPopularity?.data?.data || {} },
+          tracksOnPlaylists: { data: spotifyTracksOnPlaylists?.data?.data || {} },
+          fanbase: { data: spotifyFanbase?.data?.data || {} }
         }
       },
       social: {
-        instagram: {
-          likes: { data: instagramLikes?.data || {} }
-        },
-        tiktok: {
-          views: { data: tiktokViews?.data || {} }
+        facebook: {
+          fanbase: { data: facebookFanbase?.data?.data || {} }
         }
-      },
-      discovery: {
-        shazam: { data: shazamData?.data || {} }
-      },
-      performance: {
-        points: { data: performancePoints?.data || {} },
-        ranks: { data: ranksHistorical?.data || {} }
       },
       fetchedAt: new Date().toISOString()
     };
@@ -180,8 +131,10 @@ export async function GET(request: NextRequest) {
     console.log('Historical data summary:', {
       spotifyStreams: Object.keys(historicalData.streaming.spotify.streams.data).length,
       spotifyListeners: Object.keys(historicalData.streaming.spotify.listeners.data).length,
-      youtubeViews: Object.keys(historicalData.streaming.youtube.views.data).length,
-      shazam: Object.keys(historicalData.discovery.shazam.data).length
+      spotifyPopularity: Object.keys(historicalData.streaming.spotify.popularity.data).length,
+      spotifyTracksOnPlaylists: Object.keys(historicalData.streaming.spotify.tracksOnPlaylists.data).length,
+      spotifyFanbase: Object.keys(historicalData.streaming.spotify.fanbase.data).length,
+      facebookFanbase: Object.keys(historicalData.social.facebook.fanbase.data).length
     });
 
     return NextResponse.json(historicalData);
