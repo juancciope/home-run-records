@@ -31,6 +31,8 @@ import {
 import {
   Area,
   AreaChart,
+  Bar,
+  BarChart,
   Cell,
   PieChart,
   Pie,
@@ -194,8 +196,11 @@ export function ReachDashboard() {
       const data = await response.json();
       
       if (data.success) {
-        console.log('Historical data loaded:', Object.keys(data.streaming.spotify.streams).length, 'data points');
+        console.log('Historical data loaded:', Object.keys(data.streaming?.spotify?.streams || {}).length, 'data points');
+        console.log('Full historical data structure:', data);
         setHistoricalData(data);
+      } else {
+        console.warn('Historical data request failed:', data);
       }
     } catch (error) {
       console.error('Error loading historical data:', error);
@@ -214,7 +219,10 @@ export function ReachDashboard() {
       
       if (data.success) {
         console.log('Geographic data loaded:', data.summary);
+        console.log('Full geographic data structure:', data);
         setGeographicData(data);
+      } else {
+        console.warn('Geographic data request failed:', data);
       }
     } catch (error) {
       console.error('Error loading geographic data:', error);
@@ -467,108 +475,6 @@ export function ReachDashboard() {
         </Card>
       </div>
 
-      {/* Artist Insights */}
-      <Card className="bg-gradient-to-br from-amber-500/10 to-amber-600/5 border-amber-200 dark:border-amber-800">
-        <CardHeader>
-          <CardTitle className="text-base flex items-center gap-2">
-            <Award className="h-5 w-5 text-amber-600" />
-            Artist Insights
-          </CardTitle>
-          <CardDescription>Profile overview and market positioning</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="grid gap-6 lg:grid-cols-3">
-            {/* Artist Status & Verification */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Status & Verification</h4>
-              <div className="space-y-2">
-                {analyticsData.artist?.verified && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-blue-500" />
-                    <span className="text-sm">Verified Artist</span>
-                  </div>
-                )}
-                {analyticsData.artist?.rank && (
-                  <div className="flex items-center gap-2">
-                    <div className="w-2 h-2 rounded-full bg-purple-500" />
-                    <span className="text-sm">Global Rank #{analyticsData.artist.rank.toLocaleString()}</span>
-                  </div>
-                )}
-                <div className="flex items-center gap-2">
-                  <div className="w-2 h-2 rounded-full bg-green-500" />
-                  <span className="text-sm">Active Profile</span>
-                </div>
-              </div>
-            </div>
-
-            {/* Geographic Information */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Geographic Reach</h4>
-              <div className="space-y-2">
-                {analyticsData.artist?.country && (
-                  <div className="flex items-center justify-between text-sm">
-                    <span>Origin</span>
-                    <Badge variant="outline" className="text-xs">
-                      {typeof analyticsData.artist.country === 'object' 
-                        ? analyticsData.artist.country.name 
-                        : analyticsData.artist.country}
-                    </Badge>
-                  </div>
-                )}
-                <div className="flex items-center justify-between text-sm">
-                  <span>Estimated Countries</span>
-                  <Badge variant="outline" className="text-xs">
-                    {Math.max(1, Math.floor(analyticsData.totalFollowers / 15000))} countries
-                  </Badge>
-                </div>
-                <div className="flex items-center justify-between text-sm">
-                  <span>Market Penetration</span>
-                  <span className={`font-medium ${
-                    analyticsData.totalFollowers > 100000 ? 'text-green-600' : 
-                    analyticsData.totalFollowers > 50000 ? 'text-yellow-600' : 
-                    'text-blue-600'
-                  }`}>
-                    {analyticsData.totalFollowers > 100000 ? 'High' : 
-                     analyticsData.totalFollowers > 50000 ? 'Medium' : 
-                     'Growing'}
-                  </span>
-                </div>
-              </div>
-            </div>
-
-            {/* Music Classification */}
-            <div className="space-y-3">
-              <h4 className="text-sm font-medium text-muted-foreground">Music Classification</h4>
-              <div className="space-y-2">
-                <div className="flex items-center gap-2">
-                  <Music className="h-4 w-4 text-muted-foreground" />
-                  <span className="text-sm">Genre Classification</span>
-                </div>
-                <div className="flex flex-wrap gap-1">
-                  {analyticsData.artist?.genre && (
-                    <Badge variant="secondary" className="text-xs">
-                      {typeof analyticsData.artist.genre === 'object' 
-                        ? analyticsData.artist.genre.name 
-                        : analyticsData.artist.genre}
-                    </Badge>
-                  )}
-                  {analyticsData.artist?.subgenres?.slice(0, 2).map((subgenre, index) => (
-                    <Badge key={index} variant="outline" className="text-xs">
-                      {typeof subgenre === 'object' ? subgenre.name : subgenre}
-                    </Badge>
-                  ))}
-                  {!analyticsData.artist?.genre && (
-                    <Badge variant="secondary" className="text-xs">Uncategorized</Badge>
-                  )}
-                </div>
-                <div className="text-xs text-muted-foreground mt-2">
-                  {analyticsData.artist?.genre ? 'From Viberate data' : 'Awaiting classification'}
-                </div>
-              </div>
-            </div>
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Platform Categories */}
       <div className="grid gap-6 lg:grid-cols-3">
@@ -719,7 +625,7 @@ export function ReachDashboard() {
         </Card>
       </div>
 
-      {/* Charts Row */}
+      {/* Charts Row 1: Platform Distribution and Global Audience */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Platform Distribution */}
         <Card className="bg-sidebar">
@@ -775,6 +681,110 @@ export function ReachDashboard() {
                   <span className="text-xs text-muted-foreground ml-auto">
                     {((platform.value / analyticsData.totalFollowers) * 100).toFixed(0)}%
                   </span>
+                </div>
+              ))}
+            </div>
+          </CardContent>
+        </Card>
+
+        {/* Global Audience Distribution */}
+        {hasVibrateConnection && geographicData && (
+          <Card className="bg-sidebar">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <Globe className="h-5 w-5 text-blue-600" />
+                Global Audience Distribution
+              </CardTitle>
+              <CardDescription>
+                Top listener locations worldwide
+                {isLoadingGeographic && (
+                  <span className="text-xs text-blue-600 ml-2">Loading...</span>
+                )}
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              {/* Create a bar chart for top countries */}
+              <ChartContainer 
+                config={{
+                  listeners: { label: "Listeners", color: "#3B82F6" }
+                }} 
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <BarChart data={geographicData?.spotify?.countries?.slice(0, 8) || []} layout="horizontal">
+                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                    <XAxis type="number" tick={{ fontSize: 12 }} />
+                    <YAxis 
+                      type="category" 
+                      dataKey="name" 
+                      tick={{ fontSize: 12 }}
+                      width={60}
+                    />
+                    <Bar 
+                      dataKey="listeners" 
+                      fill="#3B82F6" 
+                      radius={[0, 4, 4, 0]}
+                    />
+                    <ChartTooltip 
+                      content={({ payload, label }) => {
+                        if (payload && payload[0]) {
+                          const data = payload[0].payload;
+                          return (
+                            <div className="bg-background p-3 rounded shadow-lg border">
+                              <p className="font-semibold">{label}</p>
+                              <p className="text-sm">{formatNumber(data.listeners)} listeners</p>
+                              <p className="text-xs text-muted-foreground">
+                                {data.percentage?.toFixed(1)}% of total
+                              </p>
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                  </BarChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        )}
+      </div>
+
+      {/* Charts Row 2: Platform Performance Matrix and Growth Trend */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Platform Performance Matrix */}
+        <Card className="bg-sidebar">
+          <CardHeader>
+            <CardTitle className="text-base">Platform Performance Matrix</CardTitle>
+            <CardDescription>Compare follower count vs engagement rate across platforms</CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="space-y-3">
+              {platformPerformance.map((platform) => (
+                <div key={platform.platform} className="space-y-2">
+                  <div className="flex items-center justify-between">
+                    <div className="flex items-center gap-2">
+                      <div 
+                        className="w-2 h-2 rounded-full" 
+                        style={{ backgroundColor: platform.color }}
+                      />
+                      <span className="text-sm font-medium">{platform.platform}</span>
+                    </div>
+                    <div className="flex items-center gap-4 text-sm">
+                      <span className="text-muted-foreground">
+                        {formatNumber(platform.followers)} followers
+                      </span>
+                      <Badge variant="outline" className="text-xs">
+                        {platform.engagement}% engagement
+                      </Badge>
+                    </div>
+                  </div>
+                  <div className="relative">
+                    <Progress 
+                      value={(platform.followers / analyticsData.totalFollowers) * 100} 
+                      className="h-2"
+                    />
+                  </div>
                 </div>
               ))}
             </div>
@@ -895,44 +905,6 @@ export function ReachDashboard() {
         </Card>
       </div>
 
-      {/* Platform Performance Matrix */}
-      <Card className="bg-sidebar">
-        <CardHeader>
-          <CardTitle className="text-base">Platform Performance Matrix</CardTitle>
-          <CardDescription>Compare follower count vs engagement rate across platforms</CardDescription>
-        </CardHeader>
-        <CardContent>
-          <div className="space-y-3">
-            {platformPerformance.map((platform) => (
-              <div key={platform.platform} className="space-y-2">
-                <div className="flex items-center justify-between">
-                  <div className="flex items-center gap-2">
-                    <div 
-                      className="w-2 h-2 rounded-full" 
-                      style={{ backgroundColor: platform.color }}
-                    />
-                    <span className="text-sm font-medium">{platform.platform}</span>
-                  </div>
-                  <div className="flex items-center gap-4 text-sm">
-                    <span className="text-muted-foreground">
-                      {formatNumber(platform.followers)} followers
-                    </span>
-                    <Badge variant="outline" className="text-xs">
-                      {platform.engagement}% engagement
-                    </Badge>
-                  </div>
-                </div>
-                <div className="relative">
-                  <Progress 
-                    value={(platform.followers / analyticsData.totalFollowers) * 100} 
-                    className="h-2"
-                  />
-                </div>
-              </div>
-            ))}
-          </div>
-        </CardContent>
-      </Card>
 
       {/* Historical Performance Trends - Only show if we have historical data */}
       {hasVibrateConnection && historicalData && (
