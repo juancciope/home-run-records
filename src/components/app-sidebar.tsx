@@ -21,6 +21,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useArtist } from "@/contexts/artist-context"
+import * as React from "react"
 
 // This is sample data.
 const staticData = {
@@ -93,12 +94,37 @@ const staticData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useArtist();
+  const [artistData, setArtistData] = React.useState<any>(null);
   
-  // Prepare user data for NavUser component
+  React.useEffect(() => {
+    const loadArtistData = async () => {
+      if (!user?.id) return;
+      
+      try {
+        const { ArtistService } = await import('@/lib/services/artist-service');
+        const profile = await ArtistService.getArtistProfile(user.id, user.email);
+        
+        if (profile?.viberate_artist_id) {
+          const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
+          const vibrateData = await response.json();
+          
+          if (vibrateData && !vibrateData.error) {
+            setArtistData(vibrateData);
+          }
+        }
+      } catch (error) {
+        console.error('Error loading artist data:', error);
+      }
+    };
+    
+    loadArtistData();
+  }, [user?.id, user?.email]);
+  
+  // Prepare user data for NavUser component with Viberate image
   const userData = {
-    name: user?.artist_name || user?.email?.split('@')[0] || "Artist",
+    name: artistData?.artist?.name || user?.artist_name || user?.email?.split('@')[0] || "Artist",
     email: user?.email || "artist@example.com",
-    avatar: user?.profile_image_url || "",
+    avatar: artistData?.artist?.image || user?.profile_image_url || "",
   };
 
   return (

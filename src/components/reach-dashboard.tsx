@@ -455,31 +455,12 @@ export function ReachDashboard() {
 
   return (
     <div className="space-y-6">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h1 className="text-3xl font-bold">Reach Dashboard</h1>
-          <p className="text-muted-foreground">
-            Your complete audience reach and engagement across all platforms
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          {hasVibrateConnection ? (
-            <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400">
-              <Wifi className="h-3 w-3 mr-1" />
-              Live Data
-            </Badge>
-          ) : (
-            <Badge variant="secondary">
-              <WifiOff className="h-3 w-3 mr-1" />
-              Demo Mode
-            </Badge>
-          )}
-          <Button variant="outline" size="sm" onClick={loadAnalyticsData}>
-            <Activity className="h-4 w-4 mr-2" />
-            Refresh
-          </Button>
-        </div>
+      {/* Page Header */}
+      <div className="space-y-2">
+        <h2 className="text-2xl font-semibold text-foreground">Analytics Dashboard</h2>
+        <p className="text-muted-foreground">
+          Your complete audience reach and engagement across all platforms
+        </p>
       </div>
 
       {/* Hero Metrics */}
@@ -1198,7 +1179,8 @@ export function ReachDashboard() {
 
 
       {/* Footer Info */}
-      <div className="flex items-center justify-between text-xs text-muted-foreground">
+      {/* Footer Info */}
+      <div className="flex items-center justify-between text-xs text-muted-foreground pt-4 border-t">
         <div className="flex items-center gap-4">
           {analyticsData.lastUpdated && (
             <div className="flex items-center gap-1">
