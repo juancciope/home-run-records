@@ -148,40 +148,40 @@ export async function GET(request: NextRequest) {
       dateRange: { from: dateFrom, to: dateTo },
       streaming: {
         spotify: {
-          streams: spotifyStreams?.data || {},
-          listeners: spotifyListeners?.data || {},
-          playlistReach: spotifyPlaylistReach?.data || {}
+          streams: { data: spotifyStreams?.data || {} },
+          listeners: { data: spotifyListeners?.data || {} },
+          playlistReach: { data: spotifyPlaylistReach?.data || {} }
         },
         youtube: {
-          views: youtubeViews?.data || {}
+          views: { data: youtubeViews?.data || {} }
         },
         soundcloud: {
-          plays: soundcloudPlays?.data || {}
+          plays: { data: soundcloudPlays?.data || {} }
         }
       },
       social: {
         instagram: {
-          likes: instagramLikes?.data || {}
+          likes: { data: instagramLikes?.data || {} }
         },
         tiktok: {
-          views: tiktokViews?.data || {}
+          views: { data: tiktokViews?.data || {} }
         }
       },
       discovery: {
-        shazam: shazamData?.data || {}
+        shazam: { data: shazamData?.data || {} }
       },
       performance: {
-        points: performancePoints?.data || {},
-        ranks: ranksHistorical?.data || {}
+        points: { data: performancePoints?.data || {} },
+        ranks: { data: ranksHistorical?.data || {} }
       },
       fetchedAt: new Date().toISOString()
     };
 
     console.log('Historical data summary:', {
-      spotifyStreams: Object.keys(historicalData.streaming.spotify.streams).length,
-      spotifyListeners: Object.keys(historicalData.streaming.spotify.listeners).length,
-      youtubeViews: Object.keys(historicalData.streaming.youtube.views).length,
-      shazam: Object.keys(historicalData.discovery.shazam).length
+      spotifyStreams: Object.keys(historicalData.streaming.spotify.streams.data).length,
+      spotifyListeners: Object.keys(historicalData.streaming.spotify.listeners.data).length,
+      youtubeViews: Object.keys(historicalData.streaming.youtube.views.data).length,
+      shazam: Object.keys(historicalData.discovery.shazam.data).length
     });
 
     return NextResponse.json(historicalData);

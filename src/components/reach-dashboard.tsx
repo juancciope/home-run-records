@@ -40,6 +40,8 @@ import {
   XAxis,
   YAxis,
   CartesianGrid,
+  Line,
+  LineChart,
 } from "recharts"
 import { useArtist } from "@/contexts/artist-context"
 
@@ -135,10 +137,22 @@ export function ReachDashboard() {
   const [analyticsData, setAnalyticsData] = React.useState<ReachAnalytics | null>(null);
   const [historicalData, setHistoricalData] = React.useState<{
     streaming: {
-      spotify: { streams: Record<string, number>; listeners: Record<string, number>; playlistReach: Record<string, number> };
-      youtube: { views: Record<string, number> };
-      soundcloud: { plays: Record<string, number> };
+      spotify: { 
+        streams: { data: Record<string, number> }; 
+        listeners: { data: Record<string, number> }; 
+        playlistReach: { data: Record<string, number> } 
+      };
+      youtube: { views: { data: Record<string, number> } };
+      soundcloud: { plays: { data: Record<string, number> } };
     };
+    social: {
+      instagram: { likes: { data: Record<string, number> } };
+      tiktok: { views: { data: Record<string, number> } };
+    };
+    discovery: {
+      shazam: { data: Record<string, number> };
+    };
+    success: boolean;
   } | null>(null);
   const [geographicData, setGeographicData] = React.useState<{
     spotify: { 
@@ -196,7 +210,7 @@ export function ReachDashboard() {
       const data = await response.json();
       
       if (data.success) {
-        console.log('Historical data loaded:', Object.keys(data.streaming?.spotify?.streams || {}).length, 'data points');
+        console.log('Historical data loaded:', Object.keys(data.streaming?.spotify?.streams?.data || {}).length, 'data points');
         console.log('Full historical data structure:', data);
         setHistoricalData(data);
       } else {
@@ -922,22 +936,55 @@ export function ReachDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 lg:grid-cols-2">
+            <div className="grid gap-6 lg:grid-cols-3">
               {/* Spotify Streams Chart */}
               <div className="space-y-3">
                 <h4 className="text-sm font-medium text-muted-foreground">Spotify Streams</h4>
-                <div className="h-48 flex items-center justify-center bg-muted/20 rounded-lg">
-                  {Object.keys(historicalData?.streaming?.spotify?.streams || {}).length > 0 ? (
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-green-600">
-                        {Object.keys(historicalData.streaming.spotify.streams).length}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Data points available</div>
-                    </div>
+                <div className="h-48">
+                  {Object.keys(historicalData?.streaming?.spotify?.streams?.data || {}).length > 0 ? (
+                    <ChartContainer 
+                      config={{
+                        streams: { label: "Streams", color: "#1DB954" }
+                      }} 
+                      className="h-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={Object.entries(historicalData.streaming.spotify.streams.data).map(([date, streams]) => ({
+                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                          streams: streams as number
+                        })).slice(-30)}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="streams" 
+                            stroke="#1DB954" 
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <ChartTooltip 
+                            content={({ payload, label }) => {
+                              if (payload && payload[0]) {
+                                return (
+                                  <div className="bg-background p-2 rounded shadow-lg border">
+                                    <p className="font-semibold">{label}</p>
+                                    <p className="text-sm text-green-600">{formatNumber(payload[0].value as number)} streams</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
                   ) : (
-                    <div className="text-center text-muted-foreground">
-                      <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <div className="text-sm">No streaming data available</div>
+                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                      <div className="text-center text-muted-foreground">
+                        <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <div className="text-sm">No streaming data available</div>
+                      </div>
                     </div>
                   )}
                 </div>
@@ -946,18 +993,231 @@ export function ReachDashboard() {
               {/* YouTube Views Chart */}
               <div className="space-y-3">
                 <h4 className="text-sm font-medium text-muted-foreground">YouTube Views</h4>
-                <div className="h-48 flex items-center justify-center bg-muted/20 rounded-lg">
-                  {Object.keys(historicalData?.streaming?.youtube?.views || {}).length > 0 ? (
-                    <div className="text-center">
-                      <div className="text-2xl font-bold text-red-600">
-                        {Object.keys(historicalData.streaming.youtube.views).length}
-                      </div>
-                      <div className="text-sm text-muted-foreground">Data points available</div>
-                    </div>
+                <div className="h-48">
+                  {Object.keys(historicalData?.streaming?.youtube?.views?.data || {}).length > 0 ? (
+                    <ChartContainer 
+                      config={{
+                        views: { label: "Views", color: "#FF0000" }
+                      }} 
+                      className="h-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={Object.entries(historicalData.streaming.youtube.views.data).map(([date, views]) => ({
+                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                          views: views as number
+                        })).slice(-30)}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="views" 
+                            stroke="#FF0000" 
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <ChartTooltip 
+                            content={({ payload, label }) => {
+                              if (payload && payload[0]) {
+                                return (
+                                  <div className="bg-background p-2 rounded shadow-lg border">
+                                    <p className="font-semibold">{label}</p>
+                                    <p className="text-sm text-red-600">{formatNumber(payload[0].value as number)} views</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
                   ) : (
-                    <div className="text-center text-muted-foreground">
-                      <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <div className="text-sm">No view data available</div>
+                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                      <div className="text-center text-muted-foreground">
+                        <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <div className="text-sm">No view data available</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Instagram Likes Chart */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Instagram Likes</h4>
+                <div className="h-48">
+                  {Object.keys(historicalData?.social?.instagram?.likes?.data || {}).length > 0 ? (
+                    <ChartContainer 
+                      config={{
+                        likes: { label: "Likes", color: "#E4405F" }
+                      }} 
+                      className="h-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={Object.entries(historicalData.social.instagram.likes.data).map(([date, likes]) => ({
+                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                          likes: likes as number
+                        })).slice(-30)}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="likes" 
+                            stroke="#E4405F" 
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <ChartTooltip 
+                            content={({ payload, label }) => {
+                              if (payload && payload[0]) {
+                                return (
+                                  <div className="bg-background p-2 rounded shadow-lg border">
+                                    <p className="font-semibold">{label}</p>
+                                    <p className="text-sm" style={{ color: '#E4405F' }}>{formatNumber(payload[0].value as number)} likes</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                      <div className="text-center text-muted-foreground">
+                        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <div className="text-sm">No Instagram data available</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Additional Performance Data - TikTok & Discovery */}
+      {hasVibrateConnection && historicalData && (
+        Object.keys(historicalData?.social?.tiktok?.views?.data || {}).length > 0 ||
+        Object.keys(historicalData?.discovery?.shazam?.data || {}).length > 0
+      ) && (
+        <Card className="bg-sidebar">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Video className="h-5 w-5 text-purple-600" />
+              Discovery & Social Performance
+            </CardTitle>
+            <CardDescription>
+              TikTok views and Shazam discoveries over time
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* TikTok Views Chart */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">TikTok Views</h4>
+                <div className="h-48">
+                  {Object.keys(historicalData?.social?.tiktok?.views?.data || {}).length > 0 ? (
+                    <ChartContainer 
+                      config={{
+                        views: { label: "Views", color: "#000000" }
+                      }} 
+                      className="h-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={Object.entries(historicalData.social.tiktok.views.data).map(([date, views]) => ({
+                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                          views: views as number
+                        })).slice(-30)}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="views" 
+                            stroke="hsl(var(--foreground))" 
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <ChartTooltip 
+                            content={({ payload, label }) => {
+                              if (payload && payload[0]) {
+                                return (
+                                  <div className="bg-background p-2 rounded shadow-lg border">
+                                    <p className="font-semibold">{label}</p>
+                                    <p className="text-sm">{formatNumber(payload[0].value as number)} views</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                      <div className="text-center text-muted-foreground">
+                        <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <div className="text-sm">No TikTok data available</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Shazam Discoveries Chart */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Shazam Discoveries</h4>
+                <div className="h-48">
+                  {Object.keys(historicalData?.discovery?.shazam?.data || {}).length > 0 ? (
+                    <ChartContainer 
+                      config={{
+                        discoveries: { label: "Discoveries", color: "#0066FF" }
+                      }} 
+                      className="h-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={Object.entries(historicalData.discovery.shazam.data).map(([date, discoveries]) => ({
+                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
+                          discoveries: discoveries as number
+                        })).slice(-30)}>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="discoveries" 
+                            stroke="#0066FF" 
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <ChartTooltip 
+                            content={({ payload, label }) => {
+                              if (payload && payload[0]) {
+                                return (
+                                  <div className="bg-background p-2 rounded shadow-lg border">
+                                    <p className="font-semibold">{label}</p>
+                                    <p className="text-sm text-blue-600">{formatNumber(payload[0].value as number)} discoveries</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                      <div className="text-center text-muted-foreground">
+                        <Radio className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <div className="text-sm">No Shazam data available</div>
+                      </div>
                     </div>
                   )}
                 </div>
