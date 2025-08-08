@@ -43,7 +43,7 @@ import { useArtist } from "@/contexts/artist-context"
 import { ArtistOnboarding } from "./artist-onboarding"
 
 export function DashboardContent() {
-  const { user, isDashboardLoading } = useArtist();
+  const { user, isDashboardLoading, isLoading } = useArtist();
   const [pipelineMetrics, setPipelineMetrics] = React.useState<{
     production: { unfinished: number; finished: number; released: number };
     marketing: { totalReach: number; engagedAudience: number; totalFollowers: number; youtubeSubscribers: number };
@@ -211,7 +211,8 @@ export function DashboardContent() {
     { stage: "Sales", value: conversionData.sales },
   ];
 
-  if (isDashboardLoading || isLoadingMetrics) {
+  // Show loading state while checking authentication
+  if (isLoading || isDashboardLoading || isLoadingMetrics) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">
@@ -222,6 +223,17 @@ export function DashboardContent() {
               <div key={i} className="h-[280px] bg-muted rounded-xl"></div>
             ))}
           </div>
+        </div>
+      </div>
+    );
+  }
+
+  // Check if user is authenticated
+  if (!user) {
+    return (
+      <div className="flex items-center justify-center min-h-[400px]">
+        <div className="text-center space-y-4">
+          <p className="text-muted-foreground">Redirecting to login...</p>
         </div>
       </div>
     );

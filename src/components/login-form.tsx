@@ -43,7 +43,11 @@ export function LoginForm({
       }
 
       if (data.user) {
-        router.push('/dashboard');
+        // Use replace instead of push to ensure proper navigation
+        // and add a small delay to ensure auth state is propagated
+        setTimeout(() => {
+          router.replace('/dashboard');
+        }, 100);
       }
     } catch (err) {
       setError('An unexpected error occurred. Please try again.');
@@ -73,6 +77,7 @@ export function LoginForm({
                   placeholder="m@example.com"
                   value={email}
                   onChange={(e) => setEmail(e.target.value)}
+                  autoComplete="email"
                   required
                 />
               </div>
@@ -93,6 +98,7 @@ export function LoginForm({
                   type="password" 
                   value={password}
                   onChange={(e) => setPassword(e.target.value)}
+                  autoComplete="current-password"
                   required 
                 />
               </div>

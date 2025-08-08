@@ -111,7 +111,7 @@ export function ArtistProvider({ children }: ArtistProviderProps) {
           });
         }
       } else {
-        console.log('No current user found');
+        // This is expected on public pages like login/signup
         setUser(null);
       }
     } catch (error) {
