@@ -92,6 +92,32 @@ const formatNumber = (num: number): string => {
   return num.toString();
 }
 
+// Helper function to safely parse and format dates from API
+const formatApiDate = (dateString: string): string => {
+  try {
+    // Try parsing the date string - handle various formats
+    let date: Date;
+    
+    // If it looks like YYYY-MM-DD format
+    if (/^\d{4}-\d{2}-\d{2}$/.test(dateString)) {
+      date = new Date(dateString + 'T00:00:00.000Z');
+    } else {
+      date = new Date(dateString);
+    }
+    
+    // Check if date is valid
+    if (isNaN(date.getTime())) {
+      console.warn('Invalid date string:', dateString);
+      return dateString; // Return original string if parsing fails
+    }
+    
+    return date.toLocaleDateString('en-US', { month: 'short', day: 'numeric' });
+  } catch (error) {
+    console.warn('Error parsing date:', dateString, error);
+    return dateString; // Return original string if parsing fails
+  }
+}
+
 // Helper function to generate real dates
 const generateDateRange = (months: number) => {
   const dates = [];
@@ -211,6 +237,7 @@ export function ReachDashboard() {
       
       if (data.success) {
         console.log('Historical data loaded:', Object.keys(data.streaming?.spotify?.streams?.data || {}).length, 'data points');
+        console.log('Sample date keys from API:', Object.keys(data.streaming?.spotify?.streams?.data || {}).slice(0, 5));
         console.log('Full historical data structure:', data);
         setHistoricalData(data);
       } else {
@@ -949,10 +976,15 @@ export function ReachDashboard() {
                       className="h-full"
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.streaming.spotify.streams.data).map(([date, streams]) => ({
-                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                          streams: streams as number
-                        })).slice(-30)}>
+                        <LineChart data={Object.entries(historicalData.streaming.spotify.streams.data)
+                          .map(([date, streams]) => ({
+                            date: formatApiDate(date),
+                            rawDate: date,
+                            streams: streams as number
+                          }))
+                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
+                          .slice(-30)
+                        }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                           <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
@@ -1002,10 +1034,15 @@ export function ReachDashboard() {
                       className="h-full"
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.streaming.youtube.views.data).map(([date, views]) => ({
-                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                          views: views as number
-                        })).slice(-30)}>
+                        <LineChart data={Object.entries(historicalData.streaming.youtube.views.data)
+                          .map(([date, views]) => ({
+                            date: formatApiDate(date),
+                            rawDate: date,
+                            views: views as number
+                          }))
+                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
+                          .slice(-30)
+                        }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                           <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
@@ -1055,10 +1092,15 @@ export function ReachDashboard() {
                       className="h-full"
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.social.instagram.likes.data).map(([date, likes]) => ({
-                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                          likes: likes as number
-                        })).slice(-30)}>
+                        <LineChart data={Object.entries(historicalData.social.instagram.likes.data)
+                          .map(([date, likes]) => ({
+                            date: formatApiDate(date),
+                            rawDate: date,
+                            likes: likes as number
+                          }))
+                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
+                          .slice(-30)
+                        }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                           <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
@@ -1129,10 +1171,15 @@ export function ReachDashboard() {
                       className="h-full"
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.social.tiktok.views.data).map(([date, views]) => ({
-                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                          views: views as number
-                        })).slice(-30)}>
+                        <LineChart data={Object.entries(historicalData.social.tiktok.views.data)
+                          .map(([date, views]) => ({
+                            date: formatApiDate(date),
+                            rawDate: date,
+                            views: views as number
+                          }))
+                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
+                          .slice(-30)
+                        }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                           <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
@@ -1182,10 +1229,15 @@ export function ReachDashboard() {
                       className="h-full"
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.discovery.shazam.data).map(([date, discoveries]) => ({
-                          date: new Date(date).toLocaleDateString('en-US', { month: 'short', day: 'numeric' }),
-                          discoveries: discoveries as number
-                        })).slice(-30)}>
+                        <LineChart data={Object.entries(historicalData.discovery.shazam.data)
+                          .map(([date, discoveries]) => ({
+                            date: formatApiDate(date),
+                            rawDate: date,
+                            discoveries: discoveries as number
+                          }))
+                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
+                          .slice(-30)
+                        }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
                           <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
