@@ -71,9 +71,9 @@ interface ReachAnalytics {
     name: string;
     rank: number;
     verified: boolean;
-    country?: any;
-    genre?: any;
-    subgenres?: any[];
+    country?: { name: string; code: string } | string;
+    genre?: { name: string } | string;
+    subgenres?: Array<{ name: string } | string>;
     status?: string;
     image?: string;
   };
