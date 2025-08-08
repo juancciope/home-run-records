@@ -131,7 +131,11 @@ const PLATFORM_META = {
 export function ReachDashboard() {
   const { user, isLoading } = useArtist();
   const [analyticsData, setAnalyticsData] = React.useState<ReachAnalytics | null>(null);
+  const [historicalData, setHistoricalData] = React.useState<any>(null);
+  const [geographicData, setGeographicData] = React.useState<any>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = React.useState(true);
+  const [isLoadingHistorical, setIsLoadingHistorical] = React.useState(false);
+  const [isLoadingGeographic, setIsLoadingGeographic] = React.useState(false);
   const [hasVibrateConnection, setHasVibrateConnection] = React.useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = React.useState("6m");
 
@@ -166,11 +170,74 @@ export function ReachDashboard() {
     }
   }, [user?.id, user?.email]);
 
+  const loadHistoricalData = React.useCallback(async (artistId: string) => {
+    if (!artistId) return;
+    
+    try {
+      setIsLoadingHistorical(true);
+      const endDate = new Date().toISOString().split('T')[0];
+      const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 90 days ago
+      
+      const response = await fetch(`/api/viberate/historical?artistId=${encodeURIComponent(artistId)}&dateFrom=${startDate}&dateTo=${endDate}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('Historical data loaded:', Object.keys(data.streaming.spotify.streams).length, 'data points');
+        setHistoricalData(data);
+      }
+    } catch (error) {
+      console.error('Error loading historical data:', error);
+    } finally {
+      setIsLoadingHistorical(false);
+    }
+  }, []);
+
+  const loadGeographicData = React.useCallback(async (artistId: string) => {
+    if (!artistId) return;
+    
+    try {
+      setIsLoadingGeographic(true);
+      const response = await fetch(`/api/viberate/geographic?artistId=${encodeURIComponent(artistId)}`);
+      const data = await response.json();
+      
+      if (data.success) {
+        console.log('Geographic data loaded:', data.summary);
+        setGeographicData(data);
+      }
+    } catch (error) {
+      console.error('Error loading geographic data:', error);
+    } finally {
+      setIsLoadingGeographic(false);
+    }
+  }, []);
+
   React.useEffect(() => {
     if (user?.id) {
       loadAnalyticsData();
     }
   }, [user?.id, loadAnalyticsData]);
+
+  // Load additional data when we have a Viberate connection
+  React.useEffect(() => {
+    if (hasVibrateConnection && analyticsData?.artist && user?.id) {
+      // Find the viberate artist ID from the profile
+      const loadAdditionalData = async () => {
+        try {
+          const { ArtistService } = await import('@/lib/services/artist-service');
+          const profile = await ArtistService.getArtistProfile(user.id, user.email);
+          
+          if (profile?.viberate_artist_id) {
+            loadHistoricalData(profile.viberate_artist_id);
+            loadGeographicData(profile.viberate_artist_id);
+          }
+        } catch (error) {
+          console.error('Error loading additional data:', error);
+        }
+      };
+      
+      loadAdditionalData();
+    }
+  }, [hasVibrateConnection, analyticsData?.artist, user?.id, user?.email, loadHistoricalData, loadGeographicData]);
 
   if (isLoading || isLoadingAnalytics) {
     return (
@@ -854,6 +921,171 @@ export function ReachDashboard() {
           </div>
         </CardContent>
       </Card>
+
+      {/* Historical Performance Trends - Only show if we have historical data */}
+      {hasVibrateConnection && historicalData && (
+        <Card className="bg-sidebar">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <TrendingUp className="h-5 w-5 text-green-600" />
+              Streaming Performance Trends
+            </CardTitle>
+            <CardDescription>
+              Historical streaming data over the last 90 days
+              {isLoadingHistorical && (
+                <span className="text-xs text-blue-600 ml-2">Loading...</span>
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Spotify Streams Chart */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Spotify Streams</h4>
+                <div className="h-48 flex items-center justify-center bg-muted/20 rounded-lg">
+                  {Object.keys(historicalData?.streaming?.spotify?.streams || {}).length > 0 ? (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-green-600">
+                        {Object.keys(historicalData.streaming.spotify.streams).length}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Data points available</div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <div className="text-sm">No streaming data available</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* YouTube Views Chart */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">YouTube Views</h4>
+                <div className="h-48 flex items-center justify-center bg-muted/20 rounded-lg">
+                  {Object.keys(historicalData?.streaming?.youtube?.views || {}).length > 0 ? (
+                    <div className="text-center">
+                      <div className="text-2xl font-bold text-red-600">
+                        {Object.keys(historicalData.streaming.youtube.views).length}
+                      </div>
+                      <div className="text-sm text-muted-foreground">Data points available</div>
+                    </div>
+                  ) : (
+                    <div className="text-center text-muted-foreground">
+                      <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <div className="text-sm">No view data available</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+          </CardContent>
+        </Card>
+      )}
+
+      {/* Geographic Audience Distribution - Only show if we have geographic data */}
+      {hasVibrateConnection && geographicData && (
+        <Card className="bg-sidebar">
+          <CardHeader>
+            <CardTitle className="text-base flex items-center gap-2">
+              <Globe className="h-5 w-5 text-blue-600" />
+              Global Audience Distribution
+            </CardTitle>
+            <CardDescription>
+              Where your listeners are located around the world
+              {isLoadingGeographic && (
+                <span className="text-xs text-blue-600 ml-2">Loading...</span>
+              )}
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <div className="grid gap-6 lg:grid-cols-2">
+              {/* Top Countries */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Top Countries (Spotify)</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {geographicData?.spotify?.countries?.slice(0, 10).map((country: any, index: number) => (
+                    <div key={country.name} className="flex items-center justify-between p-2 rounded-lg bg-background">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-4 rounded bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
+                          {index + 1}
+                        </div>
+                        <span className="text-sm font-medium">{country.name}</span>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{formatNumber(country.listeners)}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {country.percentage.toFixed(1)}%
+                        </Badge>
+                      </div>
+                    </div>
+                  )) || (
+                    <div className="text-center text-muted-foreground py-8">
+                      <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <div className="text-sm">No geographic data available</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+
+              {/* Top Cities */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">Top Cities (Spotify)</h4>
+                <div className="space-y-2 max-h-48 overflow-y-auto">
+                  {geographicData?.spotify?.cities?.slice(0, 10).map((city: any, index: number) => (
+                    <div key={`${city.name}-${city.country}`} className="flex items-center justify-between p-2 rounded-lg bg-background">
+                      <div className="flex items-center gap-2">
+                        <div className="w-6 h-4 rounded bg-purple-600 text-white text-xs flex items-center justify-center font-bold">
+                          {index + 1}
+                        </div>
+                        <div>
+                          <span className="text-sm font-medium">{city.name}</span>
+                          <div className="text-xs text-muted-foreground">{city.country}</div>
+                        </div>
+                      </div>
+                      <div className="flex items-center gap-2">
+                        <span className="text-sm font-semibold">{formatNumber(city.listeners)}</span>
+                        <Badge variant="outline" className="text-xs">
+                          {city.percentage.toFixed(1)}%
+                        </Badge>
+                      </div>
+                    </div>
+                  )) || (
+                    <div className="text-center text-muted-foreground py-8">
+                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                      <div className="text-sm">No city data available</div>
+                    </div>
+                  )}
+                </div>
+              </div>
+            </div>
+
+            {/* Geographic Summary */}
+            {geographicData?.summary && (
+              <div className="mt-6 pt-4 border-t border-border/40">
+                <div className="grid gap-4 md:grid-cols-4">
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-blue-600">{geographicData.summary.totalCountries}</div>
+                    <div className="text-xs text-muted-foreground">Countries</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-lg font-bold text-purple-600">{geographicData.summary.totalCities}</div>
+                    <div className="text-xs text-muted-foreground">Cities</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">{geographicData.summary.topCountry || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground">Top Country</div>
+                  </div>
+                  <div className="text-center">
+                    <div className="text-sm font-medium">{geographicData.summary.topCity || 'N/A'}</div>
+                    <div className="text-xs text-muted-foreground">Top City</div>
+                  </div>
+                </div>
+              </div>
+            )}
+          </CardContent>
+        </Card>
+      )}
 
       {/* Footer Info */}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
