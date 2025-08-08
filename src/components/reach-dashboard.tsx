@@ -166,13 +166,56 @@ export function ReachDashboard() {
       spotify: { 
         streams: { data: Record<string, number> }; 
         listeners: { data: Record<string, number> }; 
+        listenersDaily: { data: Record<string, number> };
         popularity: { data: Record<string, number> };
-        tracksOnPlaylists: { data: Record<string, number> };
         fanbase: { data: Record<string, number> };
+        fanbaseDaily: { data: Record<string, number> };
+        playlistReach: { data: Record<string, number> };
+        activePlaylists: { data: Record<string, number> };
+        tracksOnPlaylists: { data: Record<string, number> };
+      };
+      soundcloud: {
+        fanbase: { data: Record<string, number> };
+        plays: { data: Record<string, number> };
+      };
+      youtube: {
+        fanbase: { data: Record<string, number> };
+        views: { data: Record<string, number> };
+      };
+      deezer: {
+        fanbase: { data: Record<string, number> };
+      };
+      apple: {
+        activePlaylists: { data: Record<string, number> };
+        playlistAdds: { data: Record<string, number> };
       };
     };
     social: {
       facebook: { fanbase: { data: Record<string, number> } };
+      instagram: { 
+        fanbase: { data: Record<string, number> };
+        likes: { data: Record<string, number> };
+      };
+      tiktok: {
+        fanbase: { data: Record<string, number> };
+        likes: { data: Record<string, number> };
+        viewsDaily: { data: Record<string, number> };
+      };
+      twitter: {
+        fanbase: { data: Record<string, number> };
+        likes: { data: Record<string, number> };
+      };
+    };
+    discovery: {
+      shazam: { shazams: { data: Record<string, number> } };
+      airplay: { spins: { data: Record<string, number> } };
+    };
+    performance: {
+      viberate: { 
+        points: { data: Record<string, number> };
+        ranks: { data: Record<string, number> };
+      };
+      beatport: { points: { data: Record<string, number> } };
     };
     success: boolean;
   } | null>(null);
@@ -959,7 +1002,7 @@ export function ReachDashboard() {
             </CardDescription>
           </CardHeader>
           <CardContent>
-            <div className="grid gap-6 lg:grid-cols-3">
+            <div className="grid gap-6 lg:grid-cols-4">
               {/* Spotify Streams Chart */}
               <div className="space-y-3">
                 <h4 className="text-sm font-medium text-muted-foreground">Spotify Streams</h4>
@@ -1076,23 +1119,23 @@ export function ReachDashboard() {
                 </div>
               </div>
 
-              {/* Facebook Fanbase Chart */}
+              {/* Instagram Likes Chart */}
               <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">Facebook Fanbase</h4>
+                <h4 className="text-sm font-medium text-muted-foreground">Instagram Likes</h4>
                 <div className="h-48">
-                  {Object.keys(historicalData?.social?.facebook?.fanbase?.data || {}).length > 0 ? (
+                  {Object.keys(historicalData?.social?.instagram?.likes?.data || {}).length > 0 ? (
                     <ChartContainer 
                       config={{
-                        fanbase: { label: "Fanbase", color: "#1877F2" }
+                        likes: { label: "Likes", color: "#E4405F" }
                       }} 
                       className="h-full"
                     >
                       <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.social.facebook.fanbase.data)
-                          .map(([date, fanbase]) => ({
+                        <LineChart data={Object.entries(historicalData.social.instagram.likes.data)
+                          .map(([date, likes]) => ({
                             date: formatApiDate(date),
                             rawDate: date,
-                            fanbase: fanbase as number
+                            likes: likes as number
                           }))
                           .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
                           .slice(-30)
@@ -1102,8 +1145,8 @@ export function ReachDashboard() {
                           <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
                           <Line 
                             type="monotone" 
-                            dataKey="fanbase" 
-                            stroke="#1877F2" 
+                            dataKey="likes" 
+                            stroke="#E4405F" 
                             strokeWidth={2}
                             dot={false}
                           />
@@ -1113,7 +1156,7 @@ export function ReachDashboard() {
                                 return (
                                   <div className="bg-background p-2 rounded shadow-lg border">
                                     <p className="font-semibold">{label}</p>
-                                    <p className="text-sm" style={{ color: '#1877F2' }}>{formatNumber(payload[0].value as number)} fans</p>
+                                    <p className="text-sm" style={{ color: '#E4405F' }}>{formatNumber(payload[0].value as number)} likes</p>
                                   </div>
                                 );
                               }
@@ -1126,8 +1169,66 @@ export function ReachDashboard() {
                   ) : (
                     <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
                       <div className="text-center text-muted-foreground">
-                        <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <div className="text-sm">No Facebook data available</div>
+                        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <div className="text-sm">No Instagram data available</div>
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </div>
+              
+              {/* TikTok Views Chart */}
+              <div className="space-y-3">
+                <h4 className="text-sm font-medium text-muted-foreground">TikTok Views</h4>
+                <div className="h-48">
+                  {Object.keys(historicalData?.social?.tiktok?.viewsDaily?.data || {}).length > 0 ? (
+                    <ChartContainer 
+                      config={{
+                        views: { label: "Views", color: "#000000" }
+                      }} 
+                      className="h-full"
+                    >
+                      <ResponsiveContainer width="100%" height="100%">
+                        <LineChart data={Object.entries(historicalData.social.tiktok.viewsDaily.data)
+                          .map(([date, views]) => ({
+                            date: formatApiDate(date),
+                            rawDate: date,
+                            views: views as number
+                          }))
+                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
+                          .slice(-30)
+                        }>
+                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
+                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
+                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
+                          <Line 
+                            type="monotone" 
+                            dataKey="views" 
+                            stroke="hsl(var(--foreground))" 
+                            strokeWidth={2}
+                            dot={false}
+                          />
+                          <ChartTooltip 
+                            content={({ payload, label }) => {
+                              if (payload && payload[0]) {
+                                return (
+                                  <div className="bg-background p-2 rounded shadow-lg border">
+                                    <p className="font-semibold">{label}</p>
+                                    <p className="text-sm">{formatNumber(payload[0].value as number)} views</p>
+                                  </div>
+                                );
+                              }
+                              return null;
+                            }}
+                          />
+                        </LineChart>
+                      </ResponsiveContainer>
+                    </ChartContainer>
+                  ) : (
+                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
+                      <div className="text-center text-muted-foreground">
+                        <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
+                        <div className="text-sm">No TikTok data available</div>
                       </div>
                     </div>
                   )}
