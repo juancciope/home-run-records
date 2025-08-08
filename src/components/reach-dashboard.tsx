@@ -800,8 +800,10 @@ export function ReachDashboard() {
         </div>
       </div>
 
-      {/* Growth Trend - Full Width */}
-      <Card className="bg-sidebar">
+      {/* Growth Trend and Historical Performance Data - Side by Side */}
+      <div className="grid gap-6 lg:grid-cols-2">
+        {/* Growth Trend */}
+        <Card className="bg-sidebar">
         <CardHeader>
           <CardTitle className="text-base">Growth Trend</CardTitle>
           <CardDescription>
@@ -819,7 +821,7 @@ export function ReachDashboard() {
               className="h-[300px]"
             >
               <ResponsiveContainer width="100%" height="100%">
-                <AreaChart 
+                <LineChart 
                   data={growthTrend}
                   margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
                 >
@@ -867,56 +869,159 @@ export function ReachDashboard() {
                     return null;
                   }}
                 />
-                <Area
+                <Line
                   dataKey="social"
                   type="natural"
-                  fill="#1877F2"
-                  fillOpacity={0.2}
                   stroke="#1877F2"
-                  strokeWidth={2}
+                  strokeWidth={3}
+                  dot={false}
                 />
-                <Area
+                <Line
                   dataKey="video"
                   type="natural"
-                  fill="#FF0000"
-                  fillOpacity={0.2}
                   stroke="#FF0000"
-                  strokeWidth={2}
+                  strokeWidth={3}
+                  dot={false}
                 />
-                <Area
+                <Line
                   dataKey="streaming"
                   type="natural"
-                  fill="#1DB954"
-                  fillOpacity={0.2}
                   stroke="#1DB954"
-                  strokeWidth={2}
+                  strokeWidth={3}
+                  dot={false}
                 />
-                </AreaChart>
+                </LineChart>
               </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
-      </Card>
+        </Card>
 
 
-      {/* Historical Performance Data - Only show if we have historical data */}
-      {hasVibrateConnection && historicalData && (
-        <div className="space-y-6">
-          <div className="flex items-center justify-between">
-            <div>
-              <h3 className="text-lg font-semibold flex items-center gap-2">
+        {/* Historical Performance Data - Unified Chart */}
+        {hasVibrateConnection && historicalData ? (
+          <Card className="bg-sidebar">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
                 <TrendingUp className="h-5 w-5 text-green-600" />
                 Historical Performance Data
-              </h3>
-              <p className="text-sm text-muted-foreground">
+              </CardTitle>
+              <CardDescription>
                 Spotify streaming and social data over the last {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.label.toLowerCase()}
                 {isLoadingHistorical && (
                   <span className="text-xs text-blue-600 ml-2">Loading...</span>
                 )}
-              </p>
-            </div>
-          </div>
-          
-          <div className="grid gap-4 md:grid-cols-2">
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <ChartContainer 
+                config={{
+                  streams: { label: "Spotify Streams", color: "#1DB954" },
+                  likes: { label: "Instagram Likes", color: "#E4405F" },
+                }} 
+                className="h-[300px]"
+              >
+                <ResponsiveContainer width="100%" height="100%">
+                  <LineChart 
+                    data={(() => {
+                      // Combine historical data into unified chart data
+                      const combinedData = new Map<string, any>();
+                      
+                      // Process Spotify Streams
+                      if (historicalData?.streaming?.spotify?.streams?.data && Object.keys(historicalData.streaming.spotify.streams.data).length > 0) {
+                        Object.entries(historicalData.streaming.spotify.streams.data).forEach(([date, value]) => {
+                          const formattedDate = formatApiDate(date);
+                          if (!combinedData.has(formattedDate)) {
+                            combinedData.set(formattedDate, { date: formattedDate, rawDate: date });
+                          }
+                          combinedData.get(formattedDate)!.streams = value as number;
+                        });
+                      }
+                      
+                      // Process Instagram Likes (scaled for visibility)
+                      if (historicalData?.social?.instagram?.likes?.data && Object.keys(historicalData.social.instagram.likes.data).length > 0) {
+                        Object.entries(historicalData.social.instagram.likes.data).forEach(([date, value]) => {
+                          const formattedDate = formatApiDate(date);
+                          if (!combinedData.has(formattedDate)) {
+                            combinedData.set(formattedDate, { date: formattedDate, rawDate: date });
+                          }
+                          combinedData.get(formattedDate)!.likes = (value as number) * 50; // Scale for visibility
+                        });
+                      }
+                      
+                      return Array.from(combinedData.values())
+                        .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
+                        .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30));
+                    })()
+                    }
+                    margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                  >
+                    <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                    <XAxis
+                      dataKey="date"
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={{ fontSize: 12 }}
+                    />
+                    <YAxis 
+                      tickLine={false}
+                      axisLine={false}
+                      tickMargin={8}
+                      tick={{ fontSize: 12 }}
+                      tickFormatter={formatNumber}
+                    />
+                    <ChartTooltip
+                      cursor={false}
+                      content={({ active, payload, label }) => {
+                        if (active && payload && payload.length) {
+                          return (
+                            <div className="bg-background p-3 rounded shadow-lg border">
+                              <p className="font-semibold mb-2">{label}</p>
+                              {payload.map((entry) => {
+                                if (entry.value && entry.value !== 0) {
+                                  return (
+                                    <div key={entry.dataKey} className="flex items-center gap-2 text-sm">
+                                      <div 
+                                        className="w-3 h-3 rounded-full" 
+                                        style={{ backgroundColor: entry.color }}
+                                      />
+                                      <span>
+                                        {entry.name}: {entry.dataKey === 'likes' ? 
+                                          formatNumber((entry.value as number) / 50) + ' likes' : 
+                                          formatNumber(entry.value as number) + ' streams'
+                                        }
+                                      </span>
+                                    </div>
+                                  );
+                                }
+                                return null;
+                              })}
+                            </div>
+                          );
+                        }
+                        return null;
+                      }}
+                    />
+                    <Line
+                      dataKey="streams"
+                      type="natural"
+                      stroke="#1DB954"
+                      strokeWidth={3}
+                      dot={false}
+                    />
+                    <Line
+                      dataKey="likes"
+                      type="natural"
+                      stroke="#E4405F"
+                      strokeWidth={3}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ResponsiveContainer>
+              </ChartContainer>
+            </CardContent>
+          </Card>
+        ) : (
               {/* Spotify Streams Chart */}
               <Card className="bg-sidebar">
                 <CardHeader className="pb-3">
@@ -1172,8 +1277,23 @@ export function ReachDashboard() {
                 </CardContent>
               </Card>
           </div>
-        </div>
-      )}
+          <Card className="bg-sidebar">
+            <CardHeader>
+              <CardTitle className="text-base flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-muted-foreground" />
+                Historical Performance Data
+              </CardTitle>
+              <CardDescription>Connect to Viberate to view historical data</CardDescription>
+            </CardHeader>
+            <CardContent className="h-[300px] flex items-center justify-center">
+              <div className="text-center text-muted-foreground">
+                <Activity className="h-12 w-12 mx-auto mb-4 opacity-50" />
+                <div className="text-sm">No historical data available</div>
+              </div>
+            </CardContent>
+          </Card>
+        )}
+      </div>
 
 
 
