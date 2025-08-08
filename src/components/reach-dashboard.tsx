@@ -673,7 +673,7 @@ export function ReachDashboard() {
         </Card>
       </div>
 
-      {/* Charts Row 1: Platform Distribution and Global Audience */}
+      {/* Charts Row: Platform Distribution and Performance Matrix */}
       <div className="grid gap-6 lg:grid-cols-2">
         {/* Platform Distribution */}
         <Card className="bg-sidebar">
@@ -735,10 +735,6 @@ export function ReachDashboard() {
           </CardContent>
         </Card>
 
-      </div>
-
-      {/* Charts Row 2: Platform Performance Matrix and Growth Trend */}
-      <div className="grid gap-6 lg:grid-cols-2">
         {/* Platform Performance Matrix */}
         <Card className="bg-sidebar">
           <CardHeader>
@@ -777,9 +773,10 @@ export function ReachDashboard() {
             </div>
           </CardContent>
         </Card>
+      </div>
 
-        {/* Growth Trend */}
-        <Card className="bg-sidebar">
+      {/* Growth Trend - Full Width */}
+      <Card className="bg-sidebar">
           <CardHeader>
             <div className="flex items-center justify-between">
               <div>
@@ -809,18 +806,19 @@ export function ReachDashboard() {
           <CardContent>
             <ChartContainer 
               config={{
-                streaming: { label: "Streaming", color: "var(--chart-1)" },
-                video: { label: "Video", color: "var(--chart-2)" },
-                social: { label: "Social", color: "var(--chart-3)" },
+                streaming: { label: "Streaming", color: "#1DB954" },
+                video: { label: "Video", color: "#FF0000" },
+                social: { label: "Social", color: "#1877F2" },
               }} 
               className="h-[300px]"
             >
-              <AreaChart 
-                data={growthTrend}
-                margin={{ left: 12, right: 12 }}
-              >
-                <CartesianGrid vertical={false} />
-                <XAxis
+              <ResponsiveContainer width="100%" height="100%">
+                <AreaChart 
+                  data={growthTrend}
+                  margin={{ left: 0, right: 0, top: 0, bottom: 0 }}
+                >
+                  <CartesianGrid vertical={false} strokeDasharray="3 3" />
+                  <XAxis
                   dataKey="shortDate"
                   tickLine={false}
                   axisLine={false}
@@ -832,6 +830,13 @@ export function ReachDashboard() {
                     }
                     return index % 2 === 0 ? value : '';
                   }}
+                />
+                <YAxis 
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
+                  tick={{ fontSize: 12 }}
+                  tickFormatter={formatNumber}
                 />
                 <ChartTooltip
                   cursor={false}
@@ -859,56 +864,61 @@ export function ReachDashboard() {
                 <Area
                   dataKey="social"
                   type="natural"
-                  fill="var(--color-social)"
+                  fill="#1877F2"
                   fillOpacity={0.4}
-                  stroke="var(--color-social)"
+                  stroke="#1877F2"
                   stackId="a"
                 />
                 <Area
                   dataKey="video"
                   type="natural"
-                  fill="var(--color-video)"
+                  fill="#FF0000"
                   fillOpacity={0.4}
-                  stroke="var(--color-video)"
+                  stroke="#FF0000"
                   stackId="a"
                 />
                 <Area
                   dataKey="streaming"
                   type="natural"
-                  fill="var(--color-streaming)"
+                  fill="#1DB954"
                   fillOpacity={0.4}
-                  stroke="var(--color-streaming)"
+                  stroke="#1DB954"
                   stackId="a"
                 />
-              </AreaChart>
+                </AreaChart>
+              </ResponsiveContainer>
             </ChartContainer>
           </CardContent>
-        </Card>
-      </div>
+      </Card>
 
 
-      {/* Historical Performance Trends - Only show if we have historical data */}
+      {/* Historical Performance Data - Only show if we have historical data */}
       {hasVibrateConnection && historicalData && (
-        <Card className="bg-sidebar">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-600" />
-              Historical Performance Data
-            </CardTitle>
-            <CardDescription>
-              Spotify streaming and social data over the last 90 days
-              {isLoadingHistorical && (
-                <span className="text-xs text-blue-600 ml-2">Loading...</span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 lg:grid-cols-4">
+        <div className="space-y-6">
+          <div className="flex items-center justify-between">
+            <div>
+              <h3 className="text-lg font-semibold flex items-center gap-2">
+                <TrendingUp className="h-5 w-5 text-green-600" />
+                Historical Performance Data
+              </h3>
+              <p className="text-sm text-muted-foreground">
+                Spotify streaming and social data over the last 90 days
+                {isLoadingHistorical && (
+                  <span className="text-xs text-blue-600 ml-2">Loading...</span>
+                )}
+              </p>
+            </div>
+          </div>
+          
+          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
               {/* Spotify Streams Chart */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">Spotify Streams</h4>
-                <div className="h-48">
-                  {Object.keys(historicalData?.streaming?.spotify?.streams?.data || {}).length > 0 ? (
+              <Card className="bg-sidebar">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Spotify Streams</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="h-40">
+                    {Object.keys(historicalData?.streaming?.spotify?.streams?.data || {}).length > 0 ? (
                     <ChartContainer 
                       config={{
                         streams: { label: "Streams", color: "#1DB954" }
@@ -959,14 +969,18 @@ export function ReachDashboard() {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Spotify Popularity Chart */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">Spotify Popularity</h4>
-                <div className="h-48">
-                  {Object.keys(historicalData?.streaming?.spotify?.popularity?.data || {}).length > 0 ? (
+              <Card className="bg-sidebar">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Spotify Popularity</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="h-40">
+                    {Object.keys(historicalData?.streaming?.spotify?.popularity?.data || {}).length > 0 ? (
                     <ChartContainer 
                       config={{
                         popularity: { label: "Popularity", color: "#FF6B35" }
@@ -1017,14 +1031,18 @@ export function ReachDashboard() {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
 
               {/* Instagram Likes Chart */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">Instagram Likes</h4>
-                <div className="h-48">
-                  {Object.keys(historicalData?.social?.instagram?.likes?.data || {}).length > 0 ? (
+              <Card className="bg-sidebar">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">Instagram Likes</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="h-40">
+                    {Object.keys(historicalData?.social?.instagram?.likes?.data || {}).length > 0 ? (
                     <ChartContainer 
                       config={{
                         likes: { label: "Likes", color: "var(--chart-1)" }
@@ -1082,14 +1100,18 @@ export function ReachDashboard() {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
+                  </div>
+                </CardContent>
+              </Card>
               
               {/* TikTok Views Chart */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">TikTok Views</h4>
-                <div className="h-48">
-                  {Object.keys(historicalData?.social?.tiktok?.viewsDaily?.data || {}).length > 0 ? (
+              <Card className="bg-sidebar">
+                <CardHeader className="pb-3">
+                  <CardTitle className="text-sm font-medium">TikTok Views</CardTitle>
+                </CardHeader>
+                <CardContent className="pb-4">
+                  <div className="h-40">
+                    {Object.keys(historicalData?.social?.tiktok?.viewsDaily?.data || {}).length > 0 ? (
                     <ChartContainer 
                       config={{
                         views: { label: "Views", color: "#000000" }
@@ -1140,11 +1162,11 @@ export function ReachDashboard() {
                       </div>
                     </div>
                   )}
-                </div>
-              </div>
-            </div>
-          </CardContent>
-        </Card>
+                  </div>
+                </CardContent>
+              </Card>
+          </div>
+        </div>
       )}
 
 
