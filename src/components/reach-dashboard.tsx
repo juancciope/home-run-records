@@ -253,13 +253,15 @@ export function ReachDashboard() {
     }
   }, [user?.id, user?.email]);
 
-  const loadHistoricalData = React.useCallback(async (artistId: string) => {
+  const loadHistoricalData = React.useCallback(async (artistId: string, timeRange?: string) => {
     if (!artistId) return;
     
     try {
       setIsLoadingHistorical(true);
       const endDate = new Date().toISOString().split('T')[0];
-      const startDate = new Date(Date.now() - 90 * 24 * 60 * 60 * 1000).toISOString().split('T')[0]; // 90 days ago
+      const range = timeRange || selectedTimeRange;
+      const daysBack = TIME_RANGES[range as keyof typeof TIME_RANGES]?.months * 30 || 180; // Convert months to days
+      const startDate = new Date(Date.now() - daysBack * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
       
       const response = await fetch(`/api/viberate/historical?artistId=${encodeURIComponent(artistId)}&dateFrom=${startDate}&dateTo=${endDate}`);
       const data = await response.json();
@@ -277,7 +279,7 @@ export function ReachDashboard() {
     } finally {
       setIsLoadingHistorical(false);
     }
-  }, []);
+  }, [selectedTimeRange]);
 
 
   React.useEffect(() => {
@@ -296,7 +298,7 @@ export function ReachDashboard() {
           const profile = await ArtistService.getArtistProfile(user.id, user.email);
           
           if (profile?.viberate_artist_id) {
-            loadHistoricalData(profile.viberate_artist_id);
+            loadHistoricalData(profile.viberate_artist_id, selectedTimeRange);
           }
         } catch (error) {
           console.error('Error loading additional data:', error);
@@ -306,6 +308,26 @@ export function ReachDashboard() {
       loadAdditionalData();
     }
   }, [hasVibrateConnection, analyticsData?.artist, user?.id, user?.email, loadHistoricalData]);
+
+  // Reload historical data when time range changes
+  React.useEffect(() => {
+    if (hasVibrateConnection && analyticsData?.artist && user?.id) {
+      const reloadHistoricalData = async () => {
+        try {
+          const { ArtistService } = await import('@/lib/services/artist-service');
+          const profile = await ArtistService.getArtistProfile(user.id, user.email);
+          
+          if (profile?.viberate_artist_id) {
+            loadHistoricalData(profile.viberate_artist_id, selectedTimeRange);
+          }
+        } catch (error) {
+          console.error('Error reloading historical data:', error);
+        }
+      };
+      
+      reloadHistoricalData();
+    }
+  }, [selectedTimeRange, hasVibrateConnection, analyticsData?.artist, user?.id, user?.email, loadHistoricalData]);
 
   if (isLoading || isLoadingAnalytics) {
     return (
@@ -775,34 +797,38 @@ export function ReachDashboard() {
         </Card>
       </div>
 
+      {/* Time Range Filter - Applies to Growth Trend and Historical Data */}
+      <div className="flex items-center justify-between border-b pb-4">
+        <div>
+          <h3 className="text-lg font-semibold">Performance Analytics</h3>
+          <p className="text-sm text-muted-foreground">Growth trends and historical performance data</p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Time Range:</span>
+          <select
+            value={selectedTimeRange}
+            onChange={(e) => setSelectedTimeRange(e.target.value)}
+            className="text-sm border rounded px-3 py-2 bg-background font-medium"
+          >
+            {Object.entries(TIME_RANGES).map(([key, range]) => (
+              <option key={key} value={key}>
+                {range.label}
+              </option>
+            ))}
+          </select>
+        </div>
+      </div>
+
       {/* Growth Trend - Full Width */}
       <Card className="bg-sidebar">
-          <CardHeader>
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base">Growth Trend</CardTitle>
-                <CardDescription>
-                  {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES].label.toLowerCase()} growth by platform category
-                  ({dateRange[0]?.fullDate} - {dateRange[dateRange.length - 1]?.fullDate})
-                </CardDescription>
-              </div>
-              {/* Time Range Selector */}
-              <div className="flex items-center gap-2">
-                <Clock className="h-4 w-4 text-muted-foreground" />
-                <select
-                  value={selectedTimeRange}
-                  onChange={(e) => setSelectedTimeRange(e.target.value)}
-                  className="text-sm border rounded px-2 py-1 bg-background"
-                >
-                  {Object.entries(TIME_RANGES).map(([key, range]) => (
-                    <option key={key} value={key}>
-                      {range.label}
-                    </option>
-                  ))}
-                </select>
-              </div>
-            </div>
-          </CardHeader>
+        <CardHeader>
+          <CardTitle className="text-base">Growth Trend</CardTitle>
+          <CardDescription>
+            {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES].label.toLowerCase()} growth by platform category
+            ({dateRange[0]?.fullDate} - {dateRange[dateRange.length - 1]?.fullDate})
+          </CardDescription>
+        </CardHeader>
           <CardContent>
             <ChartContainer 
               config={{
@@ -865,25 +891,25 @@ export function ReachDashboard() {
                   dataKey="social"
                   type="natural"
                   fill="#1877F2"
-                  fillOpacity={0.4}
+                  fillOpacity={0.2}
                   stroke="#1877F2"
-                  stackId="a"
+                  strokeWidth={2}
                 />
                 <Area
                   dataKey="video"
                   type="natural"
                   fill="#FF0000"
-                  fillOpacity={0.4}
+                  fillOpacity={0.2}
                   stroke="#FF0000"
-                  stackId="a"
+                  strokeWidth={2}
                 />
                 <Area
                   dataKey="streaming"
                   type="natural"
                   fill="#1DB954"
-                  fillOpacity={0.4}
+                  fillOpacity={0.2}
                   stroke="#1DB954"
-                  stackId="a"
+                  strokeWidth={2}
                 />
                 </AreaChart>
               </ResponsiveContainer>
@@ -902,7 +928,7 @@ export function ReachDashboard() {
                 Historical Performance Data
               </h3>
               <p className="text-sm text-muted-foreground">
-                Spotify streaming and social data over the last 90 days
+                Spotify streaming and social data over the last {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.label.toLowerCase()}
                 {isLoadingHistorical && (
                   <span className="text-xs text-blue-600 ml-2">Loading...</span>
                 )}
@@ -910,7 +936,7 @@ export function ReachDashboard() {
             </div>
           </div>
           
-          <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
+          <div className="grid gap-4 md:grid-cols-2">
               {/* Spotify Streams Chart */}
               <Card className="bg-sidebar">
                 <CardHeader className="pb-3">
@@ -933,7 +959,7 @@ export function ReachDashboard() {
                             streams: streams as number
                           }))
                           .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-30)
+                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
                         }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
@@ -995,7 +1021,7 @@ export function ReachDashboard() {
                             popularity: popularity as number
                           }))
                           .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-30)
+                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
                         }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
@@ -1057,7 +1083,7 @@ export function ReachDashboard() {
                             likes: likes as number
                           }))
                           .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-30)
+                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
                         }
                         margin={{ left: 12, right: 12 }}
                       >
@@ -1126,7 +1152,7 @@ export function ReachDashboard() {
                             views: views as number
                           }))
                           .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-30)
+                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
                         }>
                           <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
                           <XAxis dataKey="date" tick={{ fontSize: 10 }} />
