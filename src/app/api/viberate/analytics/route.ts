@@ -69,57 +69,22 @@ export async function GET(request: NextRequest) {
       data: fanbase?.data
     }, null, 2));
 
-    // Extract platform-specific data from fanbase distribution and data
+    // Extract platform-specific data from fanbase
+    // The sync route stores artistData.fanbase.data in the distribution field with hyphenated keys
     const distribution = fanbase?.distribution || {};
-    const fanbaseData = fanbase?.data || {};
     
-    // Parse platform followers from distribution or fanbase data
-    let spotifyFollowers = 0;
-    let instagramFollowers = 0;
-    let youtubeSubscribers = 0;
-    let tiktokFollowers = 0;
-    let facebookFollowers = 0;
+    // Parse platform followers directly from distribution (this is where the data actually is)
+    const spotifyFollowers = distribution['spotify-followers'] || 0;
+    const instagramFollowers = distribution['instagram-followers'] || 0;
+    const youtubeSubscribers = distribution['youtube-subscribers'] || 0;
+    const tiktokFollowers = distribution['tiktok-followers'] || 0;
+    const facebookFollowers = distribution['facebook-followers'] || 0;
+    const twitterFollowers = distribution['twitter-followers'] || 0;
+    const deezerFans = distribution['deezer-fans'] || 0;
+    const soundcloudFollowers = distribution['soundcloud-followers'] || 0;
 
-    // The sync route stores artistData.fanbase.data in the distribution field
-    // So we need to check distribution for the hyphenated keys first
-    if (distribution['spotify-followers']) spotifyFollowers = distribution['spotify-followers'];
-    if (distribution['instagram-followers']) instagramFollowers = distribution['instagram-followers'];
-    if (distribution['youtube-subscribers']) youtubeSubscribers = distribution['youtube-subscribers'];
-    if (distribution['tiktok-followers']) tiktokFollowers = distribution['tiktok-followers'];
-    if (distribution['facebook-followers']) facebookFollowers = distribution['facebook-followers'];
-
-    // Try nested data structure: fanbase.data.data (full nested structure)
-    const nestedData = fanbaseData?.data || {};
-    if (!spotifyFollowers && nestedData['spotify-followers']) spotifyFollowers = nestedData['spotify-followers'];
-    if (!instagramFollowers && nestedData['instagram-followers']) instagramFollowers = nestedData['instagram-followers'];
-    if (!youtubeSubscribers && nestedData['youtube-subscribers']) youtubeSubscribers = nestedData['youtube-subscribers'];
-    if (!tiktokFollowers && nestedData['tiktok-followers']) tiktokFollowers = nestedData['tiktok-followers'];
-    if (!facebookFollowers && nestedData['facebook-followers']) facebookFollowers = nestedData['facebook-followers'];
-
-    // Fallback: try fanbase.data directly for hyphenated keys
-    if (!spotifyFollowers && fanbaseData['spotify-followers']) spotifyFollowers = fanbaseData['spotify-followers'];
-    if (!instagramFollowers && fanbaseData['instagram-followers']) instagramFollowers = fanbaseData['instagram-followers'];
-    if (!youtubeSubscribers && fanbaseData['youtube-subscribers']) youtubeSubscribers = fanbaseData['youtube-subscribers'];
-    if (!tiktokFollowers && fanbaseData['tiktok-followers']) tiktokFollowers = fanbaseData['tiktok-followers'];
-    if (!facebookFollowers && fanbaseData['facebook-followers']) facebookFollowers = fanbaseData['facebook-followers'];
-
-    // Also extract additional platforms from the data
-    let twitterFollowers = 0;
-    let deezerFans = 0;
-    let soundcloudFollowers = 0;
-
-    // Extract additional platforms
-    if (distribution['twitter-followers']) twitterFollowers = distribution['twitter-followers'];
-    if (distribution['deezer-fans']) deezerFans = distribution['deezer-fans'];
-    if (distribution['soundcloud-followers']) soundcloudFollowers = distribution['soundcloud-followers'];
-    
-    if (!twitterFollowers && nestedData['twitter-followers']) twitterFollowers = nestedData['twitter-followers'];
-    if (!deezerFans && nestedData['deezer-fans']) deezerFans = nestedData['deezer-fans'];
-    if (!soundcloudFollowers && nestedData['soundcloud-followers']) soundcloudFollowers = nestedData['soundcloud-followers'];
-    
-    if (!twitterFollowers && fanbaseData['twitter-followers']) twitterFollowers = fanbaseData['twitter-followers'];
-    if (!deezerFans && fanbaseData['deezer-fans']) deezerFans = fanbaseData['deezer-fans'];
-    if (!soundcloudFollowers && fanbaseData['soundcloud-followers']) soundcloudFollowers = fanbaseData['soundcloud-followers'];
+    // Use total_fans if available, otherwise sum individual platforms later
+    const totalFans = fanbase?.total_fans || 0;
 
     console.log('Extracted platform values:', {
       spotifyFollowers,
@@ -129,35 +94,9 @@ export async function GET(request: NextRequest) {
       facebookFollowers,
       twitterFollowers,
       deezerFans,
-      soundcloudFollowers
+      soundcloudFollowers,
+      totalFans
     });
-
-    // TEMPORARY: If extraction failed, manually set the known values from the logs
-    if (spotifyFollowers === 0 && totalFans > 0) {
-      console.log('Platform extraction failed, using known values from logs');
-      spotifyFollowers = 4145;
-      instagramFollowers = 40158;
-      youtubeSubscribers = 10900;
-      facebookFollowers = 148426;
-      tiktokFollowers = 12670;
-      twitterFollowers = 71733;
-      deezerFans = 1103;
-      soundcloudFollowers = 1061;
-      
-      console.log('Using manual values:', {
-        spotifyFollowers,
-        instagramFollowers,
-        youtubeSubscribers,
-        tiktokFollowers,
-        facebookFollowers,
-        twitterFollowers,
-        deezerFans,
-        soundcloudFollowers
-      });
-    }
-
-    // Use total_fans if available, otherwise sum individual platforms
-    const totalFans = fanbase?.total_fans || 0;
     const totalFollowers = totalFans > 0 ? totalFans : 
       spotifyFollowers + instagramFollowers + youtubeSubscribers + tiktokFollowers + facebookFollowers + twitterFollowers + deezerFans + soundcloudFollowers;
 
