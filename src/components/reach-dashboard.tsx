@@ -430,7 +430,9 @@ export function ReachDashboard() {
                   <div className="flex items-center justify-between text-sm">
                     <span>Origin</span>
                     <Badge variant="outline" className="text-xs">
-                      {analyticsData.artist.country.name || analyticsData.artist.country}
+                      {typeof analyticsData.artist.country === 'object' 
+                        ? analyticsData.artist.country.name 
+                        : analyticsData.artist.country}
                     </Badge>
                   </div>
                 )}
@@ -466,12 +468,14 @@ export function ReachDashboard() {
                 <div className="flex flex-wrap gap-1">
                   {analyticsData.artist?.genre && (
                     <Badge variant="secondary" className="text-xs">
-                      {analyticsData.artist.genre.name || analyticsData.artist.genre}
+                      {typeof analyticsData.artist.genre === 'object' 
+                        ? analyticsData.artist.genre.name 
+                        : analyticsData.artist.genre}
                     </Badge>
                   )}
                   {analyticsData.artist?.subgenres?.slice(0, 2).map((subgenre, index) => (
                     <Badge key={index} variant="outline" className="text-xs">
-                      {subgenre.name || subgenre}
+                      {typeof subgenre === 'object' ? subgenre.name : subgenre}
                     </Badge>
                   ))}
                   {!analyticsData.artist?.genre && (
