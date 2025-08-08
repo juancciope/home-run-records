@@ -31,8 +31,6 @@ import {
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   Cell,
   PieChart,
   Pie,
@@ -219,16 +217,8 @@ export function ReachDashboard() {
     };
     success: boolean;
   } | null>(null);
-  const [geographicData, setGeographicData] = React.useState<{
-    spotify: { 
-      countries: Array<{name: string; listeners: number; percentage: number}>; 
-      cities: Array<{name: string; country: string; listeners: number; percentage: number}> 
-    };
-    summary: { totalCountries: number; totalCities: number; topCountry: string | null; topCity: string | null };
-  } | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = React.useState(true);
   const [isLoadingHistorical, setIsLoadingHistorical] = React.useState(false);
-  const [isLoadingGeographic, setIsLoadingGeographic] = React.useState(false);
   const [hasVibrateConnection, setHasVibrateConnection] = React.useState(false);
   const [selectedTimeRange, setSelectedTimeRange] = React.useState("6m");
 
@@ -289,27 +279,6 @@ export function ReachDashboard() {
     }
   }, []);
 
-  const loadGeographicData = React.useCallback(async (artistId: string) => {
-    if (!artistId) return;
-    
-    try {
-      setIsLoadingGeographic(true);
-      const response = await fetch(`/api/viberate/geographic?artistId=${encodeURIComponent(artistId)}`);
-      const data = await response.json();
-      
-      if (data.success) {
-        console.log('Geographic data loaded:', data.summary);
-        console.log('Full geographic data structure:', data);
-        setGeographicData(data);
-      } else {
-        console.warn('Geographic data request failed:', data);
-      }
-    } catch (error) {
-      console.error('Error loading geographic data:', error);
-    } finally {
-      setIsLoadingGeographic(false);
-    }
-  }, []);
 
   React.useEffect(() => {
     if (user?.id) {
@@ -328,7 +297,6 @@ export function ReachDashboard() {
           
           if (profile?.viberate_artist_id) {
             loadHistoricalData(profile.viberate_artist_id);
-            loadGeographicData(profile.viberate_artist_id);
           }
         } catch (error) {
           console.error('Error loading additional data:', error);
@@ -337,7 +305,7 @@ export function ReachDashboard() {
       
       loadAdditionalData();
     }
-  }, [hasVibrateConnection, analyticsData?.artist, user?.id, user?.email, loadHistoricalData, loadGeographicData]);
+  }, [hasVibrateConnection, analyticsData?.artist, user?.id, user?.email, loadHistoricalData]);
 
   if (isLoading || isLoadingAnalytics) {
     return (
@@ -767,67 +735,6 @@ export function ReachDashboard() {
           </CardContent>
         </Card>
 
-        {/* Global Audience Distribution */}
-        {hasVibrateConnection && geographicData && (
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <Globe className="h-5 w-5 text-blue-600" />
-                Global Audience Distribution
-              </CardTitle>
-              <CardDescription>
-                Top listener locations worldwide
-                {isLoadingGeographic && (
-                  <span className="text-xs text-blue-600 ml-2">Loading...</span>
-                )}
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              {/* Create a bar chart for top countries */}
-              <ChartContainer 
-                config={{
-                  listeners: { label: "Listeners", color: "#3B82F6" }
-                }} 
-                className="h-[300px]"
-              >
-                <ResponsiveContainer width="100%" height="100%">
-                  <BarChart data={geographicData?.spotify?.countries?.slice(0, 8) || []} layout="horizontal">
-                    <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                    <XAxis type="number" tick={{ fontSize: 12 }} />
-                    <YAxis 
-                      type="category" 
-                      dataKey="name" 
-                      tick={{ fontSize: 12 }}
-                      width={60}
-                    />
-                    <Bar 
-                      dataKey="listeners" 
-                      fill="#3B82F6" 
-                      radius={[0, 4, 4, 0]}
-                    />
-                    <ChartTooltip 
-                      content={({ payload, label }) => {
-                        if (payload && payload[0]) {
-                          const data = payload[0].payload;
-                          return (
-                            <div className="bg-background p-3 rounded shadow-lg border">
-                              <p className="font-semibold">{label}</p>
-                              <p className="text-sm">{formatNumber(data.listeners)} listeners</p>
-                              <p className="text-xs text-muted-foreground">
-                                {data.percentage?.toFixed(1)}% of total
-                              </p>
-                            </div>
-                          );
-                        }
-                        return null;
-                      }}
-                    />
-                  </BarChart>
-                </ResponsiveContainer>
-              </ChartContainer>
-            </CardContent>
-          </Card>
-        )}
       </div>
 
       {/* Charts Row 2: Platform Performance Matrix and Growth Trend */}
@@ -902,62 +809,32 @@ export function ReachDashboard() {
           <CardContent>
             <ChartContainer 
               config={{
-                streaming: { label: "Streaming", color: "#10B981" },
-                video: { label: "Video", color: "#EF4444" },
-                social: { label: "Social", color: "#3B82F6" },
+                streaming: { label: "Streaming", color: "var(--chart-1)" },
+                video: { label: "Video", color: "var(--chart-2)" },
+                social: { label: "Social", color: "var(--chart-3)" },
               }} 
               className="h-[300px]"
             >
-              <AreaChart data={growthTrend}>
-                <defs>
-                  <linearGradient id="streaming" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#10B981" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#10B981" stopOpacity={0.1} />
-                  </linearGradient>
-                  <linearGradient id="video" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#EF4444" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#EF4444" stopOpacity={0.1} />
-                  </linearGradient>
-                  <linearGradient id="social" x1="0" y1="0" x2="0" y2="1">
-                    <stop offset="5%" stopColor="#3B82F6" stopOpacity={0.8} />
-                    <stop offset="95%" stopColor="#3B82F6" stopOpacity={0.1} />
-                  </linearGradient>
-                </defs>
-                <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                <XAxis 
-                  dataKey="shortDate" 
+              <AreaChart 
+                data={growthTrend}
+                margin={{ left: 12, right: 12 }}
+              >
+                <CartesianGrid vertical={false} />
+                <XAxis
+                  dataKey="shortDate"
+                  tickLine={false}
+                  axisLine={false}
+                  tickMargin={8}
                   tick={{ fontSize: 12 }}
                   tickFormatter={(value, index) => {
-                    // Show every other tick for better readability, and include year for first/last
                     if (index === 0 || index === growthTrend.length - 1) {
                       return growthTrend[index]?.date || value;
                     }
                     return index % 2 === 0 ? value : '';
                   }}
                 />
-                <YAxis tick={{ fontSize: 12 }} />
-                <Area
-                  type="monotone"
-                  dataKey="streaming"
-                  stackId="1"
-                  stroke="#10B981"
-                  fill="url(#streaming)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="video"
-                  stackId="1"
-                  stroke="#EF4444"
-                  fill="url(#video)"
-                />
-                <Area
-                  type="monotone"
-                  dataKey="social"
-                  stackId="1"
-                  stroke="#3B82F6"
-                  fill="url(#social)"
-                />
-                <ChartTooltip 
+                <ChartTooltip
+                  cursor={false}
                   content={({ active, payload, label }) => {
                     if (active && payload && payload.length) {
                       const dataPoint = growthTrend.find(d => d.shortDate === label);
@@ -978,6 +855,30 @@ export function ReachDashboard() {
                     }
                     return null;
                   }}
+                />
+                <Area
+                  dataKey="social"
+                  type="natural"
+                  fill="var(--color-social)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-social)"
+                  stackId="a"
+                />
+                <Area
+                  dataKey="video"
+                  type="natural"
+                  fill="var(--color-video)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-video)"
+                  stackId="a"
+                />
+                <Area
+                  dataKey="streaming"
+                  type="natural"
+                  fill="var(--color-streaming)"
+                  fillOpacity={0.4}
+                  stroke="var(--color-streaming)"
+                  stackId="a"
                 />
               </AreaChart>
             </ChartContainer>
@@ -1126,12 +1027,12 @@ export function ReachDashboard() {
                   {Object.keys(historicalData?.social?.instagram?.likes?.data || {}).length > 0 ? (
                     <ChartContainer 
                       config={{
-                        likes: { label: "Likes", color: "#E4405F" }
+                        likes: { label: "Likes", color: "var(--chart-1)" }
                       }} 
                       className="h-full"
                     >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.social.instagram.likes.data)
+                      <AreaChart
+                        data={Object.entries(historicalData.social.instagram.likes.data)
                           .map(([date, likes]) => ({
                             date: formatApiDate(date),
                             rawDate: date,
@@ -1139,32 +1040,39 @@ export function ReachDashboard() {
                           }))
                           .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
                           .slice(-30)
-                        }>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
-                          <Line 
-                            type="monotone" 
-                            dataKey="likes" 
-                            stroke="#E4405F" 
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                          <ChartTooltip 
-                            content={({ payload, label }) => {
-                              if (payload && payload[0]) {
-                                return (
-                                  <div className="bg-background p-2 rounded shadow-lg border">
-                                    <p className="font-semibold">{label}</p>
-                                    <p className="text-sm" style={{ color: '#E4405F' }}>{formatNumber(payload[0].value as number)} likes</p>
-                                  </div>
-                                );
-                              }
-                              return null;
-                            }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
+                        }
+                        margin={{ left: 12, right: 12 }}
+                      >
+                        <CartesianGrid vertical={false} />
+                        <XAxis
+                          dataKey="date"
+                          tickLine={false}
+                          axisLine={false}
+                          tickMargin={8}
+                          tick={{ fontSize: 10 }}
+                        />
+                        <ChartTooltip
+                          cursor={false}
+                          content={({ payload, label }) => {
+                            if (payload && payload[0]) {
+                              return (
+                                <div className="bg-background p-2 rounded shadow-lg border">
+                                  <p className="font-semibold">{label}</p>
+                                  <p className="text-sm" style={{ color: '#E4405F' }}>{formatNumber(payload[0].value as number)} likes</p>
+                                </div>
+                              );
+                            }
+                            return null;
+                          }}
+                        />
+                        <Area
+                          dataKey="likes"
+                          type="natural"
+                          fill="#E4405F"
+                          fillOpacity={0.4}
+                          stroke="#E4405F"
+                        />
+                      </AreaChart>
                     </ChartContainer>
                   ) : (
                     <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
@@ -1240,109 +1148,6 @@ export function ReachDashboard() {
       )}
 
 
-      {/* Geographic Audience Distribution - Only show if we have geographic data */}
-      {hasVibrateConnection && geographicData && (
-        <Card className="bg-sidebar">
-          <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Globe className="h-5 w-5 text-blue-600" />
-              Global Audience Distribution
-            </CardTitle>
-            <CardDescription>
-              Where your listeners are located around the world
-              {isLoadingGeographic && (
-                <span className="text-xs text-blue-600 ml-2">Loading...</span>
-              )}
-            </CardDescription>
-          </CardHeader>
-          <CardContent>
-            <div className="grid gap-6 lg:grid-cols-2">
-              {/* Top Countries */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">Top Countries (Spotify)</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {geographicData?.spotify?.countries?.slice(0, 10).map((country, index: number) => (
-                    <div key={country.name} className="flex items-center justify-between p-2 rounded-lg bg-background">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-4 rounded bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
-                          {index + 1}
-                        </div>
-                        <span className="text-sm font-medium">{country.name}</span>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{formatNumber(country.listeners)}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {country.percentage.toFixed(1)}%
-                        </Badge>
-                      </div>
-                    </div>
-                  )) || (
-                    <div className="text-center text-muted-foreground py-8">
-                      <Globe className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <div className="text-sm">No geographic data available</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-
-              {/* Top Cities */}
-              <div className="space-y-3">
-                <h4 className="text-sm font-medium text-muted-foreground">Top Cities (Spotify)</h4>
-                <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {geographicData?.spotify?.cities?.slice(0, 10).map((city, index: number) => (
-                    <div key={`${city.name}-${city.country}`} className="flex items-center justify-between p-2 rounded-lg bg-background">
-                      <div className="flex items-center gap-2">
-                        <div className="w-6 h-4 rounded bg-purple-600 text-white text-xs flex items-center justify-center font-bold">
-                          {index + 1}
-                        </div>
-                        <div>
-                          <span className="text-sm font-medium">{city.name}</span>
-                          <div className="text-xs text-muted-foreground">{city.country}</div>
-                        </div>
-                      </div>
-                      <div className="flex items-center gap-2">
-                        <span className="text-sm font-semibold">{formatNumber(city.listeners)}</span>
-                        <Badge variant="outline" className="text-xs">
-                          {city.percentage.toFixed(1)}%
-                        </Badge>
-                      </div>
-                    </div>
-                  )) || (
-                    <div className="text-center text-muted-foreground py-8">
-                      <Users className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                      <div className="text-sm">No city data available</div>
-                    </div>
-                  )}
-                </div>
-              </div>
-            </div>
-
-            {/* Geographic Summary */}
-            {geographicData?.summary && (
-              <div className="mt-6 pt-4 border-t border-border/40">
-                <div className="grid gap-4 md:grid-cols-4">
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-blue-600">{geographicData.summary.totalCountries}</div>
-                    <div className="text-xs text-muted-foreground">Countries</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-lg font-bold text-purple-600">{geographicData.summary.totalCities}</div>
-                    <div className="text-xs text-muted-foreground">Cities</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm font-medium">{geographicData.summary.topCountry || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground">Top Country</div>
-                  </div>
-                  <div className="text-center">
-                    <div className="text-sm font-medium">{geographicData.summary.topCity || 'N/A'}</div>
-                    <div className="text-xs text-muted-foreground">Top City</div>
-                  </div>
-                </div>
-              </div>
-            )}
-          </CardContent>
-        </Card>
-      )}
 
       {/* Footer Info */}
       <div className="flex items-center justify-between text-xs text-muted-foreground">
