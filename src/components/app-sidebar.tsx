@@ -94,7 +94,7 @@ const staticData = {
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   const { user } = useArtist();
-  const [artistData, setArtistData] = React.useState<any>(null);
+  const [artistData, setArtistData] = React.useState<{ artist?: { name?: string; image?: string } } | null>(null);
   
   React.useEffect(() => {
     const loadArtistData = async () => {

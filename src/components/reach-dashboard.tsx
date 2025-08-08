@@ -12,7 +12,6 @@ import {
   Globe,
   Activity,
   Wifi,
-  WifiOff,
   Music,
   Video,
   MessageCircle,
@@ -286,7 +285,7 @@ export function ReachDashboard() {
     if (user?.id) {
       loadAnalyticsData();
     }
-  }, [user?.id, loadAnalyticsData]);
+  }, [user?.id, loadAnalyticsData, selectedTimeRange]);
 
   // Load additional data when we have a Viberate connection
   React.useEffect(() => {

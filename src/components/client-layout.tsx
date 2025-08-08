@@ -18,7 +18,7 @@ interface ClientLayoutProps {
 // Artist Header Component
 function ArtistHeader() {
   const { user } = useArtist();
-  const [artistData, setArtistData] = useState<any>(null);
+  const [artistData, setArtistData] = useState<{ artist?: { name?: string; image?: string; rank?: number } } | null>(null);
   const [hasVibrateConnection, setHasVibrateConnection] = useState(false);
 
   useEffect(() => {
