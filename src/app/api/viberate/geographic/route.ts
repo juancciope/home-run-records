@@ -45,7 +45,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Process responses safely
-    const processResponse = async (response: any, name: string) => {
+    const processResponse = async (response: PromiseSettledResult<Response | null>, name: string) => {
       if (response.status === 'fulfilled' && response.value?.ok) {
         try {
           const data = await response.value.json();
@@ -70,7 +70,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Process geographic data into a more usable format
-    const processLocationData = (data: any) => {
+    const processLocationData = (data: { data?: { countries?: Record<string, number>; cities?: Record<string, number> } } | null) => {
       if (!data?.data) return { countries: [], cities: [] };
       
       const countries: Array<{name: string, listeners: number, percentage: number}> = [];

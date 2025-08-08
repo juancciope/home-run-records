@@ -103,7 +103,7 @@ export async function GET(request: NextRequest) {
     ]);
 
     // Process responses safely
-    const processResponse = async (response: any, name: string) => {
+    const processResponse = async (response: PromiseSettledResult<Response | null>, name: string) => {
       if (response.status === 'fulfilled' && response.value?.ok) {
         try {
           const data = await response.value.json();

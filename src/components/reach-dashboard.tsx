@@ -131,8 +131,20 @@ const PLATFORM_META = {
 export function ReachDashboard() {
   const { user, isLoading } = useArtist();
   const [analyticsData, setAnalyticsData] = React.useState<ReachAnalytics | null>(null);
-  const [historicalData, setHistoricalData] = React.useState<any>(null);
-  const [geographicData, setGeographicData] = React.useState<any>(null);
+  const [historicalData, setHistoricalData] = React.useState<{
+    streaming: {
+      spotify: { streams: Record<string, number>; listeners: Record<string, number>; playlistReach: Record<string, number> };
+      youtube: { views: Record<string, number> };
+      soundcloud: { plays: Record<string, number> };
+    };
+  } | null>(null);
+  const [geographicData, setGeographicData] = React.useState<{
+    spotify: { 
+      countries: Array<{name: string; listeners: number; percentage: number}>; 
+      cities: Array<{name: string; country: string; listeners: number; percentage: number}> 
+    };
+    summary: { totalCountries: number; totalCities: number; topCountry: string | null; topCity: string | null };
+  } | null>(null);
   const [isLoadingAnalytics, setIsLoadingAnalytics] = React.useState(true);
   const [isLoadingHistorical, setIsLoadingHistorical] = React.useState(false);
   const [isLoadingGeographic, setIsLoadingGeographic] = React.useState(false);
@@ -1004,7 +1016,7 @@ export function ReachDashboard() {
               <div className="space-y-3">
                 <h4 className="text-sm font-medium text-muted-foreground">Top Countries (Spotify)</h4>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {geographicData?.spotify?.countries?.slice(0, 10).map((country: any, index: number) => (
+                  {geographicData?.spotify?.countries?.slice(0, 10).map((country, index: number) => (
                     <div key={country.name} className="flex items-center justify-between p-2 rounded-lg bg-background">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-4 rounded bg-blue-600 text-white text-xs flex items-center justify-center font-bold">
@@ -1032,7 +1044,7 @@ export function ReachDashboard() {
               <div className="space-y-3">
                 <h4 className="text-sm font-medium text-muted-foreground">Top Cities (Spotify)</h4>
                 <div className="space-y-2 max-h-48 overflow-y-auto">
-                  {geographicData?.spotify?.cities?.slice(0, 10).map((city: any, index: number) => (
+                  {geographicData?.spotify?.cities?.slice(0, 10).map((city, index: number) => (
                     <div key={`${city.name}-${city.country}`} className="flex items-center justify-between p-2 rounded-lg bg-background">
                       <div className="flex items-center gap-2">
                         <div className="w-6 h-4 rounded bg-purple-600 text-white text-xs flex items-center justify-center font-bold">
