@@ -305,7 +305,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
           agency_id: au.agency_id,
           role: au.role,
           is_primary: au.is_primary,
-          agency_name: Array.isArray(au.agency) ? au.agency[0]?.name : au.agency?.name
+          agency_name: Array.isArray(au.agency) ? (au.agency[0] as any)?.name : (au.agency as any)?.name
         })) : null,
         error: error ? {
           code: error.code,
