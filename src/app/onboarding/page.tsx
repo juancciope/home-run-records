@@ -8,9 +8,7 @@ import {
   Target,
   Clock,
   ArrowRight,
-  Wifi,
-  TrendingUp,
-  Users
+  TrendingUp
 } from "lucide-react"
 import Link from "next/link"
 
@@ -20,9 +18,9 @@ export default function OnboardingPage() {
     <div className="flex flex-1 flex-col gap-4 p-4 pt-0">
       {/* Header */}
       <div className="text-center mb-8">
-        <h1 className="text-3xl font-bold tracking-tight mb-4">Welcome to Home Run Records</h1>
+        <h1 className="text-3xl font-bold tracking-tight mb-4">Welcome to Artist OS</h1>
         <p className="text-muted-foreground text-lg max-w-2xl mx-auto">
-          Choose how you'd like to get started with tracking your music career. You can complete both steps or focus on what matters most to you right now.
+          Get started with your artist management. Connect your data and set goals to track your progress.
         </p>
       </div>
 
@@ -91,66 +89,6 @@ export default function OnboardingPage() {
         </Link>
       </div>
 
-      {/* Quick Actions */}
-      <div className="grid gap-4 md:grid-cols-3 mt-8">
-        <Card className="bg-sidebar">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Wifi className="h-5 w-5 text-blue-500" />
-              Live Data Connection
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Connect your platforms to unlock real-time insights and automatic data tracking
-            </p>
-            <Link href="/onboarding/connect-data">
-              <Button size="sm" variant="outline" className="w-full">
-                Connect Now
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-sidebar">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <TrendingUp className="h-5 w-5 text-green-500" />
-              Track Progress
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Set meaningful goals and track your growth across all platforms
-            </p>
-            <Link href="/onboarding/set-goals">
-              <Button size="sm" variant="outline" className="w-full">
-                Set Goals
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-
-        <Card className="bg-sidebar">
-          <CardHeader className="pb-3">
-            <CardTitle className="text-base flex items-center gap-2">
-              <Users className="h-5 w-5 text-purple-500" />
-              Find Your Audience
-            </CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-sm text-muted-foreground mb-4">
-              Discover your ideal fan profile with our audience assessment tool
-            </p>
-            <Link href="/find-your-audience">
-              <Button size="sm" variant="outline" className="w-full">
-                Start Assessment
-              </Button>
-            </Link>
-          </CardContent>
-        </Card>
-      </div>
-
       {/* Get Started */}
       <Card className="bg-gradient-to-r from-green-500/10 to-blue-500/10 border-green-500/20 mt-8">
         <CardContent className="pt-6">
@@ -158,7 +96,7 @@ export default function OnboardingPage() {
             <TrendingUp className="h-12 w-12 text-green-500 mx-auto mb-4" />
             <h3 className="text-xl font-semibold mb-2">Ready to get started?</h3>
             <p className="text-muted-foreground mb-6">
-              You can complete both steps for the full experience, or jump straight to your dashboard to explore.
+              Complete the setup steps above or jump straight to your dashboard to explore.
             </p>
             <div className="flex gap-4 justify-center">
               <Link href="/dashboard">

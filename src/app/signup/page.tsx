@@ -77,7 +77,7 @@ export default function SignUpPage() {
             <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-3 rounded-full mr-4">
               <Music className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold">Home Run Records</h1>
+            <h1 className="text-4xl font-bold">Artist OS</h1>
           </div>
           <h2 className="text-2xl font-bold mb-2">Create Your Artist Account</h2>
           <p className="text-xl text-gray-300">Join the platform and start tracking your growth</p>

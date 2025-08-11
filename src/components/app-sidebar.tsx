@@ -10,6 +10,7 @@ import {
 import { NavMain } from "@/components/nav-main"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
+import { ArtistSwitcher } from "@/components/artist-switcher"
 import {
   Sidebar,
   SidebarContent,
@@ -26,7 +27,7 @@ const staticData = {
     {
       name: "Home Run Records",
       logo: GalleryVerticalEnd,
-      plan: "Premium Plan",
+      plan: "Agency Account",
     },
   ],
   navMain: [
@@ -133,6 +134,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
         <TeamSwitcher teams={staticData.teams} />
+        <ArtistSwitcher />
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={staticData.navMain} />

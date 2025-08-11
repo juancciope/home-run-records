@@ -10,7 +10,7 @@ export default function LoginPage() {
             <div className="bg-primary text-primary-foreground flex size-8 items-center justify-center rounded-md">
               <Music className="size-4" />
             </div>
-            <span className="text-xl font-bold">Home Run Records</span>
+            <span className="text-xl font-bold">Artist OS</span>
           </div>
           <LoginForm />
         </div>

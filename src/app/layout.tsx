@@ -14,8 +14,8 @@ const geistMono = Geist_Mono({
 });
 
 export const metadata: Metadata = {
-  title: "Home Run Records - Artist Intelligence Dashboard",
-  description: "Professional dashboard for music artists to track performance and grow their audience",
+  title: "Artist OS - Artist Management Platform",
+  description: "Professional platform for music artists and agencies to track performance and grow their audience",
 };
 
 export default function RootLayout({

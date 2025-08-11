@@ -11,15 +11,15 @@ export default function Home() {
             <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-3 rounded-full mr-4">
               <Music className="w-8 h-8 text-white" />
             </div>
-            <h1 className="text-4xl font-bold">Home Run Records</h1>
+            <h1 className="text-4xl font-bold">Artist OS</h1>
           </div>
           
           <h2 className="text-6xl font-bold mb-6 bg-gradient-to-r from-pink-400 to-purple-400 bg-clip-text text-transparent">
-            Artist Intelligence Platform
+            Artist Management Platform
           </h2>
           
           <p className="text-xl text-gray-300 mb-12 max-w-3xl mx-auto">
-            Empowering artists with data-driven insights and strategic guidance
+            Empowering artists and agencies with data-driven insights and strategic guidance
           </p>
         </div>
 
