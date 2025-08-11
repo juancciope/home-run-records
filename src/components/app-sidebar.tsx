@@ -35,16 +35,6 @@ const staticData = {
       url: "/onboarding",
       icon: Rocket,
       isActive: false,
-      items: [
-        {
-          title: "Connect Data",
-          url: "/onboarding/connect-data",
-        },
-        {
-          title: "Set Goals",
-          url: "/onboarding/set-goals",
-        },
-      ],
     },
     {
       title: "Dashboard",
