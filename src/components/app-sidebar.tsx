@@ -7,6 +7,7 @@ import {
   GalleryVerticalEnd,
   Settings,
   Wrench,
+  Rocket,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
@@ -33,6 +34,26 @@ const staticData = {
     },
   ],
   navMain: [
+    {
+      title: "Start Here",
+      url: "/onboarding",
+      icon: Rocket,
+      isActive: false,
+      items: [
+        {
+          title: "Connect Data",
+          url: "/onboarding/connect-data",
+        },
+        {
+          title: "Set Goals",
+          url: "/onboarding/set-goals",
+        },
+        {
+          title: "Start Using App",
+          url: "/onboarding/complete",
+        },
+      ],
+    },
     {
       title: "Dashboard",
       url: "/dashboard",

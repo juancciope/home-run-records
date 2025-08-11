@@ -45,7 +45,7 @@ export class ArtistService {
   /**
    * Get dashboard summary for an artist
    */
-  static async getDashboardSummary(userId: string): Promise<DashboardSummary | null> {
+  static async getDashboardSummary(_userId: string): Promise<DashboardSummary | null> {
     try {
       // For now, return mock data since RPC functions don't exist yet
       return {
@@ -397,7 +397,7 @@ export class ArtistService {
   /**
    * Get business pipeline metrics
    */
-  static async getPipelineMetrics(userId: string): Promise<{
+  static async getPipelineMetrics(_userId: string): Promise<{
     production: { unfinished: number; finished: number; released: number };
     marketing: { totalReach: number; engagedAudience: number; totalFollowers: number; youtubeSubscribers: number };
     fanEngagement: { capturedData: number; fans: number; superFans: number };

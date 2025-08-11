@@ -28,8 +28,6 @@ import {
   ChartTooltip,
 } from "@/components/ui/chart"
 import {
-  Area,
-  AreaChart,
   Cell,
   PieChart,
   Pie,
@@ -924,7 +922,14 @@ export function ReachDashboard() {
                   <LineChart 
                     data={(() => {
                       // Combine historical data into unified chart data
-                      const combinedData = new Map<string, any>();
+                      interface ChartDataPoint {
+                        date: string;
+                        rawDate: string;
+                        streams?: number;
+                        followers?: number;
+                        likes?: number;
+                      }
+                      const combinedData = new Map<string, ChartDataPoint>();
                       
                       // Process Spotify Streams
                       if (historicalData?.streaming?.spotify?.streams?.data && Object.keys(historicalData.streaming.spotify.streams.data).length > 0) {
@@ -1022,261 +1027,6 @@ export function ReachDashboard() {
             </CardContent>
           </Card>
         ) : (
-              {/* Spotify Streams Chart */}
-              <Card className="bg-sidebar">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Spotify Streams</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="h-40">
-                    {Object.keys(historicalData?.streaming?.spotify?.streams?.data || {}).length > 0 ? (
-                    <ChartContainer 
-                      config={{
-                        streams: { label: "Streams", color: "#1DB954" }
-                      }} 
-                      className="h-full"
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.streaming.spotify.streams.data)
-                          .map(([date, streams]) => ({
-                            date: formatApiDate(date),
-                            rawDate: date,
-                            streams: streams as number
-                          }))
-                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
-                        }>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
-                          <Line 
-                            type="monotone" 
-                            dataKey="streams" 
-                            stroke="#1DB954" 
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                          <ChartTooltip 
-                            content={({ payload, label }) => {
-                              if (payload && payload[0]) {
-                                return (
-                                  <div className="bg-background p-2 rounded shadow-lg border">
-                                    <p className="font-semibold">{label}</p>
-                                    <p className="text-sm text-green-600">{formatNumber(payload[0].value as number)} streams</p>
-                                  </div>
-                                );
-                              }
-                              return null;
-                            }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                      <div className="text-center text-muted-foreground">
-                        <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <div className="text-sm">No streaming data available</div>
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Spotify Popularity Chart */}
-              <Card className="bg-sidebar">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Spotify Popularity</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="h-40">
-                    {Object.keys(historicalData?.streaming?.spotify?.popularity?.data || {}).length > 0 ? (
-                    <ChartContainer 
-                      config={{
-                        popularity: { label: "Popularity", color: "#FF6B35" }
-                      }} 
-                      className="h-full"
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.streaming.spotify.popularity.data)
-                          .map(([date, popularity]) => ({
-                            date: formatApiDate(date),
-                            rawDate: date,
-                            popularity: popularity as number
-                          }))
-                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
-                        }>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                          <YAxis tick={{ fontSize: 10 }} domain={[0, 100]} />
-                          <Line 
-                            type="monotone" 
-                            dataKey="popularity" 
-                            stroke="#FF6B35" 
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                          <ChartTooltip 
-                            content={({ payload, label }) => {
-                              if (payload && payload[0]) {
-                                return (
-                                  <div className="bg-background p-2 rounded shadow-lg border">
-                                    <p className="font-semibold">{label}</p>
-                                    <p className="text-sm" style={{ color: '#FF6B35' }}>{payload[0].value}/100 popularity</p>
-                                  </div>
-                                );
-                              }
-                              return null;
-                            }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                      <div className="text-center text-muted-foreground">
-                        <Activity className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <div className="text-sm">No popularity data available</div>
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </CardContent>
-              </Card>
-
-              {/* Instagram Likes Chart */}
-              <Card className="bg-sidebar">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">Instagram Likes</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="h-40">
-                    {Object.keys(historicalData?.social?.instagram?.likes?.data || {}).length > 0 ? (
-                    <ChartContainer 
-                      config={{
-                        likes: { label: "Likes", color: "var(--chart-1)" }
-                      }} 
-                      className="h-full"
-                    >
-                      <AreaChart
-                        data={Object.entries(historicalData.social.instagram.likes.data)
-                          .map(([date, likes]) => ({
-                            date: formatApiDate(date),
-                            rawDate: date,
-                            likes: likes as number
-                          }))
-                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
-                        }
-                        margin={{ left: 12, right: 12 }}
-                      >
-                        <CartesianGrid vertical={false} />
-                        <XAxis
-                          dataKey="date"
-                          tickLine={false}
-                          axisLine={false}
-                          tickMargin={8}
-                          tick={{ fontSize: 10 }}
-                        />
-                        <ChartTooltip
-                          cursor={false}
-                          content={({ payload, label }) => {
-                            if (payload && payload[0]) {
-                              return (
-                                <div className="bg-background p-2 rounded shadow-lg border">
-                                  <p className="font-semibold">{label}</p>
-                                  <p className="text-sm" style={{ color: '#E4405F' }}>{formatNumber(payload[0].value as number)} likes</p>
-                                </div>
-                              );
-                            }
-                            return null;
-                          }}
-                        />
-                        <Area
-                          dataKey="likes"
-                          type="natural"
-                          fill="#E4405F"
-                          fillOpacity={0.4}
-                          stroke="#E4405F"
-                        />
-                      </AreaChart>
-                    </ChartContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                      <div className="text-center text-muted-foreground">
-                        <MessageCircle className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <div className="text-sm">No Instagram data available</div>
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </CardContent>
-              </Card>
-              
-              {/* TikTok Views Chart */}
-              <Card className="bg-sidebar">
-                <CardHeader className="pb-3">
-                  <CardTitle className="text-sm font-medium">TikTok Views</CardTitle>
-                </CardHeader>
-                <CardContent className="pb-4">
-                  <div className="h-40">
-                    {Object.keys(historicalData?.social?.tiktok?.viewsDaily?.data || {}).length > 0 ? (
-                    <ChartContainer 
-                      config={{
-                        views: { label: "Views", color: "#000000" }
-                      }} 
-                      className="h-full"
-                    >
-                      <ResponsiveContainer width="100%" height="100%">
-                        <LineChart data={Object.entries(historicalData.social.tiktok.viewsDaily.data)
-                          .map(([date, views]) => ({
-                            date: formatApiDate(date),
-                            rawDate: date,
-                            views: views as number
-                          }))
-                          .sort((a, b) => new Date(a.rawDate).getTime() - new Date(b.rawDate).getTime())
-                          .slice(-Math.min(30, TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.months * 5 || 30))
-                        }>
-                          <CartesianGrid strokeDasharray="3 3" stroke="hsl(var(--border))" />
-                          <XAxis dataKey="date" tick={{ fontSize: 10 }} />
-                          <YAxis tick={{ fontSize: 10 }} tickFormatter={formatNumber} />
-                          <Line 
-                            type="monotone" 
-                            dataKey="views" 
-                            stroke="hsl(var(--foreground))" 
-                            strokeWidth={2}
-                            dot={false}
-                          />
-                          <ChartTooltip 
-                            content={({ payload, label }) => {
-                              if (payload && payload[0]) {
-                                return (
-                                  <div className="bg-background p-2 rounded shadow-lg border">
-                                    <p className="font-semibold">{label}</p>
-                                    <p className="text-sm">{formatNumber(payload[0].value as number)} views</p>
-                                  </div>
-                                );
-                              }
-                              return null;
-                            }}
-                          />
-                        </LineChart>
-                      </ResponsiveContainer>
-                    </ChartContainer>
-                  ) : (
-                    <div className="h-full flex items-center justify-center bg-muted/20 rounded-lg">
-                      <div className="text-center text-muted-foreground">
-                        <Video className="h-8 w-8 mx-auto mb-2 opacity-50" />
-                        <div className="text-sm">No TikTok data available</div>
-                      </div>
-                    </div>
-                  )}
-                  </div>
-                </CardContent>
-              </Card>
-          </div>
           <Card className="bg-sidebar">
             <CardHeader>
               <CardTitle className="text-base flex items-center gap-2">
