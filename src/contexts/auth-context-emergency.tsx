@@ -231,7 +231,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     loadUser();
 
     return () => {
-      authListener?.subscription.unsubscribe();
+      subscription.unsubscribe();
     };
   }, []);
 
