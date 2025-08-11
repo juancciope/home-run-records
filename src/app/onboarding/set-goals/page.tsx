@@ -149,8 +149,19 @@ export default function SetGoalsPage() {
     }
   }
 
-  const handleNext = () => {
-    router.push('/onboarding/complete')
+  const handleNext = async () => {
+    // Mark onboarding as complete and go to dashboard
+    if (user?.id) {
+      try {
+        const { ArtistService } = await import('@/lib/services/artist-service')
+        await ArtistService.updateProfile(user.id, {
+          onboarding_completed: true
+        })
+      } catch (error) {
+        console.error('Error completing onboarding:', error)
+      }
+    }
+    router.push('/dashboard')
   }
 
   const getColorClasses = (color: string) => {
@@ -191,7 +202,7 @@ export default function SetGoalsPage() {
               <Target className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Step 2 of 3: Set Your Goals</h3>
+              <h3 className="text-lg font-semibold">Step 2 of 2: Set Your Goals</h3>
               <p className="text-sm text-muted-foreground">
                 Set SMART goals that align with your music career aspirations and track your progress over time
               </p>
@@ -425,7 +436,7 @@ export default function SetGoalsPage() {
           onClick={handleNext}
           disabled={!hasValidGoals && !customGoal.trim()}
         >
-          Next: Start Using App
+          Complete Setup & Go to Dashboard
           <ArrowRight className="h-4 w-4 ml-2" />
         </Button>
       </div>

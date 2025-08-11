@@ -7,7 +7,6 @@ import { Progress } from "@/components/ui/progress"
 import {
   Database,
   Target,
-  Rocket,
   CheckCircle,
   Clock,
   ArrowRight,
@@ -60,15 +59,6 @@ export default function OnboardingPage() {
             href: "/onboarding/set-goals",
             completed: false, // TODO: Check if goals are set
             estimatedTime: "3 mins"
-          },
-          {
-            id: "start-using",
-            title: "Start Using the App",
-            description: "Take a tour of your dashboard and discover key features",
-            icon: Rocket,
-            href: "/onboarding/complete",
-            completed: !!profile?.onboarding_completed,
-            estimatedTime: "5 mins"
           }
         ]
 
@@ -96,7 +86,7 @@ export default function OnboardingPage() {
           <div>
             <h1 className="text-3xl font-bold tracking-tight">Welcome to Home Run Records</h1>
             <p className="text-muted-foreground">
-              Let's get you started with tracking your music career in just 3 simple steps
+              Let's get you started with tracking your music career in just 2 simple steps
             </p>
           </div>
           {isAllComplete && (
@@ -251,9 +241,9 @@ export default function OnboardingPage() {
           <CardContent className="pt-6">
             <div className="text-center">
               <CheckCircle className="h-12 w-12 text-green-500 mx-auto mb-4" />
-              <h3 className="text-xl font-semibold mb-2">🎉 Congratulations!</h3>
+              <h3 className="text-xl font-semibold mb-2">🎉 Setup Complete!</h3>
               <p className="text-muted-foreground mb-6">
-                You've completed the onboarding process. You're ready to start tracking your music career!
+                You've completed the setup process. You're ready to start tracking your music career!
               </p>
               <Link href="/dashboard">
                 <Button size="lg">

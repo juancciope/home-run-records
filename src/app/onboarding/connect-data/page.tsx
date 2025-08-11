@@ -196,7 +196,7 @@ export default function ConnectDataPage() {
               <Database className="h-6 w-6" />
             </div>
             <div>
-              <h3 className="text-lg font-semibold">Step 1 of 3: Connect Your Data</h3>
+              <h3 className="text-lg font-semibold">Step 1 of 2: Connect Your Data</h3>
               <p className="text-sm text-muted-foreground">
                 Find and connect your artist profile to access real-time data from Spotify, Instagram, YouTube, and more
               </p>

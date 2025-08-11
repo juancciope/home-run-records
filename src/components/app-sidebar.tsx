@@ -44,10 +44,6 @@ const staticData = {
           title: "Set Goals",
           url: "/onboarding/set-goals",
         },
-        {
-          title: "Start Using App",
-          url: "/onboarding/complete",
-        },
       ],
     },
     {
