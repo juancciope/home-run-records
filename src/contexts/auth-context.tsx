@@ -147,6 +147,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     try {
       setIsLoading(true);
       const currentUser = await getCurrentUser();
+      console.log('🔄 Loading user:', currentUser?.email);
       
       if (currentUser) {
         // Get user profile from our users table
@@ -156,16 +157,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
           .eq('id', currentUser.id)
           .single();
 
+        console.log('📊 User profile query result:', { userProfile, error });
+
         if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
           throw error;
         }
 
         if (userProfile) {
+          console.log('✅ User profile found:', userProfile.email, userProfile.global_role);
           setUser(userProfile);
           
           // Load user's agencies
           await loadUserAgencies(userProfile.id);
         } else {
+          console.log('⚠️ No user profile found, creating new one...');
           // Create user profile if it doesn't exist
           const newUserProfile: Partial<UserProfile> = {
             id: currentUser.id,
@@ -191,9 +196,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setAvailableArtists([]);
       }
     } catch (error) {
-      console.error('Error loading user:', error);
+      console.error('❌ Error loading user:', error);
       setUser(null);
     } finally {
+      console.log('🏁 User loading completed');
       setIsLoading(false);
     }
   };
