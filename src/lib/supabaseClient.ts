@@ -54,8 +54,36 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-  const { data: { user } } = await supabase.auth.getUser();
-  return user;
+  console.log('🔑 === STARTING getCurrentUser function ===');
+  try {
+    console.log('🔑 Step 1: Calling supabase.auth.getUser()');
+    const { data: { user }, error } = await supabase.auth.getUser();
+    
+    console.log('🔑 Step 2: getUser result:', {
+      hasUser: !!user,
+      userId: user?.id,
+      userEmail: user?.email,
+      error: error ? {
+        message: error.message,
+        name: error.name
+      } : null
+    });
+    
+    if (error) {
+      console.error('💥 getCurrentUser error:', error);
+      throw error;
+    }
+    
+    console.log('🔑 === COMPLETED getCurrentUser function ===');
+    return user;
+  } catch (error) {
+    console.error('💥 FATAL ERROR in getCurrentUser:', {
+      error,
+      message: error instanceof Error ? error.message : 'Unknown error',
+      stack: error instanceof Error ? error.stack : 'No stack trace'
+    });
+    throw error;
+  }
 };
 
 // Database helpers

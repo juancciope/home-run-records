@@ -116,14 +116,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   // Load user and initial agency context
   useEffect(() => {
+    console.log('🎯 === STARTING useEffect for loadUser and auth listener ===');
+    console.log('🎯 About to call initial loadUser');
     loadUser();
 
     // Subscribe to auth state changes
-    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
-      console.log('Auth state changed:', event);
+    console.log('🎯 Setting up auth state change listener');
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
+      console.log('🔄 Auth state changed:', {
+        event,
+        hasSession: !!session,
+        userEmail: session?.user?.email,
+        timestamp: new Date().toISOString()
+      });
+      
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
+        console.log('🔄 Auth event requires user reload, calling loadUser');
         await loadUser();
+        console.log('🔄 loadUser completed for auth event:', event);
       } else if (event === 'SIGNED_OUT') {
+        console.log('🔄 User signed out, clearing all state');
         setUser(null);
         setCurrentAgency(null);
         setUserAgencies([]);
@@ -131,7 +143,10 @@ export function AuthProvider({ children }: AuthProviderProps) {
       }
     });
 
+    console.log('🎯 Auth listener setup completed');
+    
     return () => {
+      console.log('🎯 Cleaning up auth listener');
       authListener?.subscription.unsubscribe();
     };
   }, []);
@@ -144,12 +159,23 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [user?.id, currentAgency?.id]);
 
   const loadUser = async () => {
+    console.log('🚀 === STARTING loadUser function ===');
     try {
+      console.log('🔄 Step 1: Setting isLoading to true');
       setIsLoading(true);
+      
+      console.log('🔄 Step 2: Calling getCurrentUser()');
       const currentUser = await getCurrentUser();
-      console.log('🔄 Loading user:', currentUser?.email);
+      console.log('🔄 Step 3: getCurrentUser result:', {
+        id: currentUser?.id,
+        email: currentUser?.email,
+        hasUser: !!currentUser
+      });
       
       if (currentUser) {
+        console.log('🔄 Step 4: User exists, querying users table');
+        console.log('🔄 Step 4a: About to query with ID:', currentUser.id);
+        
         // Get user profile from our users table
         const { data: userProfile, error } = await supabase
           .from('users')
@@ -157,20 +183,41 @@ export function AuthProvider({ children }: AuthProviderProps) {
           .eq('id', currentUser.id)
           .single();
 
-        console.log('📊 User profile query result:', { userProfile, error });
+        console.log('📊 Step 5: User profile query completed:', { 
+          userProfile: userProfile ? {
+            id: userProfile.id,
+            email: userProfile.email,
+            global_role: userProfile.global_role,
+            is_active: userProfile.is_active
+          } : null, 
+          error: error ? {
+            code: error.code,
+            message: error.message,
+            details: error.details
+          } : null 
+        });
 
         if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+          console.error('💥 Step 5a: Query error that is NOT "not found":', error);
           throw error;
         }
 
         if (userProfile) {
-          console.log('✅ User profile found:', userProfile.email, userProfile.global_role);
+          console.log('✅ Step 6: User profile found, setting user state');
+          console.log('✅ Step 6a: Profile details:', {
+            email: userProfile.email, 
+            role: userProfile.global_role,
+            active: userProfile.is_active
+          });
+          
           setUser(userProfile);
           
+          console.log('🔄 Step 7: About to call loadUserAgencies');
           // Load user's agencies
           await loadUserAgencies(userProfile.id, userProfile);
+          console.log('✅ Step 8: loadUserAgencies completed');
         } else {
-          console.log('⚠️ No user profile found, creating new one...');
+          console.log('⚠️ Step 6b: No user profile found, creating new one...');
           // Create user profile if it doesn't exist
           const newUserProfile: Partial<UserProfile> = {
             id: currentUser.id,
@@ -179,33 +226,70 @@ export function AuthProvider({ children }: AuthProviderProps) {
             is_active: true,
           };
 
+          console.log('🔄 Step 6c: About to insert new profile:', newUserProfile);
           const { data: createdProfile, error: createError } = await supabase
             .from('users')
             .insert([newUserProfile])
             .select()
             .single();
 
-          if (createError) throw createError;
+          console.log('📊 Step 6d: Profile creation result:', {
+            createdProfile: createdProfile ? {
+              id: createdProfile.id,
+              email: createdProfile.email,
+              global_role: createdProfile.global_role
+            } : null,
+            createError: createError ? {
+              code: createError.code,
+              message: createError.message
+            } : null
+          });
+
+          if (createError) {
+            console.error('💥 Step 6e: Profile creation failed:', createError);
+            throw createError;
+          }
           
+          console.log('✅ Step 6f: Setting new user profile');
           setUser(createdProfile);
+          console.log('🔄 Step 6g: About to call loadUserAgencies for new user');
+          await loadUserAgencies(createdProfile.id, createdProfile);
+          console.log('✅ Step 6h: loadUserAgencies completed for new user');
         }
       } else {
+        console.log('❌ Step 4b: No current user, clearing all state');
         setUser(null);
         setCurrentAgency(null);
         setUserAgencies([]);
         setAvailableArtists([]);
       }
     } catch (error) {
-      console.error('❌ Error loading user:', error);
+      console.error('❌ FATAL ERROR in loadUser:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
       setUser(null);
     } finally {
-      console.log('🏁 User loading completed');
+      console.log('🏁 Step FINAL: User loading completed, setting isLoading to false');
       setIsLoading(false);
+      console.log('🚀 === COMPLETED loadUser function ===');
     }
   };
 
   const loadUserAgencies = async (userId: string, userProfile?: UserProfile) => {
+    console.log('🏢 === STARTING loadUserAgencies function ===');
+    console.log('🏢 Input params:', {
+      userId,
+      userProfile: userProfile ? {
+        id: userProfile.id,
+        email: userProfile.email,
+        global_role: userProfile.global_role
+      } : null
+    });
+    
     try {
+      console.log('🏢 Step 1: Querying agency_users table');
       const { data: agencyUsers, error } = await supabase
         .from('agency_users')
         .select(`
@@ -216,8 +300,26 @@ export function AuthProvider({ children }: AuthProviderProps) {
         `)
         .eq('user_id', userId);
 
-      if (error) throw error;
+      console.log('🏢 Step 2: agency_users query result:', {
+        agencyUsers: agencyUsers ? agencyUsers.map(au => ({
+          agency_id: au.agency_id,
+          role: au.role,
+          is_primary: au.is_primary,
+          agency_name: Array.isArray(au.agency) ? au.agency[0]?.name : au.agency?.name
+        })) : null,
+        error: error ? {
+          code: error.code,
+          message: error.message,
+          details: error.details
+        } : null
+      });
 
+      if (error) {
+        console.error('💥 Step 2a: agency_users query failed:', error);
+        throw error;
+      }
+
+      console.log('🏢 Step 3: Processing agency data');
       const agencies = agencyUsers?.map(au => ({
         agency_id: au.agency_id,
         role: au.role as UserRole,
@@ -225,42 +327,87 @@ export function AuthProvider({ children }: AuthProviderProps) {
         agency: Array.isArray(au.agency) ? au.agency[0] : au.agency
       })) || [];
 
+      console.log('🏢 Step 4: Processed agencies:', agencies.length, 'agencies found');
+      console.log('🏢 Step 4a: Agency details:', agencies.map(a => ({
+        name: a.agency?.name,
+        role: a.role,
+        is_primary: a.is_primary
+      })));
+
       setUserAgencies(agencies);
 
+      console.log('🏢 Step 5: Setting current agency');
       // Set current agency (primary first, or first available)
       const primaryAgency = agencies.find(ua => ua.is_primary);
       const firstAgency = agencies[0];
       
+      console.log('🏢 Step 5a: Primary agency found:', !!primaryAgency, primaryAgency?.agency?.name);
+      console.log('🏢 Step 5b: First agency found:', !!firstAgency, firstAgency?.agency?.name);
+      
       if (primaryAgency) {
+        console.log('🏢 Step 5c: Setting primary agency as current:', primaryAgency.agency?.name);
         setCurrentAgency(primaryAgency.agency);
       } else if (firstAgency) {
+        console.log('🏢 Step 5d: Setting first agency as current:', firstAgency.agency?.name);
         setCurrentAgency(firstAgency.agency);
       } else {
+        console.log('🏢 Step 5e: No agencies found, setting currentAgency to null');
         setCurrentAgency(null);
       }
 
       // For superadmin, if no agencies assigned, load all agencies
       const currentUserRole = userProfile?.global_role || user?.global_role;
+      console.log('🏢 Step 6: Checking if superadmin needs all agencies');
+      console.log('🏢 Step 6a: Current user role:', currentUserRole);
+      console.log('🏢 Step 6b: Agencies length:', agencies.length);
+      
       if (currentUserRole === 'superadmin' && agencies.length === 0) {
+        console.log('🏢 Step 6c: Loading all agencies for superadmin');
         await loadAllAgencies();
+        console.log('🏢 Step 6d: loadAllAgencies completed');
       }
+      
+      console.log('🏢 === COMPLETED loadUserAgencies function ===');
     } catch (error) {
-      console.error('Error loading user agencies:', error);
+      console.error('💥 FATAL ERROR in loadUserAgencies:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
       setUserAgencies([]);
     }
   };
 
   const loadAllAgencies = async () => {
+    console.log('🌐 === STARTING loadAllAgencies function ===');
     try {
+      console.log('🌐 Step 1: Querying all agencies');
       const { data: allAgencies, error } = await supabase
         .from('agencies')
         .select('*')
         .eq('status', 'active')
         .order('name');
 
-      if (error) throw error;
+      console.log('🌐 Step 2: All agencies query result:', {
+        allAgencies: allAgencies ? allAgencies.map(a => ({
+          id: a.id,
+          name: a.name,
+          slug: a.slug,
+          status: a.status
+        })) : null,
+        error: error ? {
+          code: error.code,
+          message: error.message
+        } : null
+      });
+
+      if (error) {
+        console.error('💥 Step 2a: All agencies query failed:', error);
+        throw error;
+      }
 
       if (allAgencies && allAgencies.length > 0) {
+        console.log('🌐 Step 3: Creating virtual agency relationships for superadmin');
         // For superadmin, create virtual agency relationships
         const virtualAgencyUsers = allAgencies.map(agency => ({
           agency_id: agency.id,
@@ -269,11 +416,21 @@ export function AuthProvider({ children }: AuthProviderProps) {
           agency: agency as Agency
         }));
 
+        console.log('🌐 Step 4: Setting virtual agencies:', virtualAgencyUsers.length, 'agencies');
         setUserAgencies(virtualAgencyUsers);
+        console.log('🌐 Step 5: Setting first agency as current:', allAgencies[0].name);
         setCurrentAgency(allAgencies[0]);
+      } else {
+        console.log('🌐 Step 3b: No active agencies found');
       }
+      
+      console.log('🌐 === COMPLETED loadAllAgencies function ===');
     } catch (error) {
-      console.error('Error loading all agencies:', error);
+      console.error('💥 FATAL ERROR in loadAllAgencies:', {
+        error,
+        message: error instanceof Error ? error.message : 'Unknown error',
+        stack: error instanceof Error ? error.stack : 'No stack trace'
+      });
     }
   };
 
