@@ -5,9 +5,6 @@ import {
   GalleryVerticalEnd,
   Wrench,
   Rocket,
-  Users,
-  Database,
-  Target,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"

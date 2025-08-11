@@ -9,8 +9,6 @@ import { Textarea } from "@/components/ui/textarea"
 import {
   Users,
   Plus,
-  Edit,
-  Trash2,
   Mail,
   Phone,
   UserCheck,
@@ -27,7 +25,6 @@ import {
   TrendingUp
 } from "lucide-react"
 import { useState } from "react"
-import { useArtist } from "@/contexts/artist-context"
 
 interface TeamMember {
   id: string
@@ -69,7 +66,6 @@ const priorityColors = {
 }
 
 export default function TeamPage() {
-  const { user } = useArtist()
   
   const [teamMembers, setTeamMembers] = useState<TeamMember[]>([
     {
@@ -123,12 +119,18 @@ export default function TeamPage() {
     role: "",
     responsibilities: ""
   })
-  const [newTodo, setNewTodo] = useState({
+  const [newTodo, setNewTodo] = useState<{
+    title: string
+    description: string
+    assignedTo: string
+    dueDate: string
+    priority: 'low' | 'medium' | 'high'
+  }>({
     title: "",
     description: "",
     assignedTo: "",
     dueDate: "",
-    priority: "medium" as const
+    priority: "medium"
   })
 
   const addTeamMember = () => {
