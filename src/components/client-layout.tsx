@@ -1,80 +1,65 @@
 "use client"
 
-import { ArtistProvider, useArtist } from "@/contexts/artist-context";
+import { AuthProvider, useAuth } from "@/contexts/auth-context";
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { ReactNode, useState, useEffect } from "react";
+import { ReactNode } from "react";
 import { usePathname } from "next/navigation";
 import { Button } from "@/components/ui/button";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { Activity, Wifi, WifiOff, User } from "lucide-react";
+import { Activity, User } from "lucide-react";
 
 interface ClientLayoutProps {
   children: ReactNode;
 }
 
-// Artist Header Component
-function ArtistHeader() {
-  const { user } = useArtist();
-  const [artistData, setArtistData] = useState<{ artist?: { name?: string; image?: string; rank?: number } } | null>(null);
-  const [hasVibrateConnection, setHasVibrateConnection] = useState(false);
+// User Header Component
+function UserHeader() {
+  const { user, currentAgency, hasRole } = useAuth();
 
-  useEffect(() => {
-    const loadArtistData = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const { ArtistService } = await import('@/lib/services/artist-service');
-        const profile = await ArtistService.getArtistProfile(user.id, user.email);
-        const hasConnection = !!profile?.viberate_artist_id;
-        setHasVibrateConnection(hasConnection);
-        
-        if (hasConnection && profile?.viberate_artist_id) {
-          const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
-          const vibrateData = await response.json();
-          
-          if (vibrateData && !vibrateData.error) {
-            setArtistData(vibrateData);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading artist data:', error);
-      }
-    };
-    
-    loadArtistData();
-  }, [user?.id, user?.email]);
+  const displayName = user?.first_name && user?.last_name 
+    ? `${user.first_name} ${user.last_name}`
+    : user?.email?.split('@')[0] || "User";
 
-  const artistName = artistData?.artist?.name || user?.artist_name || user?.email?.split('@')[0] || "Artist";
-  const profileImage = artistData?.artist?.image || user?.profile_image_url;
+  const getRoleBadge = () => {
+    if (hasRole('superadmin')) {
+      return (
+        <Badge variant="default" className="bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs">
+          Super Admin
+        </Badge>
+      );
+    }
+    if (hasRole('artist_manager')) {
+      return (
+        <Badge variant="default" className="bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs">
+          Agency Manager
+        </Badge>
+      );
+    }
+    return (
+      <Badge variant="secondary" className="text-xs">
+        Artist
+      </Badge>
+    );
+  };
 
   return (
     <div className="flex items-center gap-3">
       <Avatar className="h-10 w-10 border-2 border-border">
-        <AvatarImage src={profileImage} alt={artistName} />
+        <AvatarImage src={user?.avatar_url} alt={displayName} />
         <AvatarFallback className="bg-primary/10 text-primary font-semibold">
           <User className="h-5 w-5" />
         </AvatarFallback>
       </Avatar>
       <div>
-        <h1 className="text-xl font-bold text-foreground">{artistName}</h1>
+        <h1 className="text-xl font-bold text-foreground">{displayName}</h1>
         <div className="flex items-center gap-2">
-          {hasVibrateConnection ? (
-            <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">
-              <Wifi className="h-3 w-3 mr-1" />
-              Live Data
-            </Badge>
-          ) : (
-            <Badge variant="secondary" className="text-xs">
-              <WifiOff className="h-3 w-3 mr-1" />
-              Demo Mode
-            </Badge>
-          )}
-          {artistData?.artist?.rank && (
+          {getRoleBadge()}
+          {currentAgency && (
             <span className="text-xs text-muted-foreground">
-              Global Rank #{artistData.artist.rank.toLocaleString()}
+              @ {currentAgency.name}
             </span>
           )}
         </div>
@@ -100,7 +85,7 @@ function HeaderActions() {
 }
 
 function LayoutContent({ children }: ClientLayoutProps) {
-  const { isAuthenticated } = useArtist();
+  const { isAuthenticated } = useAuth();
   const pathname = usePathname();
   
   // Pages that should not show the sidebar
@@ -116,7 +101,7 @@ function LayoutContent({ children }: ClientLayoutProps) {
             <div className="flex items-center justify-between w-full px-6">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="-ml-1" />
-                <ArtistHeader />
+                <UserHeader />
               </div>
               <HeaderActions />
             </div>
@@ -145,11 +130,11 @@ export function ClientLayout({ children }: ClientLayoutProps) {
       enableSystem
       disableTransitionOnChange
     >
-      <ArtistProvider>
+      <AuthProvider>
         <LayoutContent>
           {children}
         </LayoutContent>
-      </ArtistProvider>
+      </AuthProvider>
     </ThemeProvider>
   );
 }

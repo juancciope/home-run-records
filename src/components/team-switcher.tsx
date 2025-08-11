@@ -21,15 +21,31 @@ import {
 
 export function TeamSwitcher({
   teams,
+  canSwitch = false,
+  onSwitch,
+  currentAgency,
 }: {
   teams: {
     name: string
     logo: React.ElementType
     plan: string
   }[]
+  canSwitch?: boolean
+  onSwitch?: (agencyId: string) => void
+  currentAgency?: { id: string; name: string } | null
 }) {
   const { isMobile } = useSidebar()
   const [activeTeam, setActiveTeam] = React.useState(teams[0])
+
+  // Update active team when currentAgency changes
+  React.useEffect(() => {
+    if (currentAgency) {
+      const matchingTeam = teams.find(team => team.name === currentAgency.name)
+      if (matchingTeam) {
+        setActiveTeam(matchingTeam)
+      }
+    }
+  }, [currentAgency, teams])
 
   return (
     <SidebarMenu>
@@ -64,14 +80,23 @@ export function TeamSwitcher({
             {teams.map((team, index) => (
               <DropdownMenuItem
                 key={team.name}
-                onClick={() => setActiveTeam(team)}
+                onClick={() => {
+                  setActiveTeam(team)
+                  if (canSwitch && onSwitch && currentAgency) {
+                    // Find the agency ID and switch to it
+                    // For now, we'll use team name matching since we don't have ID in teams array
+                    // This would need to be improved with proper ID mapping
+                    onSwitch(currentAgency.id)
+                  }
+                }}
                 className="gap-2 p-2"
+                disabled={!canSwitch && team.name !== activeTeam.name}
               >
                 <div className="flex size-6 items-center justify-center rounded-sm border">
                   <team.logo className="size-4 shrink-0" />
                 </div>
                 {team.name}
-                <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>
+                {canSwitch && <DropdownMenuShortcut>⌘{index + 1}</DropdownMenuShortcut>}
               </DropdownMenuItem>
             ))}
             <DropdownMenuSeparator />

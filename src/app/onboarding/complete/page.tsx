@@ -19,7 +19,7 @@ import {
   Star
 } from "lucide-react"
 import Link from "next/link"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 
@@ -33,7 +33,7 @@ interface DashboardFeature {
 }
 
 export default function CompleteOnboardingPage() {
-  const { user } = useArtist()
+  const { user } = useAuth()
   const router = useRouter()
   const [isCompleting, setIsCompleting] = useState(false)
 

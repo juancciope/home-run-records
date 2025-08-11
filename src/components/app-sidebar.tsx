@@ -18,126 +18,162 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 import * as React from "react"
 
-// This is sample data.
-const staticData = {
-  teams: [
-    {
-      name: "Home Run Records",
-      logo: GalleryVerticalEnd,
-      plan: "Agency Account",
-    },
-  ],
-  navMain: [
-    {
-      title: "Start Here",
-      url: "#",
-      icon: Rocket,
-      isActive: false,
-      items: [
-        {
-          title: "Onboarding",
-          url: "/onboarding",
-          items: [
-            {
-              title: "Connect Data",
-              url: "/onboarding/connect-data",
-            },
-            {
-              title: "Set Goals",
-              url: "/onboarding/set-goals",
-            },
-          ],
-        },
-        {
-          title: "My Team",
-          url: "/team",
-        },
-      ],
-    },
-    {
-      title: "Dashboard",
-      url: "/dashboard",
-      icon: BarChart3,
-      isActive: true,
-      items: [
-        {
-          title: "Overview",
-          url: "/dashboard",
-        },
-        {
-          title: "Analytics",
-          url: "/analytics",
-        },
-      ],
-    },
-    {
-      title: "Tools",
-      url: "#",
-      icon: Wrench,
-      items: [
-        {
-          title: "Brand",
-          url: "#",
-        },
-        {
-          title: "Ads",
-          url: "#",
-        },
-        {
-          title: "Content Calendar",
-          url: "#",
-        },
-      ],
-    },
-  ],
-}
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user } = useArtist();
-  const [artistData, setArtistData] = React.useState<{ artist?: { name?: string; image?: string } } | null>(null);
+  const { 
+    user, 
+    currentAgency, 
+    userAgencies, 
+    availableArtists,
+    hasRole,
+    canManageCurrentAgency,
+    canSwitchAgencies,
+    switchAgency 
+  } = useAuth();
   
-  React.useEffect(() => {
-    const loadArtistData = async () => {
-      if (!user?.id) return;
-      
-      try {
-        const { ArtistService } = await import('@/lib/services/artist-service');
-        const profile = await ArtistService.getArtistProfile(user.id, user.email);
-        
-        if (profile?.viberate_artist_id) {
-          const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
-          const vibrateData = await response.json();
-          
-          if (vibrateData && !vibrateData.error) {
-            setArtistData(vibrateData);
-          }
-        }
-      } catch (error) {
-        console.error('Error loading artist data:', error);
-      }
-    };
-    
-    loadArtistData();
-  }, [user?.id, user?.email]);
+  // Prepare agency teams data
+  const agencyTeams = userAgencies.map(ua => ({
+    name: ua.agency.name,
+    logo: GalleryVerticalEnd,
+    plan: hasRole('superadmin') ? 'Super Admin Access' : 
+          ua.role === 'artist_manager' ? 'Agency Admin' : 
+          'Artist Access'
+  }));
+
+  // If user has no agencies, show placeholder
+  if (agencyTeams.length === 0) {
+    agencyTeams.push({
+      name: "Artist OS",
+      logo: GalleryVerticalEnd,
+      plan: "Getting Started"
+    });
+  }
   
-  // Prepare user data for NavUser component with Viberate image
+  // Prepare user data for NavUser component
   const userData = {
-    name: artistData?.artist?.name || user?.artist_name || user?.email?.split('@')[0] || "Artist",
-    email: user?.email || "artist@example.com",
-    avatar: artistData?.artist?.image || user?.profile_image_url || "",
+    name: user?.first_name && user?.last_name 
+      ? `${user.first_name} ${user.last_name}`
+      : user?.email?.split('@')[0] || "User",
+    email: user?.email || "user@example.com",
+    avatar: user?.avatar_url || "",
+  };
+
+  // Dynamic navigation based on role
+  const getNavigationItems = () => {
+    const baseItems = [
+      {
+        title: "Start Here",
+        url: "#",
+        icon: Rocket,
+        isActive: false,
+        items: [
+          {
+            title: "Onboarding",
+            url: "/onboarding",
+            items: [
+              {
+                title: "Connect Data",
+                url: "/onboarding/connect-data",
+              },
+              {
+                title: "Set Goals",
+                url: "/onboarding/set-goals",
+              },
+            ],
+          },
+          // Only show My Team for managers and superadmins
+          ...(canManageCurrentAgency ? [{
+            title: "My Team",
+            url: "/team",
+          }] : [])
+        ],
+      },
+      {
+        title: "Dashboard",
+        url: "/dashboard",
+        icon: BarChart3,
+        isActive: true,
+        items: [
+          {
+            title: "Overview",
+            url: "/dashboard",
+          },
+          {
+            title: "Analytics",
+            url: "/analytics",
+          },
+        ],
+      }
+    ];
+
+    // Add superadmin-specific items
+    if (hasRole('superadmin')) {
+      baseItems.push({
+        title: "Admin",
+        url: "#",
+        icon: Wrench,
+        isActive: false,
+        items: [
+          {
+            title: "Agencies",
+            url: "/admin/agencies",
+          },
+          {
+            title: "Users",
+            url: "/admin/users", 
+          },
+          {
+            title: "System Settings",
+            url: "/admin/settings",
+          }
+        ]
+      });
+    } else {
+      // Regular tools for non-superadmins
+      baseItems.push({
+        title: "Tools",
+        url: "#",
+        icon: Wrench,
+        isActive: false,
+        items: [
+          {
+            title: "Brand",
+            url: "#",
+          },
+          {
+            title: "Ads",
+            url: "#",
+          },
+          {
+            title: "Content Calendar",
+            url: "#",
+          },
+        ],
+      });
+    }
+
+    return baseItems;
   };
 
   return (
     <Sidebar collapsible="icon" {...props}>
       <SidebarHeader>
-        <TeamSwitcher teams={staticData.teams} />
-        <ArtistSwitcher />
+        <TeamSwitcher 
+          teams={agencyTeams} 
+          canSwitch={canSwitchAgencies}
+          onSwitch={switchAgency}
+          currentAgency={currentAgency}
+        />
+        {/* Only show artist switcher for managers and superadmins with artists */}
+        {canManageCurrentAgency && availableArtists.length > 0 && (
+          <ArtistSwitcher artists={availableArtists} />
+        )}
       </SidebarHeader>
       <SidebarContent>
-        <NavMain items={staticData.navMain} />
+        <NavMain items={getNavigationItems()} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />

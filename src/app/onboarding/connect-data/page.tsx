@@ -22,7 +22,7 @@ import {
   WifiOff
 } from "lucide-react"
 import Link from "next/link"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
@@ -35,7 +35,7 @@ interface ViberateSearchResult {
 }
 
 export default function ConnectDataPage() {
-  const { user } = useArtist()
+  const { user } = useAuth()
   const router = useRouter()
   
   const [searchQuery, setSearchQuery] = useState("")

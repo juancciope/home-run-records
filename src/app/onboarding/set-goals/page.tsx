@@ -21,7 +21,7 @@ import {
   Save
 } from "lucide-react"
 import Link from "next/link"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 import { useState, useEffect } from "react"
 import { useRouter } from "next/navigation"
 
@@ -37,7 +37,7 @@ interface Goal {
 }
 
 export default function SetGoalsPage() {
-  const { user } = useArtist()
+  const { user } = useAuth()
   const router = useRouter()
   
   const [goals, setGoals] = useState<Goal[]>([
