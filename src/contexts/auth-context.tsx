@@ -99,123 +99,28 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [user]);
 
   const hasAgencyRole = useCallback((agencyId: string, role: UserRole): boolean => {
+    if (user?.global_role === 'superadmin') return true;
     return userAgencies.some(ua => ua.agency_id === agencyId && ua.role === role);
-  }, [userAgencies]);
-
-  const canAccessAgency = useCallback((agencyId: string): boolean => {
-    return user?.global_role === 'superadmin' || 
-           userAgencies.some(ua => ua.agency_id === agencyId);
   }, [user, userAgencies]);
 
-  // Derived permissions
+  const canAccessAgency = useCallback((agencyId: string): boolean => {
+    if (user?.global_role === 'superadmin') return true;
+    return userAgencies.some(ua => ua.agency_id === agencyId);
+  }, [user, userAgencies]);
+
+  // Computed permissions
   const canManageAgencies = user?.global_role === 'superadmin';
-  const canManageCurrentAgency = user?.global_role === 'superadmin' || 
-    (currentAgency && userAgencies.some(ua => 
-      ua.agency_id === currentAgency.id && ua.role === 'artist_manager'
-    ));
+  const canManageCurrentAgency = currentAgency ? 
+    (user?.global_role === 'superadmin' || hasAgencyRole(currentAgency.id, 'artist_manager')) : false;
   const canSwitchAgencies = user?.global_role === 'superadmin' || userAgencies.length > 1;
 
-  // EMERGENCY SIMPLIFIED LOADING
-  const loadUser = async () => {
-    try {
-      setIsLoading(true);
-      console.log('🚨 EMERGENCY AUTH: Starting simple auth check...');
-      
-      const currentUser = await getCurrentUser();
-      
-      if (!currentUser) {
-        console.log('🚨 No authenticated user found');
-        setUser(null);
-        setCurrentAgency(null);
-        setUserAgencies([]);
-        setAvailableArtists([]);
-        return;
-      }
-
-      console.log('🚨 Found authenticated user:', currentUser.email);
-
-      // Get or create user profile with minimal error handling
-      let userProfile: UserProfile | null = null;
-      
-      try {
-        const { data } = await supabase
-          .from('users')
-          .select('*')
-          .eq('id', currentUser.id)
-          .single();
-        userProfile = data;
-      } catch (error) {
-        console.log('🚨 User profile not found, creating...');
-        try {
-          const { data } = await supabase
-            .from('users')
-            .insert([{
-              id: currentUser.id,
-              email: currentUser.email || '',
-              global_role: 'artist' as UserRole,
-              is_active: true,
-            }])
-            .select()
-            .single();
-          userProfile = data;
-        } catch (createError) {
-          console.error('🚨 Failed to create user profile:', createError);
-        }
-      }
-
-      if (!userProfile) {
-        throw new Error('Could not load or create user profile');
-      }
-
-      console.log('🚨 User profile loaded:', userProfile.email, userProfile.global_role);
-      setUser(userProfile);
-
-      // Load basic agency data with error handling
-      try {
-        const { data: agencies } = await supabase
-          .from('agencies')
-          .select('*')
-          .limit(5);
-
-        if (agencies && agencies.length > 0) {
-          setCurrentAgency(agencies[0]);
-          
-          // Load artists from first agency
-          const { data: artists } = await supabase
-            .from('artists')
-            .select('*')
-            .eq('agency_id', agencies[0].id)
-            .limit(10);
-          
-          setAvailableArtists(artists || []);
-          
-          console.log('🚨 Basic agency data loaded:', agencies[0].name);
-        }
-      } catch (agencyError) {
-        console.log('🚨 Agency loading failed, continuing without agencies');
-        setCurrentAgency(null);
-        setAvailableArtists([]);
-      }
-
-    } catch (error) {
-      console.error('🚨 EMERGENCY AUTH ERROR:', error);
-      setUser(null);
-      setCurrentAgency(null);
-      setUserAgencies([]);
-      setAvailableArtists([]);
-    } finally {
-      console.log('🚨 EMERGENCY AUTH: Loading completed');
-      setIsLoading(false);
-    }
-  };
-
-  // Auth state listener
+  // Load user and initial agency context
   useEffect(() => {
-    console.log('🚨 EMERGENCY AUTH: Setting up auth listener...');
-    
-    const authListener = supabase.auth.onAuthStateChange(async (event, session) => {
-      console.log('🚨 Auth state changed:', event, session?.user?.email);
-      
+    loadUser();
+
+    // Subscribe to auth state changes
+    const { data: authListener } = supabase.auth.onAuthStateChange(async (event) => {
+      console.log('Auth state changed:', event);
       if (event === 'SIGNED_IN' || event === 'TOKEN_REFRESHED') {
         await loadUser();
       } else if (event === 'SIGNED_OUT') {
@@ -223,21 +128,183 @@ export function AuthProvider({ children }: AuthProviderProps) {
         setCurrentAgency(null);
         setUserAgencies([]);
         setAvailableArtists([]);
-        setIsLoading(false);
       }
     });
-
-    // Initial load
-    loadUser();
 
     return () => {
       authListener?.subscription.unsubscribe();
     };
   }, []);
 
-  // Simplified action implementations
+  // Load agency data when user or currentAgency changes
+  useEffect(() => {
+    if (user && currentAgency) {
+      loadAgencyData();
+    }
+  }, [user?.id, currentAgency?.id]);
+
+  const loadUser = async () => {
+    try {
+      setIsLoading(true);
+      const currentUser = await getCurrentUser();
+      console.log('🔄 Loading user:', currentUser?.email);
+      
+      if (currentUser) {
+        // Get user profile from our users table
+        const { data: userProfile, error } = await supabase
+          .from('users')
+          .select('*')
+          .eq('id', currentUser.id)
+          .single();
+
+        console.log('📊 User profile query result:', { userProfile, error });
+
+        if (error && error.code !== 'PGRST116') { // PGRST116 is "not found"
+          throw error;
+        }
+
+        if (userProfile) {
+          console.log('✅ User profile found:', userProfile.email, userProfile.global_role);
+          setUser(userProfile);
+          
+          // Load user's agencies
+          await loadUserAgencies(userProfile.id, userProfile);
+        } else {
+          console.log('⚠️ No user profile found, creating new one...');
+          // Create user profile if it doesn't exist
+          const newUserProfile: Partial<UserProfile> = {
+            id: currentUser.id,
+            email: currentUser.email || '',
+            global_role: 'artist', // Default role
+            is_active: true,
+          };
+
+          const { data: createdProfile, error: createError } = await supabase
+            .from('users')
+            .insert([newUserProfile])
+            .select()
+            .single();
+
+          if (createError) throw createError;
+          
+          setUser(createdProfile);
+        }
+      } else {
+        setUser(null);
+        setCurrentAgency(null);
+        setUserAgencies([]);
+        setAvailableArtists([]);
+      }
+    } catch (error) {
+      console.error('❌ Error loading user:', error);
+      setUser(null);
+    } finally {
+      console.log('🏁 User loading completed');
+      setIsLoading(false);
+    }
+  };
+
+  const loadUserAgencies = async (userId: string, userProfile?: UserProfile) => {
+    try {
+      const { data: agencyUsers, error } = await supabase
+        .from('agency_users')
+        .select(`
+          agency_id,
+          role,
+          is_primary,
+          agency:agencies(*)
+        `)
+        .eq('user_id', userId);
+
+      if (error) throw error;
+
+      const agencies = agencyUsers?.map(au => ({
+        agency_id: au.agency_id,
+        role: au.role as UserRole,
+        is_primary: au.is_primary,
+        agency: Array.isArray(au.agency) ? au.agency[0] : au.agency
+      })) || [];
+
+      setUserAgencies(agencies);
+
+      // Set current agency (primary first, or first available)
+      const primaryAgency = agencies.find(ua => ua.is_primary);
+      const firstAgency = agencies[0];
+      
+      if (primaryAgency) {
+        setCurrentAgency(primaryAgency.agency);
+      } else if (firstAgency) {
+        setCurrentAgency(firstAgency.agency);
+      } else {
+        setCurrentAgency(null);
+      }
+
+      // For superadmin, if no agencies assigned, load all agencies
+      const currentUserRole = userProfile?.global_role || user?.global_role;
+      if (currentUserRole === 'superadmin' && agencies.length === 0) {
+        await loadAllAgencies();
+      }
+    } catch (error) {
+      console.error('Error loading user agencies:', error);
+      setUserAgencies([]);
+    }
+  };
+
+  const loadAllAgencies = async () => {
+    try {
+      const { data: allAgencies, error } = await supabase
+        .from('agencies')
+        .select('*')
+        .eq('status', 'active')
+        .order('name');
+
+      if (error) throw error;
+
+      if (allAgencies && allAgencies.length > 0) {
+        // For superadmin, create virtual agency relationships
+        const virtualAgencyUsers = allAgencies.map(agency => ({
+          agency_id: agency.id,
+          role: 'superadmin' as UserRole,
+          is_primary: false,
+          agency: agency as Agency
+        }));
+
+        setUserAgencies(virtualAgencyUsers);
+        setCurrentAgency(allAgencies[0]);
+      }
+    } catch (error) {
+      console.error('Error loading all agencies:', error);
+    }
+  };
+
+  const loadAgencyData = async () => {
+    if (!currentAgency) return;
+
+    try {
+      // Load artists for current agency
+      const { data: artists, error } = await supabase
+        .from('artists')
+        .select('*')
+        .eq('agency_id', currentAgency.id)
+        .eq('status', 'active')
+        .order('stage_name');
+
+      if (error) throw error;
+      setAvailableArtists(artists || []);
+    } catch (error) {
+      console.error('Error loading agency data:', error);
+      setAvailableArtists([]);
+    }
+  };
+
   const switchAgency = async (agencyId: string) => {
-    console.log('🚨 Switch agency not fully implemented in emergency mode');
+    const targetAgencyUser = userAgencies.find(ua => ua.agency_id === agencyId);
+    if (!targetAgencyUser) {
+      console.error('User does not have access to agency:', agencyId);
+      return;
+    }
+
+    setCurrentAgency(targetAgencyUser.agency);
   };
 
   const refreshUser = async () => {
@@ -245,12 +312,25 @@ export function AuthProvider({ children }: AuthProviderProps) {
   };
 
   const refreshAgencyData = async () => {
-    console.log('🚨 Refresh agency data not fully implemented in emergency mode');
+    if (user) {
+      await loadUserAgencies(user.id);
+    }
   };
 
   const logout = async () => {
-    console.log('🚨 Logging out...');
-    await supabase.auth.signOut();
+    try {
+      const { error } = await supabase.auth.signOut();
+      if (error) throw error;
+      
+      setUser(null);
+      setCurrentAgency(null);
+      setUserAgencies([]);
+      setAvailableArtists([]);
+      
+      window.location.href = '/login';
+    } catch (error) {
+      console.error('Error during logout:', error);
+    }
   };
 
   const value: AuthContextType = {
@@ -279,10 +359,77 @@ export function AuthProvider({ children }: AuthProviderProps) {
   );
 }
 
-export function useAuth(): AuthContextType {
+// Custom hook to use the auth context
+export function useAuth() {
   const context = useContext(AuthContext);
   if (context === undefined) {
     throw new Error('useAuth must be used within an AuthProvider');
   }
   return context;
 }
+
+// HOC for protecting routes with role-based access
+export function withAuth<T extends object>(
+  Component: React.ComponentType<T>,
+  requiredRole?: UserRole,
+  requiredAgencyRole?: UserRole
+) {
+  return function AuthenticatedComponent(props: T) {
+    const { isAuthenticated, isLoading, user, currentAgency, hasRole, hasAgencyRole } = useAuth();
+
+    if (isLoading) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="animate-spin rounded-full h-32 w-32 border-b-2 border-primary"></div>
+        </div>
+      );
+    }
+
+    if (!isAuthenticated) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Authentication Required</h1>
+            <p className="text-muted-foreground">Please log in to access this page.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Check global role if required
+    if (requiredRole && !hasRole(requiredRole)) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+            <p className="text-muted-foreground">You don't have the required permissions to access this page.</p>
+          </div>
+        </div>
+      );
+    }
+
+    // Check agency role if required
+    if (requiredAgencyRole && currentAgency && !hasAgencyRole(currentAgency.id, requiredAgencyRole)) {
+      return (
+        <div className="min-h-screen flex items-center justify-center">
+          <div className="text-center">
+            <h1 className="text-2xl font-bold mb-4">Access Denied</h1>
+            <p className="text-muted-foreground">You don't have the required agency permissions to access this page.</p>
+          </div>
+        </div>
+      );
+    }
+
+    return <Component {...props} />;
+  };
+}
+
+// Role-based route guards
+export const withSuperadmin = <T extends object>(Component: React.ComponentType<T>) => 
+  withAuth(Component, 'superadmin');
+
+export const withArtistManager = <T extends object>(Component: React.ComponentType<T>) => 
+  withAuth(Component, undefined, 'artist_manager');
+
+export const withAnyRole = <T extends object>(Component: React.ComponentType<T>) => 
+  withAuth(Component);
