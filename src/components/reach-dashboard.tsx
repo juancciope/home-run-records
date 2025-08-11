@@ -44,7 +44,7 @@ import {
   Line,
   LineChart,
 } from "recharts"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 
 interface PlatformData {
   spotify: { followers: number; streams: number };
@@ -160,7 +160,8 @@ const PLATFORM_META = {
 };
 
 export function ReachDashboard() {
-  const { user, isLoading } = useArtist();
+  const { availableArtists, user: authUser, isLoading } = useAuth();
+  const user = availableArtists?.[0]; // Use first artist for now
   const [analyticsData, setAnalyticsData] = React.useState<ReachAnalytics | null>(null);
   const [historicalData, setHistoricalData] = React.useState<{
     streaming: {
@@ -233,7 +234,7 @@ export function ReachDashboard() {
       const { ArtistService } = await import('@/lib/services/artist-service');
       
       // Check if user has Viberate connection
-      const profile = await ArtistService.getArtistProfile(user.id, user.email);
+      const profile = await ArtistService.getArtistProfile(user.id, authUser?.email || '');
       const hasConnection = !!profile?.viberate_artist_id;
       setHasVibrateConnection(hasConnection);
       
@@ -254,7 +255,7 @@ export function ReachDashboard() {
     } finally {
       setIsLoadingAnalytics(false);
     }
-  }, [user?.id, user?.email]);
+  }, [user?.id, authUser?.email]);
 
   const loadHistoricalData = React.useCallback(async (artistId: string, timeRange?: string) => {
     if (!artistId) return;
@@ -298,7 +299,7 @@ export function ReachDashboard() {
       const loadAdditionalData = async () => {
         try {
           const { ArtistService } = await import('@/lib/services/artist-service');
-          const profile = await ArtistService.getArtistProfile(user.id, user.email);
+          const profile = await ArtistService.getArtistProfile(user.id, authUser?.email || '');
           
           if (profile?.viberate_artist_id) {
             loadHistoricalData(profile.viberate_artist_id, selectedTimeRange);
@@ -310,7 +311,7 @@ export function ReachDashboard() {
       
       loadAdditionalData();
     }
-  }, [hasVibrateConnection, analyticsData?.artist, user?.id, user?.email, loadHistoricalData]);
+  }, [hasVibrateConnection, analyticsData?.artist, user?.id, authUser?.email, loadHistoricalData]);
 
   // Reload historical data when time range changes
   React.useEffect(() => {
@@ -318,7 +319,7 @@ export function ReachDashboard() {
       const reloadHistoricalData = async () => {
         try {
           const { ArtistService } = await import('@/lib/services/artist-service');
-          const profile = await ArtistService.getArtistProfile(user.id, user.email);
+          const profile = await ArtistService.getArtistProfile(user.id, authUser?.email || '');
           
           if (profile?.viberate_artist_id) {
             loadHistoricalData(profile.viberate_artist_id, selectedTimeRange);
@@ -330,7 +331,7 @@ export function ReachDashboard() {
       
       reloadHistoricalData();
     }
-  }, [selectedTimeRange, hasVibrateConnection, analyticsData?.artist, user?.id, user?.email, loadHistoricalData]);
+  }, [selectedTimeRange, hasVibrateConnection, analyticsData?.artist, user?.id, authUser?.email, loadHistoricalData]);
 
   if (isLoading || isLoadingAnalytics) {
     return (

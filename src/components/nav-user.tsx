@@ -29,7 +29,7 @@ import {
   SidebarMenuItem,
   useSidebar,
 } from "@/components/ui/sidebar"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 
 export function NavUser({
   user,
@@ -41,7 +41,7 @@ export function NavUser({
   }
 }) {
   const { isMobile } = useSidebar()
-  const { logout } = useArtist()
+  const { logout } = useAuth()
 
   const handleLogout = () => {
     logout()

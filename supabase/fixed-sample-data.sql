@@ -1,4 +1,4 @@
--- Sample Data for Artist OS Multi-Tenant Setup
+-- Fixed Sample Data for Artist OS Multi-Tenant Setup
 -- Run this AFTER applying the multi-tenant-schema.sql
 
 -- Insert sample agencies
@@ -44,7 +44,7 @@ INSERT INTO artist_goals (artist_id, goal_type, target_value, current_value, tim
 ('660e8400-e29b-41d4-a716-446655440006', 'streams', 75000, 45000, 'monthly', '2024-12-01', '2024-12-31'),
 ('660e8400-e29b-41d4-a716-446655440006', 'followers', 100000, 78000, 'yearly', '2024-01-01', '2024-12-31');
 
--- Insert sample team members for Home Run Records (without user_id initially)
+-- Insert sample team members for Home Run Records (simplified - no user references)
 INSERT INTO team_members (agency_id, name, email, phone, role, responsibilities, status) VALUES
 ('550e8400-e29b-41d4-a716-446655440001', 'Sarah Johnson', 'sarah@homerunrecords.com', '+1-555-0123', 'General Manager', ARRAY['Artist Relations', 'Strategic Planning', 'Business Development'], 'active'),
 ('550e8400-e29b-41d4-a716-446655440001', 'Mike Rodriguez', 'mike@homerunrecords.com', '+1-555-0124', 'Producer', ARRAY['Music Production', 'Recording', 'Mixing & Mastering'], 'active'),
@@ -56,17 +56,20 @@ INSERT INTO team_members (agency_id, name, email, phone, role, responsibilities,
 ('550e8400-e29b-41d4-a716-446655440002', 'Amanda Foster', 'amanda@indiewave.com', '+1-555-0127', 'Founder & Manager', ARRAY['Artist Management', 'Label Relations', 'Tour Booking'], 'active'),
 ('550e8400-e29b-41d4-a716-446655440002', 'Ryan Kim', 'ryan@indiewave.com', '+1-555-0128', 'Creative Director', ARRAY['Visual Content', 'Music Videos', 'Brand Design'], 'active');
 
--- Insert sample tasks (without created_by for now, will be updated when actual users are created)
-INSERT INTO tasks (agency_id, artist_id, title, description, status, priority, due_date, assigned_to) VALUES
+-- Insert simple tasks (no user references to avoid foreign key issues)
+INSERT INTO tasks (agency_id, artist_id, title, description, status, priority, due_date) VALUES
 -- Home Run Records tasks
-('550e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440001', 'Finish new single recording', 'Complete vocals and final mix for "Electric Dreams" release', 'in_progress', 'high', '2024-12-20', 
- (SELECT id FROM team_members WHERE name = 'Mike Rodriguez')),
+('550e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440001', 'Finish new single recording', 'Complete vocals and final mix for "Electric Dreams" release', 'in_progress', 'high', '2024-12-20'),
+('550e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440002', 'Social media campaign for new EP', 'Create content calendar and promotional materials for Maya''s upcoming EP', 'todo', 'medium', '2024-12-15'),
+('550e8400-e29b-41d4-a716-446655440001', NULL, 'Q1 artist showcase planning', 'Plan and coordinate showcase event for label artists', 'todo', 'medium', '2025-01-30'),
 
-('550e8400-e29b-41d4-a716-446655440001', '660e8400-e29b-41d4-a716-446655440002', 'Social media campaign for new EP', 'Create content calendar and promotional materials for Maya''s upcoming EP', 'todo', 'medium', '2024-12-15',
- (SELECT id FROM team_members WHERE name = 'Jessica Wong')),
+-- Indie Wave Agency tasks
+('550e8400-e29b-41d4-a716-446655440002', '660e8400-e29b-41d4-a716-446655440004', 'Luna Martinez album artwork', 'Design album cover and promotional materials for upcoming release', 'todo', 'medium', '2024-12-18'),
+('550e8400-e29b-41d4-a716-446655440002', '660e8400-e29b-41d4-a716-446655440005', 'Echo Valley tour planning', 'Coordinate spring tour dates and venue bookings', 'in_progress', 'high', '2025-01-15'),
 
-('550e8400-e29b-41d4-a716-446655440001', NULL, 'Q1 artist showcase planning', 'Plan and coordinate showcase event for label artists', 'todo', 'medium', '2025-01-30',
- (SELECT id FROM team_members WHERE name = 'Carlos Martinez'));
+-- Urban Beats Management tasks
+('550e8400-e29b-41d4-a716-446655440003', '660e8400-e29b-41d4-a716-446655440006', 'DJ Neon remix collaboration', 'Coordinate remix project with featured artist', 'todo', 'medium', '2024-12-25'),
+('550e8400-e29b-41d4-a716-446655440003', '660e8400-e29b-41d4-a716-446655440007', 'Rhythm & Soul music video', 'Produce and edit music video for latest single', 'in_progress', 'high', '2024-12-22');
 
 -- Insert some sample analytics data (last 30 days)
 INSERT INTO artist_analytics (artist_id, date, platform, metric_type, value) VALUES
@@ -85,11 +88,24 @@ INSERT INTO artist_analytics (artist_id, date, platform, metric_type, value) VAL
 ('660e8400-e29b-41d4-a716-446655440006', CURRENT_DATE - INTERVAL '1 day', 'spotify', 'streams', 2100),
 ('660e8400-e29b-41d4-a716-446655440006', CURRENT_DATE - INTERVAL '1 day', 'spotify', 'followers', 78000),
 ('660e8400-e29b-41d4-a716-446655440006', CURRENT_DATE - INTERVAL '1 day', 'instagram', 'followers', 45000),
-('660e8400-e29b-41d4-a716-446655440006', CURRENT_DATE - INTERVAL '1 day', 'tiktok', 'followers', 52000);
+('660e8400-e29b-41d4-a716-446655440006', CURRENT_DATE - INTERVAL '1 day', 'tiktok', 'followers', 52000),
+
+-- Luna Martinez analytics
+('660e8400-e29b-41d4-a716-446655440004', CURRENT_DATE - INTERVAL '1 day', 'spotify', 'streams', 680),
+('660e8400-e29b-41d4-a716-446655440004', CURRENT_DATE - INTERVAL '1 day', 'spotify', 'followers', 28000),
+('660e8400-e29b-41d4-a716-446655440004', CURRENT_DATE - INTERVAL '1 day', 'instagram', 'followers', 19000),
+
+-- Rhythm & Soul analytics
+('660e8400-e29b-41d4-a716-446655440007', CURRENT_DATE - INTERVAL '1 day', 'spotify', 'streams', 1850),
+('660e8400-e29b-41d4-a716-446655440007', CURRENT_DATE - INTERVAL '1 day', 'spotify', 'followers', 92000),
+('660e8400-e29b-41d4-a716-446655440007', CURRENT_DATE - INTERVAL '1 day', 'instagram', 'followers', 67000),
+('660e8400-e29b-41d4-a716-446655440007', CURRENT_DATE - INTERVAL '1 day', 'tiktok', 'followers', 83000);
 
 -- Success message
 SELECT 'Sample data inserted successfully!' as message,
        (SELECT COUNT(*) FROM agencies) as agencies_created,
        (SELECT COUNT(*) FROM artists) as artists_created,
        (SELECT COUNT(*) FROM team_members) as team_members_created,
-       (SELECT COUNT(*) FROM tasks) as tasks_created;
+       (SELECT COUNT(*) FROM tasks) as tasks_created,
+       (SELECT COUNT(*) FROM artist_goals) as goals_created,
+       (SELECT COUNT(*) FROM artist_analytics) as analytics_records;

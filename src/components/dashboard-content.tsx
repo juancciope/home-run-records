@@ -46,11 +46,12 @@ import {
   XAxis,
   Label,
 } from "recharts"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 import { ArtistOnboarding } from "./artist-onboarding"
 
 export function DashboardContent() {
-  const { user, isDashboardLoading, isLoading } = useArtist();
+  const { availableArtists, user: authUser, isLoading } = useAuth();
+  const user = availableArtists?.[0]; // Use first artist for now
   const [pipelineMetrics, setPipelineMetrics] = React.useState<{
     production: { unfinished: number; finished: number; released: number };
     marketing: { totalReach: number; engagedAudience: number; totalFollowers: number; youtubeSubscribers: number };
@@ -77,7 +78,7 @@ export function DashboardContent() {
       setPipelineMetrics(metrics);
       
       // Check if user has connected their data
-      const profile = await ArtistService.getArtistProfile(user.id, user.email);
+      const profile = await ArtistService.getArtistProfile(user.id, authUser?.email || '');
       console.log('Dashboard loaded profile:', profile);
       
       const hasConnection = !!profile?.viberate_artist_id;
@@ -121,7 +122,7 @@ export function DashboardContent() {
     } finally {
       setIsLoadingMetrics(false);
     }
-  }, [user?.id, user?.email]);
+  }, [user?.id, authUser?.email]);
 
   React.useEffect(() => {
     if (user?.id) {
@@ -219,7 +220,7 @@ export function DashboardContent() {
   ];
 
   // Show loading state while checking authentication
-  if (isLoading || isDashboardLoading || isLoadingMetrics) {
+  if (isLoading || isLoadingMetrics) {
     return (
       <div className="space-y-6">
         <div className="animate-pulse space-y-4">

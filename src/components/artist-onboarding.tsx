@@ -9,14 +9,14 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Music, CheckCircle, AlertCircle, Sparkles } from "lucide-react"
-import { useArtist } from "@/contexts/artist-context"
+import { useAuth } from "@/contexts/auth-context"
 
 interface ArtistOnboardingProps {
   onComplete: () => void;
 }
 
 export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
-  const { user } = useArtist();
+  const { user } = useAuth();
   const [step, setStep] = useState(1);
   const [artistName, setArtistName] = useState("");
   const [isSearching, setIsSearching] = useState(false);
