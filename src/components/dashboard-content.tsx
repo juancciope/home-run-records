@@ -17,7 +17,14 @@ import {
   Database,
   Wifi,
   WifiOff,
+  Info,
 } from "lucide-react"
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
 import {
   ChartContainer,
   ChartConfig,
@@ -244,7 +251,8 @@ export function DashboardContent() {
   }
 
   return (
-    <div className="space-y-6">
+    <TooltipProvider>
+      <div className="space-y-6">
       {/* Dashboard Header */}
       <div className="flex items-center justify-between">
         <div>
@@ -286,7 +294,17 @@ export function DashboardContent() {
           {/* Unfinished Projects */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Unfinished Projects</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Unfinished Projects</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Number of songs, albums, or other creative projects that are currently being worked on but not yet completed. This includes demos, works in progress, and tracks in production.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Projects in progress</CardDescription>
             </CardHeader>
             <CardContent>
@@ -301,7 +319,17 @@ export function DashboardContent() {
           {/* Finished Projects */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Ready to Release</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Ready to Release</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Completed tracks that are mastered and ready for distribution but haven't been released yet. These are your release-ready assets waiting for the right moment to launch.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Completed, awaiting release</CardDescription>
             </CardHeader>
             <CardContent>
@@ -316,7 +344,17 @@ export function DashboardContent() {
           {/* Released with RadialBar */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Released Tracks</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Released Tracks</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Total number of tracks currently live on streaming platforms and stores. This represents your active catalog that's available to fans and generating streams/revenue.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Live & generating revenue</CardDescription>
             </CardHeader>
             <CardContent>
@@ -371,7 +409,17 @@ export function DashboardContent() {
           {/* Total Reach with Area Chart */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Total Reach</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Total Reach</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>The total number of unique people who have been exposed to your content across all platforms. This includes social media impressions, streaming platform reach, and other touchpoints.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>6-month growth trend</CardDescription>
             </CardHeader>
             <CardContent>
@@ -420,7 +468,17 @@ export function DashboardContent() {
           {/* Engaged Audience */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Engaged Audience</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Engaged Audience</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>People who actively interact with your content through likes, comments, shares, saves, and other engagement actions. This is your most valuable audience segment.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Active interactions</CardDescription>
             </CardHeader>
             <CardContent>
@@ -440,7 +498,17 @@ export function DashboardContent() {
           {/* Total Followers */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Total Followers</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Total Followers</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Combined follower count from all your social media platforms including Instagram, TikTok, Facebook, Twitter, and YouTube subscribers.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Across all platforms</CardDescription>
             </CardHeader>
             <CardContent>
@@ -468,7 +536,17 @@ export function DashboardContent() {
           {/* Captured Data */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Data Captured</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Data Captured</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Number of fan email addresses and contact information collected through your website, landing pages, and campaigns. This is your owned audience data.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Email & contact info</CardDescription>
             </CardHeader>
             <CardContent>
@@ -483,7 +561,17 @@ export function DashboardContent() {
           {/* Active Fans with Line Chart */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Active Fans</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Active Fans</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Fans who regularly engage with your content, stream your music, and show consistent support. Calculated based on engagement frequency and interaction patterns.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Growth over time</CardDescription>
             </CardHeader>
             <CardContent>
@@ -518,7 +606,17 @@ export function DashboardContent() {
           {/* Super Fans with RadialBar */}
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base">Super Fans</CardTitle>
+              <CardTitle className="text-base flex items-center justify-between">
+                <span>Super Fans</span>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Your top 1% most engaged fans who consistently stream, share, purchase, and advocate for your music. These are your brand ambassadors and most valuable supporters.</p>
+                  </TooltipContent>
+                </Tooltip>
+              </CardTitle>
               <CardDescription>Your most loyal supporters</CardDescription>
             </CardHeader>
             <CardContent>
@@ -653,6 +751,7 @@ export function DashboardContent() {
           </Card>
         </div>
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   )
 }

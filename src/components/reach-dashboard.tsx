@@ -28,6 +28,12 @@ import {
   ChartTooltip,
 } from "@/components/ui/chart"
 import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from "@/components/ui/tooltip"
+import {
   Cell,
   PieChart,
   Pie,
@@ -451,7 +457,8 @@ export function ReachDashboard() {
   }).filter(p => p.followers > 0);
 
   return (
-    <div className="space-y-6">
+    <TooltipProvider>
+      <div className="space-y-6">
       {/* Page Header */}
       <div className="space-y-2">
         <h2 className="text-2xl font-semibold text-foreground">Analytics Dashboard</h2>
@@ -464,9 +471,19 @@ export function ReachDashboard() {
       <div className="grid gap-4 md:grid-cols-4">
         <Card className="bg-gradient-to-br from-purple-500/10 to-purple-600/5 border-purple-200 dark:border-purple-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Globe className="h-4 w-4 text-purple-600" />
-              Total Reach
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Globe className="h-4 w-4 text-purple-600" />
+                <span>Total Reach</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Total number of unique people exposed to your content across all platforms including social media impressions and streaming reach.</p>
+                </TooltipContent>
+              </Tooltip>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -479,9 +496,19 @@ export function ReachDashboard() {
 
         <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-200 dark:border-green-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Users className="h-4 w-4 text-green-600" />
-              Total Followers
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Users className="h-4 w-4 text-green-600" />
+                <span>Total Followers</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Combined follower count across all your connected platforms including Spotify, Instagram, YouTube, TikTok, and Facebook.</p>
+                </TooltipContent>
+              </Tooltip>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -495,9 +522,19 @@ export function ReachDashboard() {
 
         <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-200 dark:border-blue-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Activity className="h-4 w-4 text-blue-600" />
-              Engaged Audience
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Activity className="h-4 w-4 text-blue-600" />
+                <span>Engaged Audience</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Number of people actively interacting with your content through likes, comments, shares, and saves. The engagement rate shows the percentage of your total followers who are actively engaged.</p>
+                </TooltipContent>
+              </Tooltip>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -509,9 +546,19 @@ export function ReachDashboard() {
 
         <Card className="bg-gradient-to-br from-orange-500/10 to-orange-600/5 border-orange-200 dark:border-orange-800">
           <CardHeader className="pb-2">
-            <CardTitle className="text-sm font-medium flex items-center gap-2">
-              <Award className="h-4 w-4 text-orange-600" />
-              Artist Rank
+            <CardTitle className="text-sm font-medium flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Award className="h-4 w-4 text-orange-600" />
+                <span>Artist Rank</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-3 w-3 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Your global ranking among all artists on Viberate based on overall performance, engagement, and growth metrics across all platforms.</p>
+                </TooltipContent>
+              </Tooltip>
             </CardTitle>
           </CardHeader>
           <CardContent>
@@ -529,9 +576,19 @@ export function ReachDashboard() {
         {/* Streaming Platforms */}
         <Card className="bg-sidebar">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Headphones className="h-5 w-5 text-green-600" />
-              Streaming Platforms
+            <CardTitle className="text-base flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Headphones className="h-5 w-5 text-green-600" />
+                <span>Streaming Platforms</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Your performance metrics on music streaming platforms like Spotify, Apple Music, and Deezer. Shows followers/listeners and total streams.</p>
+                </TooltipContent>
+              </Tooltip>
             </CardTitle>
             <CardDescription>Audio streaming services</CardDescription>
           </CardHeader>
@@ -582,9 +639,19 @@ export function ReachDashboard() {
         {/* Video Platforms */}
         <Card className="bg-sidebar">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <Video className="h-5 w-5 text-red-600" />
-              Video Platforms
+            <CardTitle className="text-base flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <Video className="h-5 w-5 text-red-600" />
+                <span>Video Platforms</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Your performance on video platforms like YouTube and TikTok. Shows subscriber/follower counts and total video views.</p>
+                </TooltipContent>
+              </Tooltip>
             </CardTitle>
             <CardDescription>Video & short-form content</CardDescription>
           </CardHeader>
@@ -622,9 +689,19 @@ export function ReachDashboard() {
         {/* Social Media */}
         <Card className="bg-sidebar">
           <CardHeader>
-            <CardTitle className="text-base flex items-center gap-2">
-              <MessageCircle className="h-5 w-5 text-blue-600" />
-              Social Media
+            <CardTitle className="text-base flex items-center justify-between">
+              <div className="flex items-center gap-2">
+                <MessageCircle className="h-5 w-5 text-blue-600" />
+                <span>Social Media</span>
+              </div>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Your presence on social networking platforms like Instagram, Facebook, and Twitter. Shows followers and engagement metrics.</p>
+                </TooltipContent>
+              </Tooltip>
             </CardTitle>
             <CardDescription>Social networking platforms</CardDescription>
           </CardHeader>
@@ -678,7 +755,17 @@ export function ReachDashboard() {
         {/* Platform Distribution */}
         <Card className="bg-sidebar">
           <CardHeader>
-            <CardTitle className="text-base">Platform Distribution</CardTitle>
+            <CardTitle className="text-base flex items-center justify-between">
+              <span>Platform Distribution</span>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Shows the percentage breakdown of your total followers across different social media and streaming platforms. Helps you understand where your audience is most concentrated.</p>
+                </TooltipContent>
+              </Tooltip>
+            </CardTitle>
             <CardDescription>Follower breakdown across all platforms</CardDescription>
           </CardHeader>
           <CardContent>
@@ -738,7 +825,17 @@ export function ReachDashboard() {
         {/* Platform Performance Matrix */}
         <Card className="bg-sidebar">
           <CardHeader>
-            <CardTitle className="text-base">Platform Performance Matrix</CardTitle>
+            <CardTitle className="text-base flex items-center justify-between">
+              <span>Platform Performance Matrix</span>
+              <Tooltip>
+                <TooltipTrigger>
+                  <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                </TooltipTrigger>
+                <TooltipContent className="max-w-xs">
+                  <p>Detailed breakdown of your key metrics (followers, engagement, streams/views) on each platform. Use this to identify your strongest platforms and growth opportunities.</p>
+                </TooltipContent>
+              </Tooltip>
+            </CardTitle>
             <CardDescription>Compare follower count vs engagement rate across platforms</CardDescription>
           </CardHeader>
           <CardContent>
@@ -803,7 +900,17 @@ export function ReachDashboard() {
         {/* Growth Trend */}
         <Card className="bg-sidebar">
         <CardHeader>
-          <CardTitle className="text-base">Growth Trend</CardTitle>
+          <CardTitle className="text-base flex items-center justify-between">
+            <span>Growth Trend</span>
+            <Tooltip>
+              <TooltipTrigger>
+                <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+              </TooltipTrigger>
+              <TooltipContent className="max-w-xs">
+                <p>Tracks your follower growth across Spotify, Instagram, and YouTube over time. Shows monthly progression to help you identify growth patterns and the impact of your marketing efforts.</p>
+              </TooltipContent>
+            </Tooltip>
+          </CardTitle>
           <CardDescription>
             {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES].label.toLowerCase()} growth by platform category
             ({dateRange[0]?.fullDate} - {dateRange[dateRange.length - 1]?.fullDate})
@@ -899,9 +1006,19 @@ export function ReachDashboard() {
         {hasVibrateConnection && historicalData ? (
           <Card className="bg-sidebar">
             <CardHeader>
-              <CardTitle className="text-base flex items-center gap-2">
-                <TrendingUp className="h-5 w-5 text-green-600" />
-                Historical Performance Data
+              <CardTitle className="text-base flex items-center justify-between">
+                <div className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-green-600" />
+                  <span>Historical Performance Data</span>
+                </div>
+                <Tooltip>
+                  <TooltipTrigger>
+                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
+                  </TooltipTrigger>
+                  <TooltipContent className="max-w-xs">
+                    <p>Combined view of your Spotify streams, follower counts, and Instagram engagement over time. This unified chart helps you correlate streaming performance with social media activity.</p>
+                  </TooltipContent>
+                </Tooltip>
               </CardTitle>
               <CardDescription>
                 Spotify streaming and social data over the last {TIME_RANGES[selectedTimeRange as keyof typeof TIME_RANGES]?.label.toLowerCase()}
@@ -1067,6 +1184,7 @@ export function ReachDashboard() {
           {hasVibrateConnection ? 'Real-time data from Viberate' : 'Demo data for preview'}
         </div>
       </div>
-    </div>
+      </div>
+    </TooltipProvider>
   );
 }

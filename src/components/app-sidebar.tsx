@@ -2,16 +2,12 @@
 
 import {
   BarChart3,
-  Megaphone,
-  CheckSquare,
   GalleryVerticalEnd,
-  Settings,
   Wrench,
   Rocket,
 } from "lucide-react"
 
 import { NavMain } from "@/components/nav-main"
-import { NavProjects } from "@/components/nav-projects"
 import { NavUser } from "@/components/nav-user"
 import { TeamSwitcher } from "@/components/team-switcher"
 import {
@@ -94,23 +90,6 @@ const staticData = {
       ],
     },
   ],
-  projects: [
-    {
-      name: "Production Pipeline",
-      url: "#",
-      icon: Settings,
-    },
-    {
-      name: "Marketing Campaigns",
-      url: "#",
-      icon: Megaphone,
-    },
-    {
-      name: "Fan Engagement",
-      url: "#",
-      icon: CheckSquare,
-    },
-  ],
 }
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
@@ -155,7 +134,6 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={staticData.navMain} />
-        <NavProjects projects={staticData.projects} />
       </SidebarContent>
       <SidebarFooter>
         <NavUser user={userData} />
