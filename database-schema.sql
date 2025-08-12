@@ -1,12 +1,36 @@
 -- Artist OS Database Schema
 -- Run this in your Supabase SQL editor to create the required tables
 
--- Create custom types
-CREATE TYPE user_role AS ENUM ('superadmin', 'artist_manager', 'artist');
-CREATE TYPE agency_status AS ENUM ('active', 'inactive', 'suspended');
-CREATE TYPE release_type AS ENUM ('single', 'ep', 'album', 'compilation');
-CREATE TYPE release_status AS ENUM ('draft', 'scheduled', 'released', 'archived');
-CREATE TYPE metric_type AS ENUM ('streams', 'followers', 'engagement', 'reach', 'revenue');
+-- Create custom types (skip if they already exist)
+DO $$ BEGIN
+    CREATE TYPE user_role AS ENUM ('superadmin', 'artist_manager', 'artist');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE agency_status AS ENUM ('active', 'inactive', 'suspended');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE release_type AS ENUM ('single', 'ep', 'album', 'compilation');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE release_status AS ENUM ('draft', 'scheduled', 'released', 'archived');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
+
+DO $$ BEGIN
+    CREATE TYPE metric_type AS ENUM ('streams', 'followers', 'engagement', 'reach', 'revenue');
+EXCEPTION
+    WHEN duplicate_object THEN null;
+END $$;
 
 -- Users table (extends auth.users)
 CREATE TABLE IF NOT EXISTS public.users (
