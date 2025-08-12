@@ -23,6 +23,9 @@ import {
   Plus,
   ArrowRight,
   ChevronRight,
+  UserCheck,
+  Calendar,
+  Handshake,
 } from "lucide-react"
 import {
   Tooltip,
@@ -192,6 +195,12 @@ export function DashboardContent() {
     leads: 450,
     opportunities: 120,
     sales: 45,
+  };
+
+  const agentData = {
+    potentialAgents: 28,
+    meetingsBooked: 12,
+    agentsSigned: 3,
   };
 
   // Chart configurations
@@ -653,7 +662,7 @@ export function DashboardContent() {
                 </ChartContainer>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Follow-through Rate</span>
-                  <span className="font-medium">{Math.round((marketingData.followers / marketingData.totalReach) * 100)}%</span>
+                  <span className="font-medium">{((marketingData.followers / marketingData.totalReach) * 100).toFixed(1)}%</span>
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Users className="h-3 w-3" />
@@ -858,6 +867,215 @@ export function DashboardContent() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Heart className="h-3 w-3" />
                   Brand ambassadors
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+        </div>
+      </div>
+
+      {/* Potential Agents */}
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <UserCheck className="h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">Potential Agents</h2>
+              <p className="text-sm text-muted-foreground">Build professional representation network</p>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+            <span>Prospect</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Meeting</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Signed</span>
+          </div>
+        </div>
+        
+        <div className="grid gap-4 md:grid-cols-3 relative">
+          {/* Flow indicators for mobile */}
+          <div className="md:hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+          </div>
+
+          {/* Potential Agents */}
+          <Card className="relative border-l-4 border-l-indigo-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Potential Agents</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View agent prospect details and research" />
+                  <ActionButton icon={Bot} tooltip="Get AI insights for agent outreach" />
+                  <ActionButton icon={Plug} tooltip="Connect industry databases and networks" />
+                  <ActionButton icon={Plus} tooltip="Add potential agent manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Identified representation prospects</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums">{agentData.potentialAgents}</span>
+                <Badge variant="secondary" className="text-xs">Prospects</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  prospects: { label: "Prospects", color: "hsl(var(--chart-4))" }
+                }} className="h-16 w-full">
+                  <AreaChart data={[
+                    { month: "Jan", prospects: Math.round(agentData.potentialAgents * 0.60) }, // 17
+                    { month: "Feb", prospects: Math.round(agentData.potentialAgents * 0.68) }, // 19
+                    { month: "Mar", prospects: Math.round(agentData.potentialAgents * 0.75) }, // 21
+                    { month: "Apr", prospects: Math.round(agentData.potentialAgents * 0.82) }, // 23
+                    { month: "May", prospects: Math.round(agentData.potentialAgents * 0.90) }, // 25
+                    { month: "Jun", prospects: agentData.potentialAgents } // 28
+                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillProspectsMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-4))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="prospects"
+                      stroke="hsl(var(--chart-4))"
+                      fill="url(#fillProspectsMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Research Growth</span>
+                  <span className="font-medium text-green-600">+65%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Target className="h-3 w-3" />
+                  Building pipeline
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Meetings Booked */}
+          <Card className="relative border-l-4 border-l-amber-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Meetings Booked</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View scheduled meetings and preparation notes" />
+                  <ActionButton icon={Bot} tooltip="Get AI meeting preparation and talking points" />
+                  <ActionButton icon={Plug} tooltip="Connect calendar and CRM systems" />
+                  <ActionButton icon={Plus} tooltip="Schedule meeting manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Scheduled agent meetings</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-amber-600">{agentData.meetingsBooked}</span>
+                <Badge variant="outline" className="text-xs border-amber-600 text-amber-600">Scheduled</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  meetings: { label: "Meetings", color: "hsl(var(--chart-2))" }
+                }} className="h-16 w-full">
+                  <AreaChart data={[
+                    { month: "Jan", meetings: Math.round(agentData.meetingsBooked * 0.50) }, // 6
+                    { month: "Feb", meetings: Math.round(agentData.meetingsBooked * 0.58) }, // 7
+                    { month: "Mar", meetings: Math.round(agentData.meetingsBooked * 0.67) }, // 8
+                    { month: "Apr", meetings: Math.round(agentData.meetingsBooked * 0.75) }, // 9
+                    { month: "May", meetings: Math.round(agentData.meetingsBooked * 0.83) }, // 10
+                    { month: "Jun", meetings: agentData.meetingsBooked } // 12
+                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillMeetingsMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="meetings"
+                      stroke="hsl(var(--chart-2))"
+                      fill="url(#fillMeetingsMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Booking Rate</span>
+                  <span className="font-medium">{Math.round((agentData.meetingsBooked / agentData.potentialAgents) * 100)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Calendar className="h-3 w-3" />
+                  Active outreach
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Agents Signed */}
+          <Card className="relative border-l-4 border-l-emerald-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Agents Signed</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View signed agent details and contracts" />
+                  <ActionButton icon={Bot} tooltip="Get AI strategies for agent relationship management" />
+                  <ActionButton icon={Plug} tooltip="Connect legal and contract management tools" />
+                  <ActionButton icon={Plus} tooltip="Add signed agent manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Active representation deals</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-emerald-600">{agentData.agentsSigned}</span>
+                <Badge className="text-xs bg-emerald-500/10 text-emerald-600 border-emerald-200">Signed</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  signed: { label: "Signed", color: "hsl(var(--chart-1))" }
+                }} className="h-16 w-full">
+                  <AreaChart data={[
+                    { month: "Jan", signed: Math.round(agentData.agentsSigned * 0.33) }, // 1
+                    { month: "Feb", signed: Math.round(agentData.agentsSigned * 0.33) }, // 1
+                    { month: "Mar", signed: Math.round(agentData.agentsSigned * 0.67) }, // 2
+                    { month: "Apr", signed: Math.round(agentData.agentsSigned * 0.67) }, // 2
+                    { month: "May", signed: Math.round(agentData.agentsSigned * 0.67) }, // 2
+                    { month: "Jun", signed: agentData.agentsSigned } // 3
+                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillSignedMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="signed"
+                      stroke="hsl(var(--chart-1))"
+                      fill="url(#fillSignedMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Close Rate</span>
+                  <span className="font-medium">{Math.round((agentData.agentsSigned / agentData.meetingsBooked) * 100)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Handshake className="h-3 w-3" />
+                  Building network
                 </p>
               </div>
             </CardContent>
