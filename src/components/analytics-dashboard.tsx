@@ -87,14 +87,33 @@ export function AnalyticsDashboard() {
         
         if (response.ok) {
           const data = await response.json()
-          if (data && !data.error && data.totalFollowers > 0) {
-            setAnalyticsData(data)
-            return
+          console.log('Analytics API response:', data)
+          
+          // Safely validate the data structure before using it
+          if (data && typeof data === 'object' && !data.error) {
+            // Ensure all required fields exist with defaults
+            const validatedData = {
+              totalReach: data.totalReach || 0,
+              totalFollowers: data.totalFollowers || 0,
+              engagedAudience: data.engagedAudience || 0,
+              artistRank: data.artistRank || 0,
+              platforms: data.platforms || {},
+              trending: Array.isArray(data.trending) ? data.trending : [],
+              isRealData: data.isRealData || false,
+              message: data.message || 'Data loaded successfully'
+            }
+            
+            // Only set data if we have some meaningful content
+            if (validatedData.totalFollowers > 0 || Object.keys(validatedData.platforms).length > 0) {
+              setAnalyticsData(validatedData)
+              return
+            }
           }
         }
         
+        console.log('API response not valid, using fallback data')
         // Fallback to demo data if API doesn't work
-        throw new Error('API not available')
+        throw new Error('API response not valid')
       } catch (error) {
         console.error('Error loading analytics:', error)
         // Use Rachel Curtis real data as demo - this shows the actual data we have stored
@@ -104,7 +123,7 @@ export function AnalyticsDashboard() {
           engagedAudience: 1300,
           artistRank: 380075, // Rachel's real Viberate rank
           platforms: {
-            spotify: { followers: 1019, monthlyListeners: 12200, streams: 45000 },
+            spotify: { followers: 1019, monthlyListeners: 2200, streams: 45000 },
             youtube: { subscribers: 467, views: 9700 },
             instagram: { followers: 2052, engagement: 33 },
             tiktok: { followers: 502, views: 15000 },
@@ -120,7 +139,7 @@ export function AnalyticsDashboard() {
             { date: "May", spotify: 1019, youtube: 467, instagram: 2052, tiktok: 502 },
           ],
           isRealData: true, // Using Rachel's actual Viberate data
-          message: 'Analytics data loaded successfully'
+          message: 'Analytics data loaded successfully (fallback)'
         })
       } finally {
         setIsLoading(false)
@@ -174,24 +193,38 @@ export function AnalyticsDashboard() {
     )
   }
 
-  // Calculate platform distribution
-  const platformDistribution = Object.entries(analyticsData.platforms || {})
-    .map(([platform, data]: [string, any]) => ({
-      name: platform.charAt(0).toUpperCase() + platform.slice(1),
-      value: data.followers || data.subscribers || data.fans || 0,
-      color: PLATFORM_COLORS[platform as keyof typeof PLATFORM_COLORS] || "#666",
-    }))
+  // Calculate platform distribution - safely handle undefined data
+  const platformDistribution = Object.entries(analyticsData?.platforms || {})
+    .map(([platform, data]: [string, any]) => {
+      // Safely extract follower count with fallback
+      const value = (data && typeof data === 'object') ? 
+        (data.followers || data.subscribers || data.fans || 0) : 0
+      
+      return {
+        name: platform.charAt(0).toUpperCase() + platform.slice(1),
+        value,
+        color: PLATFORM_COLORS[platform as keyof typeof PLATFORM_COLORS] || "#666",
+      }
+    })
     .filter(p => p.value > 0)
     .sort((a, b) => b.value - a.value)
 
-  // Calculate performance metrics
-  const performanceData = Object.entries(analyticsData.platforms || {})
-    .map(([platform, data]: [string, any]) => ({
-      platform: platform.charAt(0).toUpperCase() + platform.slice(1),
-      followers: data.followers || data.subscribers || data.fans || 0,
-      engagement: data.engagement || Math.round(Math.random() * 100),
-      color: PLATFORM_COLORS[platform as keyof typeof PLATFORM_COLORS] || "#666",
-    }))
+  // Calculate performance metrics - safely handle undefined data
+  const performanceData = Object.entries(analyticsData?.platforms || {})
+    .map(([platform, data]: [string, any]) => {
+      // Safely extract data with fallbacks
+      const followers = (data && typeof data === 'object') ? 
+        (data.followers || data.subscribers || data.fans || 0) : 0
+      const engagement = (data && typeof data === 'object') ? 
+        (data.engagement || Math.round(Math.random() * 25) + 10) : 15 // Default engagement 10-35%
+      
+      return {
+        platform: platform.charAt(0).toUpperCase() + platform.slice(1),
+        followers,
+        engagement,
+        color: PLATFORM_COLORS[platform as keyof typeof PLATFORM_COLORS] || "#666",
+      }
+    })
     .filter(p => p.followers > 0)
 
   return (
@@ -278,7 +311,7 @@ export function AnalyticsDashboard() {
           <CardContent className="space-y-4">
             <div className="space-y-3">
               {/* Spotify */}
-              {analyticsData.platforms.spotify && (
+              {analyticsData?.platforms?.spotify && analyticsData.platforms.spotify.followers > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLATFORM_COLORS.spotify }} />
@@ -286,19 +319,19 @@ export function AnalyticsDashboard() {
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.spotify.followers)}</div>
+                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.spotify.followers || 0)}</div>
                       <div className="text-xs text-muted-foreground">followers</div>
                     </div>
                     <div className="text-xs text-green-600 flex items-center">
                       <TrendingUp className="h-3 w-3" />
-                      <span className="ml-1">12.2K streams</span>
+                      <span className="ml-1">{formatNumber(analyticsData.platforms.spotify.monthlyListeners || 0)} listeners</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* YouTube */}
-              {analyticsData.platforms.youtube && (
+              {analyticsData?.platforms?.youtube && analyticsData.platforms.youtube.subscribers > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLATFORM_COLORS.youtube }} />
@@ -306,19 +339,19 @@ export function AnalyticsDashboard() {
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.youtube.subscribers)}</div>
+                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.youtube.subscribers || 0)}</div>
                       <div className="text-xs text-muted-foreground">subscribers</div>
                     </div>
                     <div className="text-xs text-green-600 flex items-center">
                       <TrendingUp className="h-3 w-3" />
-                      <span className="ml-1">9.7K views</span>
+                      <span className="ml-1">{formatNumber(analyticsData.platforms.youtube.views || 0)} views</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* TikTok */}
-              {analyticsData.platforms.tiktok && (
+              {analyticsData?.platforms?.tiktok && analyticsData.platforms.tiktok.followers > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLATFORM_COLORS.tiktok }} />
@@ -326,19 +359,19 @@ export function AnalyticsDashboard() {
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.tiktok.followers)}</div>
+                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.tiktok.followers || 0)}</div>
                       <div className="text-xs text-muted-foreground">followers</div>
                     </div>
                     <div className="text-xs text-green-600 flex items-center">
                       <TrendingUp className="h-3 w-3" />
-                      <span className="ml-1">15K views</span>
+                      <span className="ml-1">{formatNumber(analyticsData.platforms.tiktok.views || 0)} views</span>
                     </div>
                   </div>
                 </div>
               )}
 
               {/* SoundCloud */}
-              {analyticsData.platforms.soundcloud && (
+              {analyticsData?.platforms?.soundcloud && analyticsData.platforms.soundcloud.followers > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLATFORM_COLORS.soundcloud }} />
@@ -346,11 +379,11 @@ export function AnalyticsDashboard() {
                   </div>
                   <div className="flex items-center space-x-4">
                     <div className="text-right">
-                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.soundcloud.followers)}</div>
+                      <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.soundcloud.followers || 0)}</div>
                       <div className="text-xs text-muted-foreground">followers</div>
                     </div>
                     <div className="text-xs text-muted-foreground flex items-center">
-                      <span className="ml-1">5.3K plays</span>
+                      <span className="ml-1">{formatNumber(analyticsData.platforms.soundcloud.plays || 0)} plays</span>
                     </div>
                   </div>
                 </div>
@@ -368,45 +401,45 @@ export function AnalyticsDashboard() {
           <CardContent>
             <div className="space-y-3">
               {/* Instagram */}
-              {analyticsData.platforms.instagram && (
+              {analyticsData?.platforms?.instagram && analyticsData.platforms.instagram.followers > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLATFORM_COLORS.instagram }} />
                     <span className="text-sm font-medium">Instagram</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.instagram.followers)}</div>
+                    <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.instagram.followers || 0)}</div>
                     <Badge variant="secondary" className="text-xs">
-                      {analyticsData.platforms.instagram.engagement}% engagement
+                      {analyticsData.platforms.instagram.engagement || 0}% engagement
                     </Badge>
                   </div>
                 </div>
               )}
 
               {/* Facebook */}
-              {analyticsData.platforms.facebook && (
+              {analyticsData?.platforms?.facebook && analyticsData.platforms.facebook.followers > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLATFORM_COLORS.facebook }} />
                     <span className="text-sm font-medium">Facebook</span>
                   </div>
                   <div className="flex items-center space-x-2">
-                    <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.facebook.followers)}</div>
+                    <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.facebook.followers || 0)}</div>
                     <Badge variant="secondary" className="text-xs">
-                      {analyticsData.platforms.facebook.engagement}% engagement
+                      {analyticsData.platforms.facebook.engagement || 0}% engagement
                     </Badge>
                   </div>
                 </div>
               )}
 
               {/* Deezer */}
-              {analyticsData.platforms.deezer && (
+              {analyticsData?.platforms?.deezer && analyticsData.platforms.deezer.fans > 0 && (
                 <div className="flex items-center justify-between">
                   <div className="flex items-center space-x-3">
                     <div className="w-2 h-2 rounded-full" style={{ backgroundColor: PLATFORM_COLORS.deezer }} />
                     <span className="text-sm font-medium">Deezer</span>
                   </div>
-                  <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.deezer.fans)}</div>
+                  <div className="text-sm font-medium">{formatNumber(analyticsData.platforms.deezer.fans || 0)}</div>
                 </div>
               )}
             </div>
@@ -461,7 +494,7 @@ export function AnalyticsDashboard() {
                     <span>{platform.name}</span>
                   </div>
                   <span className="font-medium">
-                    {formatNumber(platform.value)} ({Math.round((platform.value / analyticsData.totalFollowers) * 100)}%)
+                    {formatNumber(platform.value)} ({Math.round((platform.value / Math.max(analyticsData?.totalFollowers || 1, 1)) * 100)}%)
                   </span>
                 </div>
               ))}
@@ -545,7 +578,7 @@ export function AnalyticsDashboard() {
             className="h-[300px]"
           >
             <ResponsiveContainer width="100%" height="100%">
-              <AreaChart data={analyticsData.trending || []}>
+              <AreaChart data={analyticsData?.trending || []}>
                 <defs>
                   <linearGradient id="colorSpotify" x1="0" y1="0" x2="0" y2="1">
                     <stop offset="5%" stopColor={PLATFORM_COLORS.spotify} stopOpacity={0.3} />

@@ -132,9 +132,11 @@ export async function GET(request: NextRequest) {
       totalReach,
       engagedAudience,
       totalFollowers,
+      artistRank: artist.rank || 0, // Match expected field name in dashboard
       platforms: {
         spotify: { 
           followers: spotifyFollowers, 
+          monthlyListeners: spotifyFollowers * 2, // Estimate monthly listeners
           streams: spotifyFollowers * 12 // Estimate streams from followers
         },
         youtube: { 
@@ -143,7 +145,7 @@ export async function GET(request: NextRequest) {
         },
         instagram: { 
           followers: instagramFollowers, 
-          engagement: totalFollowers > 0 ? Math.round((instagramFollowers / totalFollowers) * 100) : 0
+          engagement: instagramFollowers > 0 ? Math.min(Math.round((instagramFollowers / Math.max(totalFollowers, 1)) * 100), 50) : 0
         },
         tiktok: { 
           followers: tiktokFollowers, 
@@ -151,11 +153,11 @@ export async function GET(request: NextRequest) {
         },
         facebook: { 
           followers: facebookFollowers, 
-          engagement: facebookFollowers > 0 ? Math.round((facebookFollowers / totalFollowers) * 100) : 0
+          engagement: facebookFollowers > 0 ? Math.min(Math.round((facebookFollowers / Math.max(totalFollowers, 1)) * 100), 30) : 0
         },
         twitter: {
           followers: twitterFollowers,
-          engagement: twitterFollowers > 0 ? Math.round((twitterFollowers / totalFollowers) * 100) : 0
+          engagement: twitterFollowers > 0 ? Math.min(Math.round((twitterFollowers / Math.max(totalFollowers, 1)) * 100), 25) : 0
         },
         deezer: {
           fans: deezerFans,
@@ -179,7 +181,8 @@ export async function GET(request: NextRequest) {
         image: artist.image
       },
       dataSource: 'database',
-      lastUpdated: fanbase?.updated_at || artist.updated_at
+      lastUpdated: fanbase?.updated_at || artist.updated_at,
+      message: 'Analytics data loaded from database'
     };
 
     console.log('Returning analytics data:', {
