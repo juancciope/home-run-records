@@ -23,11 +23,11 @@ export async function POST() {
     if (!profile || (!profile.viberate_uuid && !profile.viberate_artist_id)) {
       // Try to find artist by name
       if (profile?.artist_name) {
-        const searchResults = await VibrateService.searchArtists(profile.artist_name)
+        const searchResults = await VibrateService.searchArtist(profile.artist_name)
         if (searchResults.length > 0) {
           // Use the first result
           const artistUuid = searchResults[0].uuid
-          const artistData = await VibrateService.getArtistProfile(artistUuid)
+          const artistData = await VibrateService.getArtistDetails(artistUuid)
           
           if (artistData) {
             // Update artist_profiles with the fetched data
@@ -65,7 +65,7 @@ export async function POST() {
 
     // Fetch fresh data from Viberate
     const artistUuid = profile.viberate_uuid || profile.viberate_artist_id
-    const artistData = await VibrateService.getArtistProfile(artistUuid)
+    const artistData = await VibrateService.getArtistDetails(artistUuid)
     
     if (!artistData) {
       return NextResponse.json({ error: 'Failed to fetch artist data from Viberate' }, { status: 500 })
