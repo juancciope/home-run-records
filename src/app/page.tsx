@@ -51,7 +51,7 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-white border-white/20 hover:bg-white/10 hover:text-white text-base" asChild>
+            <Button size="lg" className="bg-transparent border border-white/20 text-white hover:bg-white/10 text-base" asChild>
               <Link href="/login">
                 Sign In to Dashboard
               </Link>
@@ -247,7 +247,7 @@ export default function Home() {
                 <ArrowRight className="ml-2 h-5 w-5" />
               </Link>
             </Button>
-            <Button size="lg" variant="outline" className="text-white border-white/20 hover:bg-white/10 hover:text-white" asChild>
+            <Button size="lg" className="bg-transparent border border-white/20 text-white hover:bg-white/10" asChild>
               <Link href="/login">
                 Sign In
               </Link>
