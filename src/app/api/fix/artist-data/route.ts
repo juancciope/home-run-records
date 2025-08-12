@@ -37,8 +37,8 @@ export async function POST() {
                 viberate_uuid: artistData.uuid,
                 stage_name: artistData.name,
                 profile_image_url: artistData.image,
-                spotify_followers: artistData.spotify?.followers || 0,
-                total_followers: artistData.spotify?.followers || 0,
+                spotify_followers: artistData.metrics?.spotify_followers || 0,
+                total_followers: artistData.metrics?.total_followers || artistData.metrics?.spotify_followers || 0,
                 genres: artistData.genre ? [artistData.genre.name] : [],
                 updated_at: new Date().toISOString()
               })
@@ -78,8 +78,8 @@ export async function POST() {
         stage_name: artistData.name,
         artist_name: artistData.name,
         profile_image_url: artistData.image,
-        spotify_followers: artistData.spotify?.followers || 0,
-        total_followers: artistData.spotify?.followers || 0,
+        spotify_followers: artistData.metrics?.spotify_followers || 0,
+        total_followers: artistData.metrics?.total_followers || artistData.metrics?.spotify_followers || 0,
         genres: artistData.genre ? [artistData.genre.name] : [],
         updated_at: new Date().toISOString()
       })
@@ -105,7 +105,7 @@ export async function POST() {
           name: artistData.name,
           avatar_url: artistData.image,
           image: artistData.image,
-          total_followers: artistData.spotify?.followers || 0,
+          total_followers: artistData.metrics?.total_followers || artistData.metrics?.spotify_followers || 0,
           updated_at: new Date().toISOString()
         })
         .eq('user_id', user.id)
