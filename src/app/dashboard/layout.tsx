@@ -21,16 +21,41 @@ async function ArtistHeader() {
   // Get the artist data from the database
   const supabase = await createClient();
   
-  // First, try to get artist directly linked to user
-  const artistQuery = supabase
-    .from('artists')
+  // First, check artist_profiles table (this is where Viberate data is stored)
+  const { data: artistProfile } = await supabase
+    .from('artist_profiles')
     .select('*')
     .eq('user_id', user.id)
     .single();
 
-  let { data: artist } = await artistQuery;
+  let artist: any = null;
+  
+  if (artistProfile) {
+    // Use artist_profiles data which has Viberate info
+    artist = {
+      stage_name: artistProfile.stage_name || artistProfile.artist_name,
+      name: artistProfile.artist_name,
+      avatar_url: artistProfile.profile_image_url || artistProfile.avatar_url || artistProfile.image_url,
+      image: artistProfile.profile_image_url || artistProfile.image_url || artistProfile.avatar_url,
+      total_followers: artistProfile.spotify_followers || artistProfile.total_followers,
+      viberate_uuid: artistProfile.viberate_uuid
+    };
+  }
+  
+  // If no artist_profiles, try artists table
+  if (!artist) {
+    const { data: artistData } = await supabase
+      .from('artists')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (artistData) {
+      artist = artistData;
+    }
+  }
 
-  // If no direct artist, check if user is part of an agency and get first artist
+  // If still no artist and user is a manager, get first artist from agency
   if (!artist && profile?.global_role === 'artist_manager') {
     const { data: agencyUser } = await supabase
       .from('agency_users')
@@ -39,43 +64,55 @@ async function ArtistHeader() {
       .single();
 
     if (agencyUser?.agency_id) {
-      const { data: artists } = await supabase
-        .from('artists')
+      // First try artist_profiles
+      const { data: profiles } = await supabase
+        .from('artist_profiles')
         .select('*')
-        .eq('agency_id', agencyUser.agency_id)
         .limit(1);
       
-      artist = artists?.[0];
+      if (profiles?.[0]) {
+        artist = {
+          stage_name: profiles[0].stage_name || profiles[0].artist_name,
+          name: profiles[0].artist_name,
+          avatar_url: profiles[0].profile_image_url || profiles[0].avatar_url || profiles[0].image_url,
+          image: profiles[0].profile_image_url || profiles[0].image_url || profiles[0].avatar_url,
+          total_followers: profiles[0].spotify_followers || profiles[0].total_followers
+        };
+      } else {
+        // Fallback to artists table
+        const { data: artists } = await supabase
+          .from('artists')
+          .select('*')
+          .eq('agency_id', agencyUser.agency_id)
+          .limit(1);
+        
+        artist = artists?.[0];
+      }
     }
   }
 
-  // If still no artist, try artist_profiles table
-  if (!artist) {
-    const { data: artistProfile } = await supabase
-      .from('artist_profiles')
-      .select('*')
-      .eq('user_id', user.id)
-      .single();
-    
-    if (artistProfile) {
-      artist = {
-        stage_name: artistProfile.stage_name || artistProfile.artist_name,
-        avatar_url: artistProfile.avatar_url,
-        total_followers: artistProfile.total_followers
-      };
-    }
-  }
+  // Get the best available data
+  const displayName = artist?.stage_name || artist?.name || artist?.artist_name || profile?.first_name || user.email?.split('@')[0] || "Artist";
+  const avatarUrl = artist?.avatar_url || artist?.image || artist?.image_url || artistProfile?.profile_image_url || profile?.avatar_url;
+  const followers = artist?.total_followers || artist?.spotify_followers;
 
-  const displayName = artist?.stage_name || artist?.name || profile?.first_name || user.email?.split('@')[0] || "Artist";
-  const avatarUrl = artist?.avatar_url || artist?.image || profile?.avatar_url;
-  const followers = artist?.total_followers;
+  // Log for debugging
+  console.log('Artist data:', { 
+    artist, 
+    displayName, 
+    avatarUrl, 
+    followers,
+    artistProfile 
+  });
 
   return (
     <div className="flex items-center gap-3">
       <Avatar className="h-12 w-12 border-2 border-border shadow-md">
-        <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
+        {avatarUrl ? (
+          <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
+        ) : null}
         <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-          <Music className="h-6 w-6" />
+          <span className="text-lg">{displayName.charAt(0).toUpperCase()}</span>
         </AvatarFallback>
       </Avatar>
       <div>
