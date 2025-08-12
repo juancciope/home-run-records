@@ -21,6 +21,8 @@ interface AddDataModalProps {
   recordType: string
   onRecordAdded?: () => void
   children?: React.ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
 }
 
 const SECTION_CONFIGS = {
@@ -76,10 +78,14 @@ const SECTION_CONFIGS = {
   }
 }
 
-export function AddDataModal({ section, recordType, onRecordAdded, children }: AddDataModalProps) {
+export function AddDataModal({ section, recordType, onRecordAdded, children, open: externalOpen, onOpenChange: externalOnOpenChange }: AddDataModalProps) {
   const { user } = useAuth()
-  const [open, setOpen] = React.useState(false)
+  const [internalOpen, setInternalOpen] = React.useState(false)
   const [isLoading, setIsLoading] = React.useState(false)
+
+  // Use external state if provided, otherwise use internal state
+  const open = externalOpen !== undefined ? externalOpen : internalOpen
+  const setOpen = externalOnOpenChange || setInternalOpen
   const [csvData, setCsvData] = React.useState('')
   const [importResults, setImportResults] = React.useState<{ success: number; errors: string[] } | null>(null)
   
@@ -547,6 +553,137 @@ export function AddDataModal({ section, recordType, onRecordAdded, children }: A
     }
   }
 
+  // Render the dialog content
+  const dialogContent = (
+    <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+      <DialogHeader>
+        <DialogTitle className="flex items-center gap-2">
+          <Plus className="h-5 w-5" />
+          {config.title}
+        </DialogTitle>
+        <DialogDescription>
+          {config.description}
+        </DialogDescription>
+      </DialogHeader>
+
+      <Tabs defaultValue="manual" className="mt-4">
+        <TabsList className="grid w-full grid-cols-2">
+          <TabsTrigger value="manual" className="flex items-center gap-2">
+            <FileText className="h-4 w-4" />
+            Manual Entry
+          </TabsTrigger>
+          <TabsTrigger value="csv" className="flex items-center gap-2">
+            <Upload className="h-4 w-4" />
+            CSV Import
+          </TabsTrigger>
+        </TabsList>
+
+        <TabsContent value="manual" className="mt-6">
+          <form onSubmit={handleManualSubmit}>
+            <ScrollArea className="max-h-96 pr-4">
+              <div className="space-y-4">
+                <div>
+                  <Label>Record Type</Label>
+                  <div className="mt-2">
+                    <Badge variant="secondary">
+                      {config.recordTypes[recordType as keyof typeof config.recordTypes]}
+                    </Badge>
+                  </div>
+                </div>
+                <Separator />
+                {renderManualForm()}
+              </div>
+            </ScrollArea>
+            <div className="flex justify-end gap-2 mt-6">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading}>
+                {isLoading ? 'Adding...' : 'Add Record'}
+              </Button>
+            </div>
+          </form>
+        </TabsContent>
+
+        <TabsContent value="csv" className="mt-6">
+          <div className="space-y-4">
+            <div>
+              <div className="flex items-center justify-between mb-2">
+                <Label>CSV Data</Label>
+                <Button
+                  type="button"
+                  variant="outline"
+                  size="sm"
+                  onClick={downloadCSVTemplate}
+                >
+                  Download Template
+                </Button>
+              </div>
+              <Textarea
+                value={csvData}
+                onChange={(e) => setCsvData(e.target.value)}
+                placeholder={`Paste your CSV data here. Expected format:\n${config.csvTemplate}`}
+                rows={8}
+                className="font-mono text-sm"
+              />
+            </div>
+
+            {importResults && (
+              <div className="space-y-2">
+                <div className="flex items-center gap-2 text-sm">
+                  <CheckCircle2 className="h-4 w-4 text-green-600" />
+                  <span className="text-green-600">Successfully imported: {importResults.success}</span>
+                </div>
+                {importResults.errors.length > 0 && (
+                  <div className="space-y-1">
+                    <div className="flex items-center gap-2 text-sm">
+                      <AlertCircle className="h-4 w-4 text-red-600" />
+                      <span className="text-red-600">Errors: {importResults.errors.length}</span>
+                    </div>
+                    <ScrollArea className="max-h-32">
+                      <div className="space-y-1">
+                        {importResults.errors.map((error, index) => (
+                          <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                            {error}
+                          </div>
+                        ))}
+                      </div>
+                    </ScrollArea>
+                  </div>
+                )}
+              </div>
+            )}
+
+            <div className="flex justify-end gap-2">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button
+                onClick={handleCSVImport}
+                disabled={isLoading || !csvData.trim()}
+              >
+                {isLoading ? 'Importing...' : 'Import CSV'}
+              </Button>
+            </div>
+          </div>
+        </TabsContent>
+      </Tabs>
+    </DialogContent>
+  );
+
+  // If external state is provided, render children outside dialog
+  if (externalOpen !== undefined) {
+    return (
+      <>
+        {children}
+        <Dialog open={open} onOpenChange={setOpen}>
+          {dialogContent}
+        </Dialog>
+      </>
+    );
+  }
+
+  // Default behavior with internal state and DialogTrigger
   return (
     <Dialog open={open} onOpenChange={setOpen}>
       <DialogTrigger asChild>
@@ -556,120 +693,7 @@ export function AddDataModal({ section, recordType, onRecordAdded, children }: A
           </Button>
         )}
       </DialogTrigger>
-      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
-        <DialogHeader>
-          <DialogTitle className="flex items-center gap-2">
-            <Plus className="h-5 w-5" />
-            {config.title}
-          </DialogTitle>
-          <DialogDescription>
-            {config.description}
-          </DialogDescription>
-        </DialogHeader>
-
-        <Tabs defaultValue="manual" className="mt-4">
-          <TabsList className="grid w-full grid-cols-2">
-            <TabsTrigger value="manual" className="flex items-center gap-2">
-              <FileText className="h-4 w-4" />
-              Manual Entry
-            </TabsTrigger>
-            <TabsTrigger value="csv" className="flex items-center gap-2">
-              <Upload className="h-4 w-4" />
-              CSV Import
-            </TabsTrigger>
-          </TabsList>
-
-          <TabsContent value="manual" className="mt-6">
-            <form onSubmit={handleManualSubmit}>
-              <ScrollArea className="max-h-96 pr-4">
-                <div className="space-y-4">
-                  <div>
-                    <Label>Record Type</Label>
-                    <div className="mt-2">
-                      <Badge variant="secondary">
-                        {config.recordTypes[recordType as keyof typeof config.recordTypes]}
-                      </Badge>
-                    </div>
-                  </div>
-                  <Separator />
-                  {renderManualForm()}
-                </div>
-              </ScrollArea>
-              <div className="flex justify-end gap-2 mt-6">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button type="submit" disabled={isLoading}>
-                  {isLoading ? 'Adding...' : 'Add Record'}
-                </Button>
-              </div>
-            </form>
-          </TabsContent>
-
-          <TabsContent value="csv" className="mt-6">
-            <div className="space-y-4">
-              <div>
-                <div className="flex items-center justify-between mb-2">
-                  <Label>CSV Data</Label>
-                  <Button
-                    type="button"
-                    variant="outline"
-                    size="sm"
-                    onClick={downloadCSVTemplate}
-                  >
-                    Download Template
-                  </Button>
-                </div>
-                <Textarea
-                  value={csvData}
-                  onChange={(e) => setCsvData(e.target.value)}
-                  placeholder={`Paste your CSV data here. Expected format:\n${config.csvTemplate}`}
-                  rows={8}
-                  className="font-mono text-sm"
-                />
-              </div>
-
-              {importResults && (
-                <div className="space-y-2">
-                  <div className="flex items-center gap-2 text-sm">
-                    <CheckCircle2 className="h-4 w-4 text-green-600" />
-                    <span className="text-green-600">Successfully imported: {importResults.success}</span>
-                  </div>
-                  {importResults.errors.length > 0 && (
-                    <div className="space-y-1">
-                      <div className="flex items-center gap-2 text-sm">
-                        <AlertCircle className="h-4 w-4 text-red-600" />
-                        <span className="text-red-600">Errors: {importResults.errors.length}</span>
-                      </div>
-                      <ScrollArea className="max-h-32">
-                        <div className="space-y-1">
-                          {importResults.errors.map((error, index) => (
-                            <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
-                              {error}
-                            </div>
-                          ))}
-                        </div>
-                      </ScrollArea>
-                    </div>
-                  )}
-                </div>
-              )}
-
-              <div className="flex justify-end gap-2">
-                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
-                  Cancel
-                </Button>
-                <Button
-                  onClick={handleCSVImport}
-                  disabled={isLoading || !csvData.trim()}
-                >
-                  {isLoading ? 'Importing...' : 'Import CSV'}
-                </Button>
-              </div>
-            </div>
-          </TabsContent>
-        </Tabs>
-      </DialogContent>
+      {dialogContent}
     </Dialog>
   )
 }

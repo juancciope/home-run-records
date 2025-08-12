@@ -102,11 +102,15 @@ function AddDataButton({
   tooltip: string;
   onRecordAdded?: () => void;
 }) {
+  const [open, setOpen] = React.useState(false);
+
   return (
     <AddDataModal
       section={section}
       recordType={recordType}
       onRecordAdded={onRecordAdded}
+      open={open}
+      onOpenChange={setOpen}
     >
       <Tooltip>
         <TooltipTrigger asChild>
@@ -114,6 +118,7 @@ function AddDataButton({
             variant="ghost"
             size="sm"
             className="h-7 w-7 p-0 shrink-0"
+            onClick={() => setOpen(true)}
           >
             <Plus className="h-3.5 w-3.5" />
             <span className="sr-only">{tooltip}</span>
