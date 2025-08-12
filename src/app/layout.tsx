@@ -1,6 +1,7 @@
 import type { Metadata } from "next";
 import { Geist, Geist_Mono } from "next/font/google";
-import { ClientLayout } from "@/components/client-layout";
+import { AuthProvider } from "@/contexts/auth-provider";
+import { getUser } from "@/utils/auth";
 import "./globals.css";
 
 const geistSans = Geist({
@@ -18,19 +19,22 @@ export const metadata: Metadata = {
   description: "Professional platform for music artists and agencies to track performance and grow their audience",
 };
 
-export default function RootLayout({
+export default async function RootLayout({
   children,
 }: Readonly<{
   children: React.ReactNode;
 }>) {
+  // Fetch user data server-side - this is safe and doesn't cause deadlocks
+  const user = await getUser();
+
   return (
     <html lang="en">
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        <ClientLayout>
+        <AuthProvider initialUser={user}>
           {children}
-        </ClientLayout>
+        </AuthProvider>
       </body>
     </html>
   );

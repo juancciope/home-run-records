@@ -1,10 +1,5 @@
-'use client';
-
-import { useState } from 'react';
-import { useRouter } from 'next/navigation';
 import Link from 'next/link';
-import { signIn } from '@/lib/supabaseClient';
-import { Loader2 } from 'lucide-react';
+import { login } from '@/app/login/actions';
 
 import { cn } from "@/lib/utils"
 import { Button } from "@/components/ui/button"
@@ -17,43 +12,11 @@ import {
 } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
 import { Label } from "@/components/ui/label"
-import { Alert, AlertDescription } from "@/components/ui/alert"
 
 export function LoginForm({
   className,
   ...props
 }: React.ComponentPropsWithoutRef<"div">) {
-  const router = useRouter();
-  const [email, setEmail] = useState('');
-  const [password, setPassword] = useState('');
-  const [isLoading, setIsLoading] = useState(false);
-  const [error, setError] = useState('');
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setIsLoading(true);
-
-    try {
-      const { data, error: signInError } = await signIn(email, password);
-      
-      if (signInError) {
-        setError(signInError.message);
-        return;
-      }
-
-      if (data.user) {
-        // Navigate to dashboard immediately - auth listener will handle state update
-        router.replace('/dashboard');
-      }
-    } catch (err) {
-      setError('An unexpected error occurred. Please try again.');
-      console.error('Login error:', err);
-    } finally {
-      setIsLoading(false);
-    }
-  };
-
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
       <Card>
@@ -64,16 +27,15 @@ export function LoginForm({
           </CardDescription>
         </CardHeader>
         <CardContent>
-          <form onSubmit={handleSubmit}>
+          <form action={login}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
                 <Label htmlFor="email">Email</Label>
                 <Input
                   id="email"
+                  name="email"
                   type="email"
                   placeholder="m@example.com"
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
                   autoComplete="email"
                   required
                 />
@@ -81,42 +43,24 @@ export function LoginForm({
               <div className="grid gap-2">
                 <div className="flex items-center">
                   <Label htmlFor="password">Password</Label>
-                  <Button
-                    variant="link"
-                    size="sm"
-                    className="ml-auto p-0 h-auto text-sm underline-offset-4"
-                    onClick={() => alert('Password reset functionality coming soon!')}
+                  <Link
+                    href="#"
+                    className="ml-auto text-sm underline underline-offset-4 hover:text-primary"
                   >
                     Forgot your password?
-                  </Button>
+                  </Link>
                 </div>
                 <Input 
                   id="password" 
+                  name="password"
                   type="password" 
-                  value={password}
-                  onChange={(e) => setPassword(e.target.value)}
                   autoComplete="current-password"
                   required 
                 />
               </div>
 
-              {error && (
-                <Alert variant="destructive">
-                  <AlertDescription>
-                    {error}
-                  </AlertDescription>
-                </Alert>
-              )}
-
-              <Button type="submit" className="w-full" disabled={isLoading}>
-                {isLoading ? (
-                  <>
-                    <Loader2 className="mr-2 h-4 w-4 animate-spin" />
-                    Signing In...
-                  </>
-                ) : (
-                  'Login'
-                )}
+              <Button type="submit" className="w-full">
+                Login
               </Button>
             </div>
             <div className="mt-4 text-center text-sm">

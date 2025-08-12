@@ -54,30 +54,51 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-  console.log('🔑 === STARTING getCurrentUser function (using getSession only) ===');
+  console.log('🔑 === STARTING getCurrentUser function (with timeout protection) ===');
   try {
-    console.log('🔑 Step 1: Using getSession instead of getUser to avoid timeout');
+    console.log('🔑 Step 1: Creating timeout wrapper for getSession');
     
-    const { data: { session }, error } = await supabase.auth.getSession();
-    
-    console.log('🔑 Step 2: getSession result:', {
-      hasSession: !!session,
-      hasUser: !!session?.user,
-      userId: session?.user?.id,
-      userEmail: session?.user?.email,
-      error: error ? {
-        message: error.message,
-        name: error.name
-      } : null
+    // Create a timeout promise
+    const timeoutPromise = new Promise((_, reject) => {
+      setTimeout(() => reject(new Error('getSession timeout after 5 seconds')), 5000);
     });
     
-    if (error) {
-      console.error('💥 getCurrentUser (getSession) error:', error);
-      throw error;
-    }
+    // Create the getSession promise
+    const getSessionPromise = supabase.auth.getSession();
     
-    console.log('🔑 === COMPLETED getCurrentUser function ===');
-    return session?.user || null;
+    console.log('🔑 Step 2: Racing getSession against 5s timeout');
+    
+    try {
+      const result = await Promise.race([getSessionPromise, timeoutPromise]) as any;
+      
+      console.log('🔑 Step 3: getSession completed successfully');
+      
+      const { data: { session }, error } = result;
+      
+      console.log('🔑 Step 4: getSession result:', {
+        hasSession: !!session,
+        hasUser: !!session?.user,
+        userId: session?.user?.id,
+        userEmail: session?.user?.email,
+        error: error ? {
+          message: error.message,
+          name: error.name
+        } : null
+      });
+      
+      if (error) {
+        console.error('💥 getCurrentUser (getSession) error:', error);
+        throw error;
+      }
+      
+      console.log('🔑 === COMPLETED getCurrentUser function ===');
+      return session?.user || null;
+    } catch (timeoutError) {
+      console.error('⏰ getSession timed out, returning null user');
+      console.error('⏰ Timeout error:', timeoutError);
+      // Don't throw, just return null so app can continue
+      return null;
+    }
   } catch (error) {
     console.error('💥 FATAL ERROR in getCurrentUser:', {
       error,
