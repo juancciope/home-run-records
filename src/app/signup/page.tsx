@@ -2,7 +2,7 @@
 
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
-import { signUp } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 import { Music, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
 import Link from 'next/link';
 
@@ -35,7 +35,11 @@ export default function SignUpPage() {
 
     try {
       // Sign up user
-      const { data, error: signUpError } = await signUp(email, password);
+      const supabase = createClient();
+      const { data, error: signUpError } = await supabase.auth.signUp({
+        email,
+        password,
+      });
       
       if (signUpError) {
         setError(signUpError.message);

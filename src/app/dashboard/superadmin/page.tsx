@@ -1,18 +1,9 @@
-import { getUserWithProfile } from '@/utils/auth'
-import { redirect } from 'next/navigation'
+import { requireRole } from '@/lib/auth/server-auth'
 import { SuperadminDashboard } from '@/components/superadmin-dashboard'
 
 export default async function SuperadminPage() {
-  const userWithProfile = await getUserWithProfile()
-  
-  if (!userWithProfile || !userWithProfile.profile) {
-    redirect('/login')
-  }
-
-  // Only allow superadmin users
-  if (userWithProfile.profile.global_role !== 'superadmin') {
-    redirect('/dashboard')
-  }
+  // Server-side role validation - redirects automatically if not superadmin
+  await requireRole('superadmin')
 
   return <SuperadminDashboard />
 }

@@ -18,47 +18,33 @@ import {
   SidebarHeader,
   SidebarRail,
 } from "@/components/ui/sidebar"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/contexts/auth-provider"
 import * as React from "react"
 
 
 export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { 
-    user, 
-    currentAgency, 
-    userAgencies, 
-    availableArtists,
-    hasRole,
-    canManageCurrentAgency,
-    canSwitchAgencies,
-    switchAgency 
-  } = useAuth();
+  const { user, profile, isLoading } = useAuth();
   
-  // Prepare agency teams data
-  const agencyTeams = userAgencies.map(ua => ({
-    name: ua.agency.name,
+  // Simplified: Use profile data if available, fallback to user data
+  const isSuperId = profile?.global_role === 'superadmin';
+  const isManager = profile?.global_role === 'artist_manager';
+  
+  // Prepare simplified agency teams data (placeholder for now)
+  const agencyTeams = [{
+    name: "Artist OS",
     logo: GalleryVerticalEnd,
-    plan: hasRole('superadmin') ? 'Super Admin Access' : 
-          ua.role === 'artist_manager' ? 'Agency Admin' : 
+    plan: isSuperId ? 'Super Admin Access' : 
+          isManager ? 'Agency Admin' : 
           'Artist Access'
-  }));
-
-  // If user has no agencies, show placeholder
-  if (agencyTeams.length === 0) {
-    agencyTeams.push({
-      name: "Artist OS",
-      logo: GalleryVerticalEnd,
-      plan: "Getting Started"
-    });
-  }
+  }];
   
-  // Prepare user data for NavUser component
+  // Prepare user data for NavUser component  
   const userData = {
-    name: user?.first_name && user?.last_name 
-      ? `${user.first_name} ${user.last_name}`
+    name: profile?.first_name && profile?.last_name 
+      ? `${profile.first_name} ${profile.last_name}`
       : user?.email?.split('@')[0] || "User",
     email: user?.email || "user@example.com",
-    avatar: user?.avatar_url || "",
+    avatar: profile?.avatar_url || "",
   };
 
   // Dynamic navigation based on role
@@ -85,7 +71,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
             ],
           },
           // Only show My Team for managers and superadmins
-          ...(canManageCurrentAgency ? [{
+          ...(isManager || isSuperId ? [{
             title: "My Team",
             url: "/team",
           }] : [])
@@ -110,7 +96,7 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
     ];
 
     // Add superadmin-specific items
-    if (hasRole('superadmin')) {
+    if (isSuperId) {
       baseItems.push({
         title: "Admin",
         url: "#",
@@ -163,14 +149,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
       <SidebarHeader>
         <TeamSwitcher 
           teams={agencyTeams} 
-          canSwitch={canSwitchAgencies}
-          onSwitch={switchAgency}
-          currentAgency={currentAgency}
+          canSwitch={false}
+          onSwitch={() => {}}
+          currentAgency={null}
         />
-        {/* Only show artist switcher for managers and superadmins with artists */}
-        {canManageCurrentAgency && availableArtists.length > 0 && (
-          <ArtistSwitcher artists={availableArtists} />
-        )}
+        {/* Artist switcher temporarily disabled until multi-tenant data is properly loaded */}
       </SidebarHeader>
       <SidebarContent>
         <NavMain items={getNavigationItems()} />

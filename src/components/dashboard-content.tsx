@@ -46,19 +46,14 @@ import {
   XAxis,
   Label,
 } from "recharts"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/contexts/auth-provider"
 import { ArtistOnboarding } from "./artist-onboarding"
 
 export function DashboardContent() {
-  const { availableArtists, user: authUser, isLoading, hasRole } = useAuth();
+  const { user: authUser, isLoading, profile } = useAuth();
   
-  // Redirect superadmin users to their specific dashboard
-  React.useEffect(() => {
-    if (authUser && hasRole('superadmin')) {
-      window.location.href = '/dashboard/superadmin';
-    }
-  }, [authUser, hasRole]);
-  const user = availableArtists?.[0]; // Use first artist for now
+  // Note: Superadmin redirect now handled server-side in dashboard page
+  const user = authUser; // Use authenticated user directly
   const [pipelineMetrics, setPipelineMetrics] = React.useState<{
     production: { unfinished: number; finished: number; released: number };
     marketing: { totalReach: number; engagedAudience: number; totalFollowers: number; youtubeSubscribers: number };

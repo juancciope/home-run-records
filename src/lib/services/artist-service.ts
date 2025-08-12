@@ -1,4 +1,4 @@
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 
 export interface ArtistMetric {
   id: string;
@@ -76,6 +76,7 @@ export class ArtistService {
    */
   static async recordMetric(metric: Omit<ArtistMetric, 'id'>): Promise<boolean> {
     try {
+      const supabase = createClient();
       const { error } = await supabase
         .from('artist_metrics')
         .upsert({
@@ -108,6 +109,7 @@ export class ArtistService {
     endDate?: string
   ): Promise<ArtistMetric[]> {
     try {
+      const supabase = createClient();
       let query = supabase
         .from('artist_metrics')
         .select('*')
@@ -145,6 +147,7 @@ export class ArtistService {
    */
   static async saveRelease(release: Omit<Release, 'id'> & { id?: string }): Promise<Release | null> {
     try {
+      const supabase = createClient();
       const releaseData = {
         user_id: release.user_id,
         title: release.title,

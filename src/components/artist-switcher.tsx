@@ -19,7 +19,15 @@ import {
   useSidebar,
 } from "@/components/ui/sidebar"
 
-import { Artist } from "@/contexts/auth-context"
+// Simplified Artist type for artist switcher
+interface Artist {
+  id: string
+  name: string
+  email?: string
+  avatar_url?: string
+  stage_name?: string
+  total_followers?: number
+}
 
 export function ArtistSwitcher({ artists }: { artists: Artist[] }) {
   const { isMobile } = useSidebar()

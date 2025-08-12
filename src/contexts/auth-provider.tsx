@@ -3,15 +3,18 @@
 import { createContext, useContext, useEffect, useState } from 'react'
 import { User } from '@supabase/supabase-js'
 import { createClient } from '@/utils/supabase/client'
+import type { UserProfile } from '@/lib/auth/server-auth'
 
-type AuthContextType = {
+interface AuthContextType {
   user: User | null
   isLoading: boolean
+  profile: UserProfile | null
 }
 
 const AuthContext = createContext<AuthContextType>({
   user: null,
   isLoading: true,
+  profile: null,
 })
 
 export const useAuth = () => {
@@ -24,35 +27,45 @@ export const useAuth = () => {
 
 export function AuthProvider({
   children,
-  initialUser
+  initialUser,
+  initialProfile,
 }: {
   children: React.ReactNode
   initialUser: User | null
+  initialProfile: UserProfile | null
 }) {
   const [user, setUser] = useState<User | null>(initialUser)
+  const [profile, setProfile] = useState<UserProfile | null>(initialProfile)
   const [isLoading, setIsLoading] = useState(false)
-  const supabase = createClient()
 
   useEffect(() => {
     // Initialize with server-side data
     setUser(initialUser)
+    setProfile(initialProfile)
     setIsLoading(false)
 
-    // IMPORTANT: Only listen for auth changes, don't make async Supabase calls
-    // in the callback to avoid deadlocks
+    const supabase = createClient()
+
+    // CRITICAL: Only listen for auth changes, NO async calls to prevent deadlocks
     const {
       data: { subscription },
     } = supabase.auth.onAuthStateChange((event, session) => {
-      console.log('Auth event:', event)
-      // Simply update the user state without additional async calls
+      console.log('🔄 Auth event:', event, 'User:', session?.user?.email || 'none')
+      
+      // Simply update the user state - no async Supabase calls
       setUser(session?.user ?? null)
+      
+      // Clear profile if user logged out - Server Components will handle profile loading
+      if (!session?.user) {
+        setProfile(null)
+      }
     })
 
     return () => subscription.unsubscribe()
-  }, [supabase, initialUser])
+  }, [initialUser, initialProfile])
 
   return (
-    <AuthContext.Provider value={{ user, isLoading }}>
+    <AuthContext.Provider value={{ user, isLoading, profile }}>
       {children}
     </AuthContext.Provider>
   )

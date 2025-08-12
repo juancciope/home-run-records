@@ -9,7 +9,7 @@ import { Label } from "@/components/ui/label"
 import { Alert, AlertDescription, AlertTitle } from "@/components/ui/alert"
 import { RadioGroup, RadioGroupItem } from "@/components/ui/radio-group"
 import { Loader2, Music, CheckCircle, AlertCircle, Sparkles } from "lucide-react"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/contexts/auth-provider"
 
 interface ArtistOnboardingProps {
   onComplete: () => void;

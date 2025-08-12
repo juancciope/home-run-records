@@ -2,42 +2,46 @@
 
 import { useState, useEffect } from 'react';
 import { useRouter } from 'next/navigation';
-import { getCurrentUser, getQuizAnswers, getStrategyPlan, saveStrategyPlan } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
+import { useAuth } from '@/contexts/auth-provider';
 import { generateStrategyPlan } from '@/lib/openai';
 import { Music, Loader2, Download, ArrowRight, CheckCircle } from 'lucide-react';
 
 export default function PlanPage() {
   const router = useRouter();
-  const [user, setUser] = useState<{ id: string; email?: string } | null>(null);
+  const { user } = useAuth();
   const [strategyPlan, setStrategyPlan] = useState<string>('');
   const [isLoading, setIsLoading] = useState(true);
   const [isGenerating, setIsGenerating] = useState(false);
   const [error, setError] = useState('');
 
   useEffect(() => {
-    loadUserAndPlan();
-  }, []); // eslint-disable-line react-hooks/exhaustive-deps
+    if (user) {
+      loadUserAndPlan();
+    } else {
+      router.push('/signup');
+    }
+  }, [user, router]);
 
   const loadUserAndPlan = async () => {
+    if (!user) return;
+    
     try {
       setIsLoading(true);
-      
-      // Get current user
-      const currentUser = await getCurrentUser();
-      if (!currentUser) {
-        router.push('/signup');
-        return;
-      }
-      setUser(currentUser);
+      const supabase = createClient();
 
       // Check if strategy plan already exists
-      const { data: existingPlan } = await getStrategyPlan(currentUser.id);
+      const { data: existingPlan } = await supabase
+        .from('strategy_plans')
+        .select('plan_text')
+        .eq('user_id', user.id)
+        .single();
       
       if (existingPlan) {
         setStrategyPlan(existingPlan.plan_text);
       } else {
         // Generate new plan
-        await generateNewPlan(currentUser.id);
+        await generateNewPlan(user.id);
       }
     } catch (err) {
       console.error('Error loading plan:', err);
@@ -51,9 +55,15 @@ export default function PlanPage() {
     try {
       setIsGenerating(true);
       setError('');
+      const supabase = createClient();
 
       // Get quiz answers
-      const { data: quizData, error: quizError } = await getQuizAnswers(userId);
+      const { data: quizData, error: quizError } = await supabase
+        .from('quiz_answers')
+        .select('answers')
+        .eq('user_id', userId)
+        .single();
+        
       if (quizError || !quizData) {
         setError('Quiz answers not found. Please complete the quiz first.');
         router.push('/quiz');
@@ -64,7 +74,9 @@ export default function PlanPage() {
       const aiPlan = await generateStrategyPlan(quizData.answers);
       
       // Save to database
-      await saveStrategyPlan(userId, aiPlan);
+      await supabase
+        .from('strategy_plans')
+        .upsert({ user_id: userId, plan_text: aiPlan });
       
       setStrategyPlan(aiPlan);
     } catch (err) {

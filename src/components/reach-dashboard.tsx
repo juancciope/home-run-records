@@ -44,7 +44,7 @@ import {
   Line,
   LineChart,
 } from "recharts"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/contexts/auth-provider"
 
 interface PlatformData {
   spotify: { followers: number; streams: number };
@@ -160,8 +160,8 @@ const PLATFORM_META = {
 };
 
 export function ReachDashboard() {
-  const { availableArtists, user: authUser, isLoading } = useAuth();
-  const user = availableArtists?.[0]; // Use first artist for now
+  const { user: authUser, isLoading } = useAuth();
+  const user = authUser; // Use authenticated user directly
   const [analyticsData, setAnalyticsData] = React.useState<ReachAnalytics | null>(null);
   const [historicalData, setHistoricalData] = React.useState<{
     streaming: {

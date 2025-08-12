@@ -19,7 +19,7 @@ import {
   Star
 } from "lucide-react"
 import Link from "next/link"
-import { useAuth } from "@/contexts/auth-context"
+import { useAuth } from "@/contexts/auth-provider"
 import { useState } from "react"
 import { useRouter } from "next/navigation"
 

@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/server';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -11,6 +11,8 @@ export async function GET(request: NextRequest) {
 
   try {
     console.log('Fetching analytics data from database for artist UUID:', artistId);
+
+    const supabase = await createClient();
 
     // Query artist data from database
     const { data: artist, error: artistError } = await supabase

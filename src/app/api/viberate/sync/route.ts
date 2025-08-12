@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/server';
 
 export async function POST(request: NextRequest) {
   try {
@@ -39,6 +39,8 @@ export async function POST(request: NextRequest) {
         name: artistData.name,
         image: artistData.image
       });
+      
+      const supabase = await createClient();
       
       // Insert or update artist record
       const { data: artistRecord, error: artistError } = await supabase
