@@ -41,16 +41,26 @@ export interface AgencyUser {
  * Always use this for server-side auth validation
  */
 export async function getServerUser() {
-  const supabase = await createClient()
-  
-  const { data: { user }, error } = await supabase.auth.getUser()
-  
-  if (error) {
-    console.error('Error getting user:', error)
+  try {
+    const supabase = await createClient()
+    
+    const { data: { user }, error } = await supabase.auth.getUser()
+    
+    if (error) {
+      // Handle specific auth session missing error
+      if (error.message?.includes('Auth session missing') || error.status === 400) {
+        console.warn('Auth session missing - user likely not logged in')
+        return null
+      }
+      console.error('Error getting user:', error)
+      return null
+    }
+    
+    return user
+  } catch (error) {
+    console.error('Exception getting user:', error)
     return null
   }
-  
-  return user
 }
 
 /**

@@ -92,7 +92,8 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
       }, 2000);
     } catch (error) {
       console.error('Error syncing artist data:', error);
-      setError("Failed to sync artist data. Please try again.");
+      const errorMessage = error instanceof Error ? error.message : "Failed to sync artist data. Please try again.";
+      setError(errorMessage);
     } finally {
       setIsSyncing(false);
     }

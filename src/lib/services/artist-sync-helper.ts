@@ -60,6 +60,18 @@ export class ArtistSyncHelper {
    */
   private static async syncToArtistProfiles(supabase: any, userId: string, userEmail: string, artistData: ArtistSyncData): Promise<boolean> {
     try {
+      // First check if this Viberate artist is already connected to another user
+      const { data: existingConnection } = await supabase
+        .from('artist_profiles')
+        .select('id, email, artist_name')
+        .eq('viberate_artist_id', artistData.uuid)
+        .neq('id', userId) // Exclude current user
+        .single();
+
+      if (existingConnection) {
+        console.error(`Artist ${artistData.name} (${artistData.uuid}) is already connected to user ${existingConnection.email}`);
+        throw new Error(`This artist is already connected to another account (${existingConnection.email}). Each artist can only be connected to one account.`);
+      }
       const profileUpdate = {
         id: userId, // User ID as primary key
         email: userEmail,

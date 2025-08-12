@@ -34,12 +34,20 @@ import { useRouter } from "next/navigation"
 
 export function NavUser({
   user,
+  currentAgency,
+  isManager,
 }: {
   user: {
     name: string
     email: string
     avatar: string
   }
+  currentAgency?: {
+    id: string
+    name: string
+    subscription_tier?: string
+  } | null
+  isManager?: boolean
 }) {
   const { isMobile } = useSidebar()
   const router = useRouter()
@@ -89,6 +97,23 @@ export function NavUser({
               </div>
             </DropdownMenuLabel>
             <DropdownMenuSeparator />
+            {/* Agency Information for Agency Admins */}
+            {isManager && currentAgency && (
+              <>
+                <DropdownMenuGroup>
+                  <DropdownMenuLabel className="text-xs text-muted-foreground">
+                    Agency
+                  </DropdownMenuLabel>
+                  <div className="px-2 py-1.5">
+                    <div className="text-sm font-medium">{currentAgency.name}</div>
+                    <div className="text-xs text-muted-foreground">
+                      {currentAgency.subscription_tier || 'Standard Plan'}
+                    </div>
+                  </div>
+                </DropdownMenuGroup>
+                <DropdownMenuSeparator />
+              </>
+            )}
             <DropdownMenuGroup>
               <DropdownMenuItem>
                 <Sparkles />

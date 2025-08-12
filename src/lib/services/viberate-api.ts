@@ -228,11 +228,14 @@ export class VibrateService {
         return true;
       } else {
         console.error('Failed to sync artist data using helper');
-        return false;
+        throw new Error('Failed to update artist profile');
       }
     } catch (error) {
       console.error('Error in updateArtistProfile:', error);
-      return false;
+      if (error instanceof Error) {
+        throw error; // Re-throw to preserve the original error message
+      }
+      throw new Error('Failed to update artist profile');
     }
   }
 
@@ -358,14 +361,7 @@ export class VibrateService {
       }
 
       // 2. Update the artist profile with Viberate data
-      const profileUpdated = await this.updateArtistProfile(userId, artistData);
-      
-      if (!profileUpdated) {
-        return {
-          success: false,
-          message: 'Failed to update artist profile'
-        };
-      }
+      await this.updateArtistProfile(userId, artistData);
 
       // 3. Store initial metrics
       await this.storeMetrics(userId, artistData);

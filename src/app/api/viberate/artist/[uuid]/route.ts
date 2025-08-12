@@ -14,38 +14,60 @@ export async function GET(
   }
 
   if (!VIBERATE_API_KEY || VIBERATE_API_KEY === 'your-viberate-api-key-here') {
-    console.warn('Viberate API key not configured, returning mock artist data');
+    console.warn('Viberate API key not configured, returning mock artist data for UUID:', uuid);
+    
+    // Create realistic mock data based on UUID
+    const isFirstArtist = uuid === 'c803da56-c6bd-4c61-addb-f1063544a1a2';
+    const artistName = isFirstArtist ? 'Mary Sarah' : 'Mary Sarah (Alternative)';
+    
     return NextResponse.json({
       success: true,
       data: {
         uuid,
-        name: 'Mock Artist',
-        image: 'https://via.placeholder.com/300x300?text=Mock+Artist',
-        bio: 'This is a mock artist profile for development purposes.',
-        country: { name: 'United States', code: 'US' },
-        genre: { name: 'Pop' },
-        subgenres: [{ name: 'Pop Rock' }],
-        rank: 1000,
-        verified: true,
+        name: artistName,
+        slug: artistName.toLowerCase().replace(/\s+/g, '-').replace(/[()]/g, ''),
+        image: `https://via.placeholder.com/300x300?text=${encodeURIComponent(artistName)}`,
+        bio: `${artistName} is a talented artist with a growing fanbase across multiple platforms.`,
+        country: isFirstArtist ? { name: 'United States', code: 'US' } : { name: 'Canada', code: 'CA' },
+        genre: isFirstArtist ? { name: 'Pop' } : { name: 'Rock' },
+        subgenres: isFirstArtist ? [{ name: 'Pop Rock' }] : [{ name: 'Alternative Rock' }],
+        rank: isFirstArtist ? 1000 : 2000,
+        verified: isFirstArtist ? false : true,
+        spotify_id: isFirstArtist ? '5tP5qKnhTbTa2uEL3CLHh9' : '3TVXtAsR1Inumwj472S9r4',
         social_links: [
-          { channel: 'spotify', link: 'https://open.spotify.com/artist/mock' },
-          { channel: 'instagram', link: 'https://instagram.com/mockartist' }
+          { channel: 'spotify', link: `https://open.spotify.com/artist/${isFirstArtist ? '5tP5qKnhTbTa2uEL3CLHh9' : '3TVXtAsR1Inumwj472S9r4'}` },
+          { channel: 'instagram', link: `https://instagram.com/${artistName.toLowerCase().replace(/\s+/g, '')}` }
         ],
         tracks: [
-          { uuid: 'mock-1', name: 'Mock Song 1', slug: 'mock-song-1' },
-          { uuid: 'mock-2', name: 'Mock Song 2', slug: 'mock-song-2' }
+          { uuid: `${uuid}-track-1`, name: 'Hit Song 1', slug: 'hit-song-1' },
+          { uuid: `${uuid}-track-2`, name: 'Popular Track', slug: 'popular-track' }
         ],
         events: [],
-        fanbase: {},
+        fanbase: {
+          spotify: { data: [{ date: '2025-01-01', value: 25000 }] },
+          instagram: { data: [{ date: '2025-01-01', value: 15000 }] }
+        },
         fanbase_distribution: {
           spotify: { followers: 25000 },
           instagram: { followers: 15000 },
-          youtube: { followers: 10000 }
+          youtube: { followers: 10000 },
+          tiktok: { followers: 5000 }
         },
         similar_artists: [],
         ranks: { 
-          current: { global: 1000, country: 100 },
-          previous: { global: 1100, country: 110 }
+          current: { global: isFirstArtist ? 1000 : 2000, country: isFirstArtist ? 100 : 200 },
+          previous: { global: isFirstArtist ? 1100 : 2100, country: isFirstArtist ? 110 : 210 }
+        },
+        metrics: {
+          instagram_followers: 15000,
+          tiktok_followers: 5000,
+          facebook_followers: 8000,
+          twitter_followers: 3000,
+          youtube_subscribers: 10000,
+          spotify_followers: 25000,
+          spotify_monthly_listeners: 45000,
+          total_followers: 66000,
+          engagement_rate: 0.035
         },
         fetched_at: new Date().toISOString()
       }

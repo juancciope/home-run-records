@@ -22,15 +22,30 @@ import { useAuth } from "@/contexts/auth-provider"
 import * as React from "react"
 
 
-export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
-  const { user, profile, isLoading } = useAuth();
+interface AppSidebarProps extends React.ComponentProps<typeof Sidebar> {
+  user?: any;
+  profile?: any;
+  agencies?: any[];
+  currentAgency?: any;
+}
+
+export function AppSidebar({ user, profile, agencies, currentAgency, ...props }: AppSidebarProps) {
+  // Fallback to auth context if props not provided (for client components)
+  const authContext = useAuth();
+  const currentUser = user || authContext.user;
+  const currentProfile = profile || authContext.profile;
   
-  // Simplified: Use profile data if available, fallback to user data
-  const isSuperId = profile?.global_role === 'superadmin';
-  const isManager = profile?.global_role === 'artist_manager';
+  const isSuperId = currentProfile?.global_role === 'superadmin';
+  const isManager = currentProfile?.global_role === 'artist_manager';
   
-  // Prepare simplified agency teams data (placeholder for now)
-  const agencyTeams = [{
+  // Use real agency data if available
+  const agencyTeams = currentAgency ? [{
+    name: currentAgency.name,
+    logo: GalleryVerticalEnd,
+    plan: isSuperId ? 'Super Admin Access' : 
+          isManager ? 'Agency Admin' : 
+          'Artist Access'
+  }] : [{
     name: "Artist OS",
     logo: GalleryVerticalEnd,
     plan: isSuperId ? 'Super Admin Access' : 
@@ -39,14 +54,12 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }];
   
   // Prepare user data for NavUser component  
-  // TODO: In the future, we could enhance this to show artist name in sidebar too
-  // For now, keeping it as user data to avoid confusion
   const userData = {
-    name: profile?.first_name && profile?.last_name 
-      ? `${profile.first_name} ${profile.last_name}`
-      : user?.email?.split('@')[0] || "User",
-    email: user?.email || "user@example.com",
-    avatar: profile?.avatar_url || "",
+    name: currentProfile?.first_name && currentProfile?.last_name 
+      ? `${currentProfile.first_name} ${currentProfile.last_name}`
+      : currentUser?.email?.split('@')[0] || "User",
+    email: currentUser?.email || "user@example.com",
+    avatar: currentProfile?.avatar_url || "",
   };
 
   // Dynamic navigation based on role
@@ -161,7 +174,11 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
         <NavMain items={getNavigationItems()} />
       </SidebarContent>
       <SidebarFooter>
-        <NavUser user={userData} />
+        <NavUser 
+          user={userData} 
+          currentAgency={currentAgency}
+          isManager={isManager}
+        />
       </SidebarFooter>
       <SidebarRail />
     </Sidebar>

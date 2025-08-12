@@ -13,28 +13,34 @@ export async function GET(request: NextRequest) {
   }
 
   if (!VIBERATE_API_KEY) {
-    // Return mock data when API key is not configured
-    console.warn('Viberate API key not configured, returning mock data');
+    // Return mock data when API key is not configured with realistic UUIDs
+    console.warn('Viberate API key not configured, returning mock data with proper UUID format');
     return NextResponse.json([
       {
-        id: '1',
-        uuid: '1',
+        id: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
+        uuid: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
         name: query,
         image: 'https://via.placeholder.com/150x150?text=Artist',
         slug: query.toLowerCase().replace(/\s+/g, '-'),
         spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
         rank: 1,
-        verified: false
+        verified: false,
+        country: { name: 'United States', code: 'US' },
+        genre: { name: 'Pop' },
+        subgenres: [{ name: 'Pop Rock' }]
       },
       {
-        id: '2',
-        uuid: '2', 
+        id: 'd803da56-c6bd-4c61-addb-f1063544b3b3',
+        uuid: 'd803da56-c6bd-4c61-addb-f1063544b3b3', 
         name: `${query} (Alternative)`,
         image: 'https://via.placeholder.com/150x150?text=Alt',
         slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
         spotify_id: '3TVXtAsR1Inumwj472S9r4',
         rank: 2,
-        verified: false
+        verified: true,
+        country: { name: 'Canada', code: 'CA' },
+        genre: { name: 'Rock' },
+        subgenres: [{ name: 'Alternative Rock' }]
       }
     ]);
   }
@@ -62,24 +68,30 @@ export async function GET(request: NextRequest) {
       // Don't throw error, just log and use fallback
       return NextResponse.json([
         {
-          id: '1',
-          uuid: '1',
+          id: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
+          uuid: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
           name: query,
           image: 'https://via.placeholder.com/150x150?text=Artist',
           slug: query.toLowerCase().replace(/\s+/g, '-'),
           spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
           rank: 1,
-          verified: false
+          verified: false,
+          country: { name: 'United States', code: 'US' },
+          genre: { name: 'Pop' },
+          subgenres: [{ name: 'Pop Rock' }]
         },
         {
-          id: '2',
-          uuid: '2', 
+          id: 'd803da56-c6bd-4c61-addb-f1063544b3b3',
+          uuid: 'd803da56-c6bd-4c61-addb-f1063544b3b3', 
           name: `${query} (Alternative)`,
           image: 'https://via.placeholder.com/150x150?text=Alt',
           slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
           spotify_id: '3TVXtAsR1Inumwj472S9r4',
           rank: 2,
-          verified: false
+          verified: true,
+          country: { name: 'Canada', code: 'CA' },
+          genre: { name: 'Rock' },
+          subgenres: [{ name: 'Alternative Rock' }]
         }
       ]);
     }
@@ -125,24 +137,30 @@ export async function GET(request: NextRequest) {
     // Return mock data as fallback without breaking the flow
     return NextResponse.json([
       {
-        id: '1',
-        uuid: '1',
+        id: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
+        uuid: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
         name: query,
         image: 'https://via.placeholder.com/150x150?text=Artist',
         slug: query.toLowerCase().replace(/\s+/g, '-'),
         spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
         rank: 1,
-        verified: false
+        verified: false,
+        country: { name: 'United States', code: 'US' },
+        genre: { name: 'Pop' },
+        subgenres: [{ name: 'Pop Rock' }]
       },
       {
-        id: '2',
-        uuid: '2', 
+        id: 'd803da56-c6bd-4c61-addb-f1063544b3b3',
+        uuid: 'd803da56-c6bd-4c61-addb-f1063544b3b3', 
         name: `${query} (Alternative)`,
         image: 'https://via.placeholder.com/150x150?text=Alt',
         slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
         spotify_id: '3TVXtAsR1Inumwj472S9r4',
         rank: 2,
-        verified: false
+        verified: true,
+        country: { name: 'Canada', code: 'CA' },
+        genre: { name: 'Rock' },
+        subgenres: [{ name: 'Alternative Rock' }]
       }
     ]);
   }
