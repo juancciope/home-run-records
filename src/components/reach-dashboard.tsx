@@ -495,11 +495,11 @@ export function ReachDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-200 dark:border-green-800">
+        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-200 dark:border-blue-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Users className="h-4 w-4 text-green-600" />
+                <Users className="h-4 w-4 text-blue-600" />
                 <span>Total Followers</span>
               </div>
               <Tooltip>
@@ -521,11 +521,11 @@ export function ReachDashboard() {
           </CardContent>
         </Card>
 
-        <Card className="bg-gradient-to-br from-blue-500/10 to-blue-600/5 border-blue-200 dark:border-blue-800">
+        <Card className="bg-gradient-to-br from-green-500/10 to-green-600/5 border-green-200 dark:border-green-800">
           <CardHeader className="pb-2">
             <CardTitle className="text-sm font-medium flex items-center justify-between">
               <div className="flex items-center gap-2">
-                <Activity className="h-4 w-4 text-blue-600" />
+                <Activity className="h-4 w-4 text-green-600" />
                 <span>Engaged Audience</span>
               </div>
               <Tooltip>

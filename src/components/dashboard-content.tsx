@@ -809,7 +809,7 @@ export function DashboardContent() {
           </Card>
 
           {/* Total Followers */}
-          <Card className="relative border-l-4 border-l-green-500">
+          <Card className="relative border-l-4 border-l-purple-500">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <span>Total Followers</span>
@@ -873,7 +873,7 @@ export function DashboardContent() {
           </Card>
 
           {/* Engaged Audience */}
-          <Card className="relative border-l-4 border-l-purple-500">
+          <Card className="relative border-l-4 border-l-green-500">
             <CardHeader className="pb-3">
               <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <span>Engaged Audience</span>
