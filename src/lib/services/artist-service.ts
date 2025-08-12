@@ -191,6 +191,7 @@ export class ArtistService {
    */
   static async getReleases(userId: string, status?: string): Promise<Release[]> {
     try {
+      const supabase = createClient();
       let query = supabase
         .from('releases')
         .select('*')
@@ -216,6 +217,7 @@ export class ArtistService {
    */
   static async getArtistProfile(userId: string, userEmail?: string) {
     try {
+      const supabase = createClient();
       // First try to get existing profile from artist_profiles table
       const { data, error } = await supabase
         .from('artist_profiles')
@@ -246,6 +248,7 @@ export class ArtistService {
    */
   static async createArtistProfile(userId: string, userEmail?: string) {
     try {
+      const supabase = createClient();
       const profileData = {
         id: userId,
         email: userEmail || 'artist@example.com',
@@ -298,6 +301,7 @@ export class ArtistService {
     onboarding_completed?: boolean;
   }>) {
     try {
+      const supabase = createClient();
       // Add updated_at timestamp
       const updateData = {
         ...updates,
@@ -383,6 +387,7 @@ export class ArtistService {
    */
   static async batchUpdateMetrics(metrics: Omit<ArtistMetric, 'id'>[]): Promise<boolean> {
     try {
+      const supabase = createClient();
       const { error } = await supabase
         .from('artist_metrics')
         .upsert(metrics, {
