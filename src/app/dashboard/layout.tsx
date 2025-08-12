@@ -22,7 +22,7 @@ async function ArtistHeader() {
   const supabase = await createClient();
   
   // First, try to get artist directly linked to user
-  let artistQuery = supabase
+  const artistQuery = supabase
     .from('artists')
     .select('*')
     .eq('user_id', user.id)
