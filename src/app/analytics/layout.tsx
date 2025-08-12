@@ -1,21 +1,32 @@
+"use client"
+
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { requireAuth, getUserWithProfile } from "@/lib/auth/server-auth";
-import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
 import { User } from "lucide-react";
+import { useAuth } from "@/contexts/auth-provider";
+import { useRouter } from "next/navigation";
+import { useEffect } from "react";
 
 // User Header Component
-async function UserHeader() {
-  const authData = await getUserWithProfile();
+function UserHeader() {
+  const { user, profile, isLoading } = useAuth();
   
-  if (!authData?.user) {
-    redirect('/login');
+  if (isLoading) {
+    return (
+      <div className="flex items-center gap-3">
+        <div className="h-10 w-10 rounded-full bg-muted animate-pulse" />
+        <div>
+          <div className="h-4 w-24 bg-muted animate-pulse rounded" />
+          <div className="h-3 w-16 bg-muted animate-pulse rounded mt-1" />
+        </div>
+      </div>
+    );
   }
 
-  const { user, profile } = authData;
+  if (!user) return null;
 
   const displayName = profile?.first_name && profile?.last_name 
     ? `${profile.first_name} ${profile.last_name}`
@@ -61,13 +72,34 @@ async function UserHeader() {
   );
 }
 
-export default async function AnalyticsLayout({
+export default function AnalyticsLayout({
   children,
 }: {
   children: React.ReactNode;
 }) {
-  // Ensure user is authenticated
-  await requireAuth();
+  const { user, isLoading } = useAuth();
+  const router = useRouter();
+
+  useEffect(() => {
+    if (!isLoading && !user) {
+      router.push('/login');
+    }
+  }, [user, isLoading, router]);
+
+  if (isLoading) {
+    return (
+      <div className="flex items-center justify-center min-h-screen">
+        <div className="text-center space-y-4">
+          <div className="animate-spin rounded-full h-8 w-8 border-b-2 border-primary mx-auto" />
+          <p className="text-muted-foreground">Loading...</p>
+        </div>
+      </div>
+    );
+  }
+
+  if (!user) {
+    return null; // Will redirect via useEffect
+  }
 
   return (
     <ThemeProvider
