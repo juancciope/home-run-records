@@ -81,9 +81,55 @@ export function AnalyticsDashboard() {
       try {
         setIsLoading(true)
         
-        // Try to load analytics data directly with Rachel Curtis UUID (known good data)
-        const rachelUUID = '15bbe04f-b1cc-4f2a-adfa-f052aa669b05'
-        const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(rachelUUID)}`)
+        // First, get the user's artist profile to find their Viberate UUID
+        const profileResponse = await fetch('/api/artist-header')
+        let artistUUID = null
+        
+        if (profileResponse.ok) {
+          const profileData = await profileResponse.json()
+          console.log('User profile data:', profileData)
+          
+          // Try to get the artist UUID from the profile
+          if (profileData.hasViberateData) {
+            // Try to get the UUID from the user's artist profile
+            const { createClient } = await import('@/utils/supabase/client')
+            const supabase = createClient()
+            
+            const { data: artistProfile } = await supabase
+              .from('artist_profiles')
+              .select('viberate_uuid, viberate_artist_id')
+              .eq('id', user.id)
+              .single()
+            
+            if (artistProfile) {
+              artistUUID = artistProfile.viberate_uuid || artistProfile.viberate_artist_id
+              console.log('Found user artist UUID:', artistUUID)
+            }
+          }
+        }
+        
+        // If no UUID found, try to get it from artists table
+        if (!artistUUID) {
+          const { createClient } = await import('@/utils/supabase/client')
+          const supabase = createClient()
+          
+          const { data: artist } = await supabase
+            .from('artists')
+            .select('uuid')
+            .eq('user_id', user.id)
+            .single()
+          
+          if (artist?.uuid) {
+            artistUUID = artist.uuid
+            console.log('Found artist UUID from artists table:', artistUUID)
+          }
+        }
+        
+        // Use the user's actual artist UUID or fallback to demo UUID
+        const targetUUID = artistUUID || 'c803da56-c6bd-4c61-addb-f1063544a1a2'
+        console.log('Loading analytics for UUID:', targetUUID)
+        
+        const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(targetUUID)}`)
         
         if (response.ok) {
           const data = await response.json()
@@ -116,30 +162,30 @@ export function AnalyticsDashboard() {
         throw new Error('API response not valid')
       } catch (error) {
         console.error('Error loading analytics:', error)
-        // Use Rachel Curtis real data as demo - this shows the actual data we have stored
+        // Use sample data as demo - this represents typical artist metrics
         setAnalyticsData({
-          totalReach: 11200,
-          totalFollowers: 6243, // Rachel Curtis real total from database
-          engagedAudience: 1300,
-          artistRank: 380075, // Rachel's real Viberate rank
+          totalReach: 521150,
+          totalFollowers: 289528,
+          engagedAudience: 62538,
+          artistRank: 102144,
           platforms: {
-            spotify: { followers: 1019, monthlyListeners: 2200, streams: 45000 },
-            youtube: { subscribers: 467, views: 9700 },
-            instagram: { followers: 2052, engagement: 33 },
-            tiktok: { followers: 502, views: 15000 },
-            facebook: { followers: 1800, engagement: 29 },
-            deezer: { fans: 3, streams: 45 },
-            soundcloud: { followers: 374, plays: 5300 },
+            spotify: { followers: 25000, monthlyListeners: 45000, streams: 152000 },
+            youtube: { subscribers: 10000, views: 87000 },
+            instagram: { followers: 15000, engagement: 850 },
+            tiktok: { followers: 5000, views: 95000 },
+            facebook: { followers: 8000, engagement: 340 },
+            deezer: { fans: 3000, streams: 12000 },
+            soundcloud: { followers: 2500, plays: 28000 },
           },
           trending: [
-            { date: "Jan", spotify: 800, youtube: 400, instagram: 1800, tiktok: 400 },
-            { date: "Feb", spotify: 850, youtube: 420, instagram: 1900, tiktok: 420 },
-            { date: "Mar", spotify: 900, youtube: 440, instagram: 1950, tiktok: 450 },
-            { date: "Apr", spotify: 950, youtube: 460, instagram: 2000, tiktok: 480 },
-            { date: "May", spotify: 1019, youtube: 467, instagram: 2052, tiktok: 502 },
+            { date: "Jan", spotify: 22000, youtube: 9000, instagram: 13500, tiktok: 4200 },
+            { date: "Feb", spotify: 22800, youtube: 9200, instagram: 14000, tiktok: 4400 },
+            { date: "Mar", spotify: 23500, youtube: 9500, instagram: 14200, tiktok: 4600 },
+            { date: "Apr", spotify: 24200, youtube: 9800, instagram: 14700, tiktok: 4800 },
+            { date: "May", spotify: 25000, youtube: 10000, instagram: 15000, tiktok: 5000 },
           ],
-          isRealData: true, // Using Rachel's actual Viberate data
-          message: 'Analytics data loaded successfully (fallback)'
+          isRealData: false,
+          message: 'Using demo data - connect your Viberate account for real metrics'
         })
       } finally {
         setIsLoading(false)

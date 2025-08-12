@@ -636,63 +636,6 @@ export function DashboardContent() {
             </CardContent>
           </Card>
 
-          {/* Engaged Audience */}
-          <Card className="relative border-l-4 border-l-purple-500">
-            <CardHeader className="pb-3">
-              <CardTitle className="text-sm font-semibold flex items-center justify-between">
-                <span>Engaged Audience</span>
-                <div className="flex items-center gap-1">
-                  <ActionButton icon={Info} tooltip="View engagement metrics and patterns" />
-                  <ActionButton icon={Bot} tooltip="Get AI recommendations for engagement" />
-                  <ActionButton icon={Plug} tooltip="Connect social media tools" />
-                  <AddDataButton 
-                    section="marketing" 
-                    recordType="engaged" 
-                    tooltip="Add engagement data manually"
-                    onRecordAdded={refreshPipelineData}
-                  />
-                </div>
-              </CardTitle>
-              <CardDescription className="text-xs">Active content interactions</CardDescription>
-            </CardHeader>
-            <CardContent className="space-y-4">
-              <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-bold tabular-nums text-purple-600">{(marketingData.engaged / 1000).toFixed(1)}K</span>
-                <Badge variant="outline" className="text-xs border-purple-600 text-purple-600">Engaged</Badge>
-              </div>
-              <div className="space-y-2">
-                <ChartContainer config={{
-                  engaged: { label: "Engaged", color: "hsl(var(--chart-3))" }
-                }} className="h-16 w-full">
-                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
-                    <defs>
-                      <linearGradient id="fillEngagedMini" x1="0" y1="0" x2="0" y2="1">
-                        <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
-                        <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.1} />
-                      </linearGradient>
-                    </defs>
-                    <Area
-                      type="monotone"
-                      dataKey="engaged"
-                      stroke="hsl(var(--chart-3))"
-                      fill="url(#fillEngagedMini)"
-                      strokeWidth={1.5}
-                      dot={false}
-                    />
-                  </AreaChart>
-                </ChartContainer>
-                <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Engagement Rate</span>
-                  <span className="font-medium">{((marketingData.engaged / marketingData.totalReach) * 100).toFixed(1)}%</span>
-                </div>
-                <p className="text-xs text-muted-foreground flex items-center gap-1">
-                  <Heart className="h-3 w-3" />
-                  High interaction quality
-                </p>
-              </div>
-            </CardContent>
-          </Card>
-
           {/* Total Followers */}
           <Card className="relative border-l-4 border-l-green-500">
             <CardHeader className="pb-3">
@@ -752,6 +695,63 @@ export function DashboardContent() {
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Users className="h-3 w-3" />
                   Building community
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Engaged Audience */}
+          <Card className="relative border-l-4 border-l-purple-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Engaged Audience</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View engagement metrics and patterns" />
+                  <ActionButton icon={Bot} tooltip="Get AI recommendations for engagement" />
+                  <ActionButton icon={Plug} tooltip="Connect social media tools" />
+                  <AddDataButton 
+                    section="marketing" 
+                    recordType="engaged" 
+                    tooltip="Add engagement data manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Active content interactions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-purple-600">{(marketingData.engaged / 1000).toFixed(1)}K</span>
+                <Badge variant="outline" className="text-xs border-purple-600 text-purple-600">Engaged</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  engaged: { label: "Engaged", color: "hsl(var(--chart-3))" }
+                }} className="h-16 w-full">
+                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillEngagedMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="engaged"
+                      stroke="hsl(var(--chart-3))"
+                      fill="url(#fillEngagedMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Engagement Rate</span>
+                  <span className="font-medium">{((marketingData.engaged / marketingData.totalReach) * 100).toFixed(1)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Heart className="h-3 w-3" />
+                  High interaction quality
                 </p>
               </div>
             </CardContent>
