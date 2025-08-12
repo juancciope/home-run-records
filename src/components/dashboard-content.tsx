@@ -107,6 +107,12 @@ export function DashboardContent() {
     isRealData: false,
   });
 
+  // Marketing funnel calculations:
+  // Total Reach (342K) → Engaged Audience (45.6K) → Followers (21.2K)
+  // Engagement Rate: engaged/reach = 45.6K/342K = 13.3%
+  // Follow-through Rate: followers/reach = 21.2K/342K = 6.2%
+  // Follower Conversion: followers/engaged = 21.2K/45.6K = 46.5%
+
   const loadPipelineMetrics = React.useCallback(async () => {
     if (!user?.id) return;
     
@@ -622,25 +628,25 @@ export function DashboardContent() {
                   followers: { label: "Followers", color: "hsl(var(--chart-1))" }
                 }} className="h-16 w-full">
                   <LineChart data={[
-                    { month: "Jan", followers: Math.round(marketingData.followers * 0.7) },
-                    { month: "Feb", followers: Math.round(marketingData.followers * 0.75) },
-                    { month: "Mar", followers: Math.round(marketingData.followers * 0.82) },
-                    { month: "Apr", followers: Math.round(marketingData.followers * 0.88) },
-                    { month: "May", followers: Math.round(marketingData.followers * 0.94) },
-                    { month: "Jun", followers: marketingData.followers }
+                    { month: "Jan", followers: Math.round(marketingData.followers * 0.70) }, // 14.8K
+                    { month: "Feb", followers: Math.round(marketingData.followers * 0.76) }, // 16.1K
+                    { month: "Mar", followers: Math.round(marketingData.followers * 0.82) }, // 17.4K
+                    { month: "Apr", followers: Math.round(marketingData.followers * 0.88) }, // 18.7K
+                    { month: "May", followers: Math.round(marketingData.followers * 0.94) }, // 19.9K
+                    { month: "Jun", followers: marketingData.followers } // 21.2K
                   ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
                     <Line
                       type="monotone"
                       dataKey="followers"
                       stroke="hsl(var(--chart-1))"
-                      strokeWidth={2}
+                      strokeWidth={1.5}
                       dot={false}
                     />
                   </LineChart>
                 </ChartContainer>
                 <div className="flex items-center justify-between text-sm">
-                  <span className="text-muted-foreground">Conversion Rate</span>
-                  <span className="font-medium">{Math.round((marketingData.followers / marketingData.engaged) * 100)}%</span>
+                  <span className="text-muted-foreground">Follow-through Rate</span>
+                  <span className="font-medium">{Math.round((marketingData.followers / marketingData.totalReach) * 100)}%</span>
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Users className="h-3 w-3" />
