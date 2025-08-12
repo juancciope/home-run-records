@@ -93,21 +93,23 @@ export interface AgentRecord {
 }
 
 export class PipelineService {
-  private static supabase = createClient();
-
   // =================
   // PRODUCTION PIPELINE
   // =================
 
   static async addProductionRecord(record: Omit<ProductionRecord, 'id' | 'created_at' | 'updated_at'>): Promise<ProductionRecord | null> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('production_records')
         .insert(record)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
       console.error('Error adding production record:', error);
@@ -117,13 +119,17 @@ export class PipelineService {
 
   static async getProductionRecords(userId: string): Promise<ProductionRecord[]> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('production_records')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data || [];
     } catch (error) {
       console.error('Error fetching production records:', error);
@@ -156,13 +162,17 @@ export class PipelineService {
 
   static async addMarketingRecord(record: Omit<MarketingRecord, 'id' | 'created_at' | 'updated_at'>): Promise<MarketingRecord | null> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('marketing_records')
         .insert(record)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
       console.error('Error adding marketing record:', error);
@@ -172,13 +182,17 @@ export class PipelineService {
 
   static async getMarketingRecords(userId: string): Promise<MarketingRecord[]> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('marketing_records')
         .select('*')
         .eq('user_id', userId)
         .order('date_recorded', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data || [];
     } catch (error) {
       console.error('Error fetching marketing records:', error);
@@ -217,13 +231,17 @@ export class PipelineService {
 
   static async addFanEngagementRecord(record: Omit<FanEngagementRecord, 'id' | 'created_at' | 'updated_at'>): Promise<FanEngagementRecord | null> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('fan_engagement_records')
         .insert(record)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
       console.error('Error adding fan engagement record:', error);
@@ -233,13 +251,17 @@ export class PipelineService {
 
   static async getFanEngagementRecords(userId: string): Promise<FanEngagementRecord[]> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('fan_engagement_records')
         .select('*')
         .eq('user_id', userId)
         .order('last_interaction', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data || [];
     } catch (error) {
       console.error('Error fetching fan engagement records:', error);
@@ -272,13 +294,17 @@ export class PipelineService {
 
   static async addConversionRecord(record: Omit<ConversionRecord, 'id' | 'created_at' | 'updated_at'>): Promise<ConversionRecord | null> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('conversion_records')
         .insert(record)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
       console.error('Error adding conversion record:', error);
@@ -288,13 +314,17 @@ export class PipelineService {
 
   static async getConversionRecords(userId: string): Promise<ConversionRecord[]> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('conversion_records')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data || [];
     } catch (error) {
       console.error('Error fetching conversion records:', error);
@@ -331,13 +361,17 @@ export class PipelineService {
 
   static async addAgentRecord(record: Omit<AgentRecord, 'id' | 'created_at' | 'updated_at'>): Promise<AgentRecord | null> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('agent_records')
         .insert(record)
         .select()
         .single();
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data;
     } catch (error) {
       console.error('Error adding agent record:', error);
@@ -347,13 +381,17 @@ export class PipelineService {
 
   static async getAgentRecords(userId: string): Promise<AgentRecord[]> {
     try {
-      const { data, error } = await this.supabase
+      const supabase = createClient();
+      const { data, error } = await supabase
         .from('agent_records')
         .select('*')
         .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
-      if (error) throw error;
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
       return data || [];
     } catch (error) {
       console.error('Error fetching agent records:', error);
