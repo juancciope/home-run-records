@@ -109,19 +109,8 @@ GRANT ALL ON public.artists TO authenticated;
 -- Grant sequence permissions
 GRANT USAGE, SELECT ON ALL SEQUENCES IN SCHEMA public TO authenticated;
 
--- Ensure the user can create entries in their own profile
--- This is critical for the onboarding flow
-INSERT INTO public.users (id, email, global_role, is_active, created_at, updated_at)
-SELECT 
-    auth.uid(),
-    auth.email(),
-    'artist'::user_role,
-    true,
-    NOW(),
-    NOW()
-ON CONFLICT (id) DO UPDATE SET
-    email = EXCLUDED.email,
-    updated_at = NOW();
+-- Note: User profiles will be created automatically when users sign up
+-- via the trigger function below. No need to create them manually here.
 
 -- Function to automatically create user profile on signup
 CREATE OR REPLACE FUNCTION public.handle_new_user()
@@ -150,18 +139,30 @@ CREATE TRIGGER on_auth_user_created
     AFTER INSERT ON auth.users
     FOR EACH ROW EXECUTE FUNCTION public.handle_new_user();
 
--- Ensure current authenticated users have profiles
-INSERT INTO public.users (id, email, global_role, is_active, created_at, updated_at)
-SELECT 
-    id,
-    email,
-    'artist'::user_role,
-    true,
-    NOW(),
-    NOW()
-FROM auth.users
-WHERE id NOT IN (SELECT id FROM public.users)
-ON CONFLICT (id) DO NOTHING;
+-- Ensure existing authenticated users have profiles
+-- This will create profiles for users who signed up before the trigger was added
+DO $$
+DECLARE
+    auth_user RECORD;
+BEGIN
+    FOR auth_user IN 
+        SELECT au.id, au.email
+        FROM auth.users au
+        LEFT JOIN public.users pu ON au.id = pu.id
+        WHERE pu.id IS NULL
+    LOOP
+        INSERT INTO public.users (id, email, global_role, is_active, created_at, updated_at)
+        VALUES (
+            auth_user.id,
+            auth_user.email,
+            'artist'::user_role,
+            true,
+            NOW(),
+            NOW()
+        )
+        ON CONFLICT (id) DO NOTHING;
+    END LOOP;
+END $$;
 
 -- Test the permissions
 SELECT 'Permissions setup complete!' as status;
