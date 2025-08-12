@@ -20,7 +20,9 @@ import {
   ChevronRight,
   ArrowUpRight,
   ArrowDownRight,
+  User,
 } from "lucide-react"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
   ChartContainer,
   ChartConfig,
@@ -69,10 +71,14 @@ const PLATFORM_COLORS = {
 }
 
 export function AnalyticsDashboard() {
-  const { user, isLoading: isAuthLoading } = useAuth()
+  const { user, profile, isLoading: isAuthLoading } = useAuth()
   const [timeRange, setTimeRange] = React.useState("30d")
   const [isLoading, setIsLoading] = React.useState(true)
   const [analyticsData, setAnalyticsData] = React.useState<any>(null)
+  const [artistInfo, setArtistInfo] = React.useState<{
+    name: string
+    image: string | null
+  } | null>(null)
 
   React.useEffect(() => {
     const loadAnalytics = async () => {
@@ -128,6 +134,31 @@ export function AnalyticsDashboard() {
         // Use the user's actual artist UUID or fallback to demo UUID
         const targetUUID = artistUUID || 'c803da56-c6bd-4c61-addb-f1063544a1a2'
         console.log('Loading analytics for UUID:', targetUUID)
+        
+        // Load artist information
+        if (profile?.artist_name || profile?.stage_name) {
+          setArtistInfo({
+            name: profile.stage_name || profile.artist_name || 'Artist',
+            image: profile.profile_image_url || null
+          })
+        } else {
+          // Try to get artist info from the artists table
+          const { createClient } = await import('@/utils/supabase/client')
+          const supabase = createClient()
+          
+          const { data: artistData } = await supabase
+            .from('artists')
+            .select('name, image')
+            .eq('uuid', targetUUID)
+            .single()
+          
+          if (artistData) {
+            setArtistInfo({
+              name: artistData.name || 'Artist',
+              image: artistData.image || null
+            })
+          }
+        }
         
         const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(targetUUID)}`)
         
@@ -277,11 +308,23 @@ export function AnalyticsDashboard() {
     <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between space-y-2">
-        <div>
-          <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
-          <p className="text-muted-foreground">
-            Your complete audience reach and engagement across all platforms
-          </p>
+        <div className="flex items-center space-x-4">
+          {artistInfo && (
+            <Avatar className="h-16 w-16">
+              <AvatarImage src={artistInfo.image || undefined} alt={artistInfo.name} />
+              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
+                <User className="h-8 w-8" />
+              </AvatarFallback>
+            </Avatar>
+          )}
+          <div>
+            <h2 className="text-3xl font-bold tracking-tight">
+              {artistInfo?.name || 'Analytics Dashboard'}
+            </h2>
+            <p className="text-muted-foreground">
+              Your complete audience reach and engagement across all platforms
+            </p>
+          </div>
         </div>
         <div className="flex items-center space-x-2">
           <Button variant="outline" size="sm">
