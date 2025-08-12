@@ -19,10 +19,10 @@ export function LoginForm({
 }: React.ComponentPropsWithoutRef<"div">) {
   return (
     <div className={cn("flex flex-col gap-6", className)} {...props}>
-      <Card>
+      <Card className="bg-white/10 backdrop-blur border-white/20">
         <CardHeader>
-          <CardTitle className="text-2xl">Welcome Back</CardTitle>
-          <CardDescription>
+          <CardTitle className="text-2xl text-white">Welcome Back</CardTitle>
+          <CardDescription className="text-gray-400">
             Enter your email below to login to your account
           </CardDescription>
         </CardHeader>
@@ -30,7 +30,7 @@ export function LoginForm({
           <form action={login}>
             <div className="flex flex-col gap-6">
               <div className="grid gap-2">
-                <Label htmlFor="email">Email</Label>
+                <Label htmlFor="email" className="text-white">Email</Label>
                 <Input
                   id="email"
                   name="email"
@@ -38,14 +38,15 @@ export function LoginForm({
                   placeholder="m@example.com"
                   autoComplete="email"
                   required
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-500"
                 />
               </div>
               <div className="grid gap-2">
                 <div className="flex items-center">
-                  <Label htmlFor="password">Password</Label>
+                  <Label htmlFor="password" className="text-white">Password</Label>
                   <Link
                     href="#"
-                    className="ml-auto text-sm underline underline-offset-4 hover:text-primary"
+                    className="ml-auto text-sm text-violet-400 underline underline-offset-4 hover:text-violet-300"
                   >
                     Forgot your password?
                   </Link>
@@ -56,16 +57,17 @@ export function LoginForm({
                   type="password" 
                   autoComplete="current-password"
                   required 
+                  className="bg-white/10 border-white/20 text-white placeholder:text-gray-500"
                 />
               </div>
 
-              <Button type="submit" className="w-full">
+              <Button type="submit" className="w-full bg-violet-600 hover:bg-violet-700 text-white">
                 Login
               </Button>
             </div>
-            <div className="mt-4 text-center text-sm">
+            <div className="mt-4 text-center text-sm text-gray-400">
               Don&apos;t have an account?{" "}
-              <Link href="/signup" className="underline underline-offset-4 hover:text-primary">
+              <Link href="/signup" className="text-violet-400 underline underline-offset-4 hover:text-violet-300">
                 Sign up
               </Link>
             </div>
