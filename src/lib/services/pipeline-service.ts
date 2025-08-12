@@ -92,6 +92,25 @@ export interface AgentRecord {
   updated_at?: string;
 }
 
+// Goal Types
+export interface Goal {
+  id?: string;
+  user_id: string;
+  section: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent';
+  record_type: string;
+  goal_type: string;
+  title: string;
+  description?: string;
+  target_value: number;
+  current_value: number;
+  target_date?: string;
+  priority: 'low' | 'medium' | 'high';
+  status: 'active' | 'completed' | 'paused' | 'cancelled';
+  metadata?: Record<string, unknown>;
+  created_at?: string;
+  updated_at?: string;
+}
+
 export class PipelineService {
   // =================
   // PRODUCTION PIPELINE
@@ -477,6 +496,109 @@ export class PipelineService {
     } catch (error) {
       console.error('Error batch importing CSV:', error);
       return { success: 0, errors: [`Failed to process CSV: ${error}`] };
+    }
+  }
+
+  // =================
+  // GOALS MANAGEMENT
+  // =================
+
+  static async addGoal(goal: Omit<Goal, 'id' | 'created_at' | 'updated_at'>): Promise<Goal | null> {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('goals')
+        .insert(goal)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error adding goal:', error);
+      return null;
+    }
+  }
+
+  static async getGoals(userId: string, section?: string, recordType?: string): Promise<Goal[]> {
+    try {
+      const supabase = createClient();
+      let query = supabase
+        .from('goals')
+        .select('*')
+        .eq('user_id', userId)
+        .order('created_at', { ascending: false });
+
+      if (section) {
+        query = query.eq('section', section);
+      }
+      if (recordType) {
+        query = query.eq('record_type', recordType);
+      }
+
+      const { data, error } = await query;
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      return data || [];
+    } catch (error) {
+      console.error('Error fetching goals:', error);
+      return [];
+    }
+  }
+
+  static async updateGoal(goalId: string, updates: Partial<Goal>): Promise<Goal | null> {
+    try {
+      const supabase = createClient();
+      const { data, error } = await supabase
+        .from('goals')
+        .update({ ...updates, updated_at: new Date().toISOString() })
+        .eq('id', goalId)
+        .select()
+        .single();
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      return data;
+    } catch (error) {
+      console.error('Error updating goal:', error);
+      return null;
+    }
+  }
+
+  static async deleteGoal(goalId: string): Promise<boolean> {
+    try {
+      const supabase = createClient();
+      const { error } = await supabase
+        .from('goals')
+        .delete()
+        .eq('id', goalId);
+
+      if (error) {
+        console.error('Supabase error:', error);
+        throw error;
+      }
+      return true;
+    } catch (error) {
+      console.error('Error deleting goal:', error);
+      return false;
+    }
+  }
+
+  static async getActiveGoalsForCard(userId: string, section: string, recordType: string): Promise<Goal[]> {
+    try {
+      const goals = await this.getGoals(userId, section, recordType);
+      return goals.filter(goal => goal.status === 'active');
+    } catch (error) {
+      console.error('Error fetching active goals for card:', error);
+      return [];
     }
   }
 

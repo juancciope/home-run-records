@@ -57,6 +57,7 @@ import {
 import { useAuth } from "@/contexts/auth-provider"
 import { ArtistOnboarding } from "./artist-onboarding"
 import { AddDataModal } from "./add-data-modal"
+import { AddGoalModal } from "./add-goal-modal"
 
 // Action Button Component for pipeline cards
 function ActionButton({ 
@@ -152,6 +153,15 @@ export function DashboardContent() {
     followers: 21200,
     isRealData: false,
   });
+  const [goals, setGoals] = React.useState<{
+    production: { unfinished: any[]; finished: any[]; released: any[] };
+    marketing: { reach: any[]; engaged: any[]; followers: any[] };
+    fanEngagement: { captured: any[]; fans: any[]; super_fans: any[] };
+  }>({
+    production: { unfinished: [], finished: [], released: [] },
+    marketing: { reach: [], engaged: [], followers: [] },
+    fanEngagement: { captured: [], fans: [], super_fans: [] }
+  });
 
   // Function to refresh pipeline data
   const refreshPipelineData = React.useCallback(async () => {
@@ -160,8 +170,61 @@ export function DashboardContent() {
     try {
       // Re-run the loadPipelineMetrics function
       await loadPipelineMetrics();
+      await loadGoals();
     } catch (error) {
       console.error('Error refreshing pipeline data:', error);
+    }
+  }, [user?.id]);
+
+  // Function to load goals
+  const loadGoals = React.useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      const { PipelineService } = await import('@/lib/services/pipeline-service');
+      
+      // Load goals for each section and record type
+      const [
+        productionUnfinished,
+        productionFinished,
+        productionReleased,
+        marketingReach,
+        marketingEngaged,
+        marketingFollowers,
+        fanEngagementCaptured,
+        fanEngagementFans,
+        fanEngagementSuperFans
+      ] = await Promise.all([
+        PipelineService.getActiveGoalsForCard(user.id, 'production', 'unfinished'),
+        PipelineService.getActiveGoalsForCard(user.id, 'production', 'finished'),
+        PipelineService.getActiveGoalsForCard(user.id, 'production', 'released'),
+        PipelineService.getActiveGoalsForCard(user.id, 'marketing', 'reach'),
+        PipelineService.getActiveGoalsForCard(user.id, 'marketing', 'engaged'),
+        PipelineService.getActiveGoalsForCard(user.id, 'marketing', 'followers'),
+        PipelineService.getActiveGoalsForCard(user.id, 'fan_engagement', 'captured'),
+        PipelineService.getActiveGoalsForCard(user.id, 'fan_engagement', 'fans'),
+        PipelineService.getActiveGoalsForCard(user.id, 'fan_engagement', 'super_fans')
+      ]);
+
+      setGoals({
+        production: {
+          unfinished: productionUnfinished,
+          finished: productionFinished,
+          released: productionReleased
+        },
+        marketing: {
+          reach: marketingReach,
+          engaged: marketingEngaged,
+          followers: marketingFollowers
+        },
+        fanEngagement: {
+          captured: fanEngagementCaptured,
+          fans: fanEngagementFans,
+          super_fans: fanEngagementSuperFans
+        }
+      });
+    } catch (error) {
+      console.error('Error loading goals:', error);
     }
   }, [user?.id]);
 
@@ -230,8 +293,9 @@ export function DashboardContent() {
   React.useEffect(() => {
     if (user?.id) {
       loadPipelineMetrics();
+      loadGoals();
     }
-  }, [user?.id, loadPipelineMetrics]);
+  }, [user?.id, loadPipelineMetrics, loadGoals]);
 
   // Use real data if available, otherwise fall back to mock data
   const productionData = pipelineMetrics?.production || {
@@ -429,6 +493,13 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View details about projects in progress" />
                   <ActionButton icon={Bot} tooltip="Get AI suggestions for completing projects" />
                   <ActionButton icon={Plug} tooltip="Connect project management tools" />
+                  <AddGoalModal
+                    section="production"
+                    recordType="unfinished"
+                    onGoalAdded={refreshPipelineData}
+                  >
+                    <ActionButton icon={Target} tooltip="Add goal for unfinished projects" />
+                  </AddGoalModal>
                   <AddDataButton 
                     section="production" 
                     recordType="unfinished" 
@@ -444,6 +515,35 @@ export function DashboardContent() {
                 <span className="text-3xl font-bold tabular-nums">{productionData.unfinished}</span>
                 <Badge variant="secondary" className="text-xs">Active</Badge>
               </div>
+              {/* Goal Display */}
+              {goals.production.unfinished.length > 0 && (
+                <div className="space-y-2">
+                  {goals.production.unfinished.slice(0, 1).map((goal: any) => (
+                    <div key={goal.id} className="p-2 bg-muted/50 rounded-md">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium truncate">{goal.title}</span>
+                        {goal.target_date && (
+                          <Badge variant="outline" className="text-xs">
+                            {new Date(goal.target_date).toLocaleDateString()}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="mt-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progress: {goal.current_value}/{goal.target_value}</span>
+                          <span>{Math.round((goal.current_value / goal.target_value) * 100)}%</span>
+                        </div>
+                        <div className="h-1 bg-muted rounded-full">
+                          <div 
+                            className="h-1 bg-orange-500 rounded-full" 
+                            style={{ width: `${Math.min((goal.current_value / goal.target_value) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Priority</span>
@@ -469,6 +569,13 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View tracks ready for release" />
                   <ActionButton icon={Bot} tooltip="Get AI-powered release strategy suggestions" />
                   <ActionButton icon={Plug} tooltip="Connect distribution platforms" />
+                  <AddGoalModal
+                    section="production"
+                    recordType="finished"
+                    onGoalAdded={refreshPipelineData}
+                  >
+                    <ActionButton icon={Target} tooltip="Add goal for ready tracks" />
+                  </AddGoalModal>
                   <AddDataButton 
                     section="production" 
                     recordType="finished" 
@@ -484,6 +591,35 @@ export function DashboardContent() {
                 <span className="text-3xl font-bold tabular-nums text-yellow-600">{productionData.finished}</span>
                 <Badge variant="outline" className="text-xs border-yellow-600 text-yellow-600">Ready</Badge>
               </div>
+              {/* Goal Display */}
+              {goals.production.finished.length > 0 && (
+                <div className="space-y-2">
+                  {goals.production.finished.slice(0, 1).map((goal: any) => (
+                    <div key={goal.id} className="p-2 bg-muted/50 rounded-md">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium truncate">{goal.title}</span>
+                        {goal.target_date && (
+                          <Badge variant="outline" className="text-xs">
+                            {new Date(goal.target_date).toLocaleDateString()}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="mt-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progress: {goal.current_value}/{goal.target_value}</span>
+                          <span>{Math.round((goal.current_value / goal.target_value) * 100)}%</span>
+                        </div>
+                        <div className="h-1 bg-muted rounded-full">
+                          <div 
+                            className="h-1 bg-yellow-500 rounded-full" 
+                            style={{ width: `${Math.min((goal.current_value / goal.target_value) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Next Release</span>
@@ -509,6 +645,13 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View released tracks performance" />
                   <ActionButton icon={Bot} tooltip="Optimize catalog with AI insights" />
                   <ActionButton icon={Plug} tooltip="Connect streaming platforms" />
+                  <AddGoalModal
+                    section="production"
+                    recordType="released"
+                    onGoalAdded={refreshPipelineData}
+                  >
+                    <ActionButton icon={Target} tooltip="Add goal for live catalog" />
+                  </AddGoalModal>
                   <AddDataButton 
                     section="production" 
                     recordType="released" 
@@ -524,6 +667,35 @@ export function DashboardContent() {
                 <span className="text-3xl font-bold tabular-nums text-green-600">{productionData.released}</span>
                 <Badge className="text-xs bg-green-500/10 text-green-600 border-green-200">Live</Badge>
               </div>
+              {/* Goal Display */}
+              {goals.production.released.length > 0 && (
+                <div className="space-y-2">
+                  {goals.production.released.slice(0, 1).map((goal: any) => (
+                    <div key={goal.id} className="p-2 bg-muted/50 rounded-md">
+                      <div className="flex items-center justify-between text-xs">
+                        <span className="font-medium truncate">{goal.title}</span>
+                        {goal.target_date && (
+                          <Badge variant="outline" className="text-xs">
+                            {new Date(goal.target_date).toLocaleDateString()}
+                          </Badge>
+                        )}
+                      </div>
+                      <div className="mt-1">
+                        <div className="flex items-center justify-between text-xs text-muted-foreground mb-1">
+                          <span>Progress: {goal.current_value}/{goal.target_value}</span>
+                          <span>{Math.round((goal.current_value / goal.target_value) * 100)}%</span>
+                        </div>
+                        <div className="h-1 bg-muted rounded-full">
+                          <div 
+                            className="h-1 bg-green-500 rounded-full" 
+                            style={{ width: `${Math.min((goal.current_value / goal.target_value) * 100, 100)}%` }}
+                          />
+                        </div>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              )}
               <div className="space-y-2">
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Completion</span>
