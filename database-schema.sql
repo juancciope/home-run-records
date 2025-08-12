@@ -1,9 +1,6 @@
 -- Artist OS Database Schema
 -- Run this in your Supabase SQL editor to create the required tables
 
--- Enable Row Level Security
-ALTER DATABASE postgres SET "app.jwt_secret" TO 'your-jwt-secret';
-
 -- Create custom types
 CREATE TYPE user_role AS ENUM ('superadmin', 'artist_manager', 'artist');
 CREATE TYPE agency_status AS ENUM ('active', 'inactive', 'suspended');
