@@ -121,7 +121,7 @@ export function AnalyticsDashboard() {
 
   if (isAuthLoading || isLoading) {
     return (
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+      <div className="space-y-4">
         <div className="flex items-center justify-between space-y-2">
           <h2 className="text-3xl font-bold tracking-tight">Analytics Dashboard</h2>
         </div>
@@ -143,22 +143,20 @@ export function AnalyticsDashboard() {
 
   if (!analyticsData) {
     return (
-      <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
-        <div className="flex items-center justify-center min-h-[600px]">
-          <Card className="max-w-md">
-            <CardHeader>
-              <CardTitle>No Analytics Data</CardTitle>
-              <CardDescription>
-                Connect your music platforms to see detailed analytics
-              </CardDescription>
-            </CardHeader>
-            <CardContent>
-              <Button className="w-full" onClick={() => window.location.href = '/onboarding'}>
-                Connect Platforms
-              </Button>
-            </CardContent>
-          </Card>
-        </div>
+      <div className="flex items-center justify-center min-h-[600px]">
+        <Card className="max-w-md">
+          <CardHeader>
+            <CardTitle>No Analytics Data</CardTitle>
+            <CardDescription>
+              Connect your music platforms to see detailed analytics
+            </CardDescription>
+          </CardHeader>
+          <CardContent>
+            <Button className="w-full" onClick={() => window.location.href = '/onboarding'}>
+              Connect Platforms
+            </Button>
+          </CardContent>
+        </Card>
       </div>
     )
   }
@@ -184,7 +182,7 @@ export function AnalyticsDashboard() {
     .filter(p => p.followers > 0)
 
   return (
-    <div className="flex-1 space-y-4 p-4 md:p-8 pt-6">
+    <div className="space-y-4">
       {/* Header */}
       <div className="flex items-center justify-between space-y-2">
         <div>
