@@ -167,7 +167,16 @@ export function AuthProvider({ children }: AuthProviderProps) {
       
       const supabase = createClient();
       console.log('🔄 Step 2: Getting current user with new client');
-      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      
+      // Try to get session first, then user - this is more reliable after server login
+      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
+      console.log('🔄 Step 2a: Session check:', {
+        hasSession: !!session,
+        sessionError: sessionError
+      });
+      
+      const currentUser = session?.user;
+      const userError = sessionError;
       
       console.log('🔄 Step 3: getUser result:', {
         id: currentUser?.id,
