@@ -252,19 +252,42 @@ export async function POST(request: NextRequest) {
           }
         }
 
-        // Update user profile to link to this artist - with better error handling
+        // Update artist_profiles table with comprehensive Viberate data
         try {
-          const { ArtistService } = await import('@/lib/services/artist-service');
-          const profileUpdate = await ArtistService.updateProfile(userId, {
-            artist_name: artistData.name,
-            viberate_artist_id: artistData.uuid,
-            onboarding_completed: true,
-          });
-          
-          if (profileUpdate) {
-            console.log('Successfully updated user profile:', profileUpdate.id);
+          console.log('Updating artist_profiles with Viberate data...');
+          const { error: profileUpdateError } = await supabase
+            .from('artist_profiles')
+            .update({
+              artist_name: artistData.name,
+              stage_name: artistData.name,
+              profile_image_url: artistData.image,
+              viberate_artist_id: artistData.uuid,
+              viberate_uuid: artistData.uuid,
+              spotify_followers: artistData.metrics?.spotify_followers || 0,
+              total_followers: artistData.metrics?.total_followers || artistData.metrics?.spotify_followers || 0,
+              genres: artistData.genre ? [artistData.genre.name] : [],
+              onboarding_completed: true,
+              updated_at: new Date().toISOString()
+            })
+            .eq('id', userId);
+
+          if (profileUpdateError) {
+            console.error('Error updating profile in database:', profileUpdateError);
+            // Try using ArtistService as fallback
+            const { ArtistService } = await import('@/lib/services/artist-service');
+            const profileUpdate = await ArtistService.updateProfile(userId, {
+              artist_name: artistData.name,
+              viberate_artist_id: artistData.uuid,
+              onboarding_completed: true,
+            });
+            
+            if (profileUpdate) {
+              console.log('Successfully updated user profile via ArtistService:', profileUpdate.id);
+            } else {
+              console.warn('Profile update returned null - may have RLS issues');
+            }
           } else {
-            console.warn('Profile update returned null - may have RLS issues');
+            console.log('Successfully updated artist_profiles with full Viberate data');
           }
         } catch (profileError) {
           console.error('Profile update failed:', profileError);
