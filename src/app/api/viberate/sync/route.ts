@@ -48,16 +48,18 @@ export async function POST(request: NextRequest) {
         .upsert({
           uuid: artistData.uuid,
           name: artistData.name,
+          stage_name: artistData.name, // Use name as stage_name since that's the primary identifier
           slug: artistData.slug,
           image: artistData.image,
-          bio: artistData.bio,
+          bio: artistData.bio || '',
           country: artistData.country,
           genre: artistData.genre,
           subgenres: artistData.subgenres,
           rank: artistData.rank,
           status: artistData.status,
           verified: artistData.verified,
-          fetched_at: artistData.fetched_at,
+          fetched_at: artistData.fetched_at || new Date().toISOString(),
+          last_updated: new Date().toISOString(),
           updated_at: new Date().toISOString()
         }, {
           onConflict: 'uuid'
