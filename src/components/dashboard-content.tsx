@@ -666,148 +666,200 @@ export function DashboardContent() {
       </div>
 
       {/* Fan Engagement */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Heart className="h-5 w-5 text-primary" />
-          <div>
-            <h2 className="text-xl font-semibold">Fan Engagement</h2>
-            <p className="text-muted-foreground">Build deeper connections with your audience</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Heart className="h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">Fan Engagement</h2>
+              <p className="text-sm text-muted-foreground">Build deeper connections with your audience</p>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+            <span>Capture</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Activate</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Advocate</span>
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Captured Data */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
-                <span>Data Captured</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Number of fan email addresses and contact information collected through your website, landing pages, and campaigns. This is your owned audience data.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </CardTitle>
-              <CardDescription>Email & contact info</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{(fanEngagementData.capturedData / 1000).toFixed(1)}K</div>
-              <p className="text-sm text-muted-foreground mt-2">
-                <Users className="inline h-3 w-3 mr-1" />
-                Potential fan base
-              </p>
-            </CardContent>
-          </Card>
+        <div className="grid gap-4 md:grid-cols-3 relative">
+          {/* Flow indicators for mobile */}
+          <div className="md:hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+          </div>
 
-          {/* Active Fans with Line Chart */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
-                <span>Active Fans</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Fans who regularly engage with your content, stream your music, and show consistent support. Calculated based on engagement frequency and interaction patterns.</p>
-                  </TooltipContent>
-                </Tooltip>
+          {/* Data Captured */}
+          <Card className="relative border-l-4 border-l-cyan-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Data Captured</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View captured data sources and quality" />
+                  <ActionButton icon={Bot} tooltip="Get AI strategies for data capture" />
+                  <ActionButton icon={Plug} tooltip="Connect email marketing tools" />
+                  <ActionButton icon={Plus} tooltip="Add contact data manually" />
+                </div>
               </CardTitle>
-              <CardDescription>Growth over time</CardDescription>
+              <CardDescription className="text-xs">Email & contact information</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ChartContainer config={engagementChartConfig} className="aspect-auto h-[140px] w-full">
-                <LineChart accessibilityLayer data={fanEngagementTrendData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis 
-                    dataKey="month" 
-                    tickLine={false} 
-                    axisLine={false} 
-                    tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                  />
-                  <Line
-                    type="monotone"
-                    dataKey="fans"
-                    stroke="var(--color-fans)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 4, stroke: "var(--color-fans)", strokeWidth: 2 }}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </LineChart>
-              </ChartContainer>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-2xl font-bold">{(fanEngagementData.fans / 1000).toFixed(1)}K</span>
-                <span className="text-sm text-yellow-600">37.6% conversion</span>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums">{(fanEngagementData.capturedData / 1000).toFixed(1)}K</span>
+                <Badge variant="secondary" className="text-xs">Potential</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  captured: { label: "Captured", color: "hsl(var(--chart-5))" }
+                }} className="h-16 w-full">
+                  <AreaChart data={[
+                    { month: "Jan", captured: Math.round(fanEngagementData.capturedData * 0.65) }, // 5.5K
+                    { month: "Feb", captured: Math.round(fanEngagementData.capturedData * 0.72) }, // 6.1K
+                    { month: "Mar", captured: Math.round(fanEngagementData.capturedData * 0.78) }, // 6.6K
+                    { month: "Apr", captured: Math.round(fanEngagementData.capturedData * 0.85) }, // 7.2K
+                    { month: "May", captured: Math.round(fanEngagementData.capturedData * 0.92) }, // 7.8K
+                    { month: "Jun", captured: fanEngagementData.capturedData } // 8.5K
+                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillCapturedMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-5))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="captured"
+                      stroke="hsl(var(--chart-5))"
+                      fill="url(#fillCapturedMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Growth Rate</span>
+                  <span className="font-medium text-green-600">+31%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  Building database
+                </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Super Fans with RadialBar */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
-                <span>Super Fans</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Your top 1% most engaged fans who consistently stream, share, purchase, and advocate for your music. These are your brand ambassadors and most valuable supporters.</p>
-                  </TooltipContent>
-                </Tooltip>
+          {/* Active Fans */}
+          <Card className="relative border-l-4 border-l-orange-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Active Fans</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View fan activity and engagement patterns" />
+                  <ActionButton icon={Bot} tooltip="Get AI insights for fan activation" />
+                  <ActionButton icon={Plug} tooltip="Connect fan engagement platforms" />
+                  <ActionButton icon={Plus} tooltip="Add fan activity manually" />
+                </div>
               </CardTitle>
-              <CardDescription>Your most loyal supporters</CardDescription>
+              <CardDescription className="text-xs">Regular engagement & support</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ChartContainer config={{
-                superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
-              }} className="mx-auto aspect-square max-h-[180px] w-full">
-                <RadialBarChart 
-                  accessibilityLayer
-                  cx="50%" 
-                  cy="50%" 
-                  innerRadius="60%" 
-                  outerRadius="90%" 
-                  data={[{
-                    name: "superFans",
-                    value: Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100),
-                    fill: "hsl(var(--chart-3))"
-                  }]}
-                >
-                  <PolarGrid gridType="circle" radialLines={false} stroke="none" />
-                  <RadialBar dataKey="value" cornerRadius={6} />
-                  <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                    <Label
-                      content={({ viewBox }) => {
-                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                          return (
-                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                              <tspan 
-                                x={viewBox.cx} 
-                                y={(viewBox.cy || 0) - 6} 
-                                className="fill-foreground font-bold text-2xl"
-                              >
-                                {fanEngagementData.superFans}
-                              </tspan>
-                              <tspan 
-                                x={viewBox.cx} 
-                                y={(viewBox.cy || 0) + 16} 
-                                className="fill-muted-foreground text-sm"
-                              >
-                                VIP Members
-                              </tspan>
-                            </text>
-                          );
-                        }
-                      }}
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-orange-600">{(fanEngagementData.fans / 1000).toFixed(1)}K</span>
+                <Badge variant="outline" className="text-xs border-orange-600 text-orange-600">Active</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={engagementChartConfig} className="h-16 w-full">
+                  <AreaChart data={fanEngagementTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillFansMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="fans"
+                      stroke="hsl(var(--chart-1))"
+                      fill="url(#fillFansMini)"
+                      strokeWidth={1.5}
+                      dot={false}
                     />
-                  </PolarRadiusAxis>
-                </RadialBarChart>
-              </ChartContainer>
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Conversion Rate</span>
+                  <span className="font-medium">{Math.round((fanEngagementData.fans / fanEngagementData.capturedData) * 100)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
+                  Consistent engagement
+                </p>
+              </div>
+            </CardContent>
+          </Card>
+
+          {/* Super Fans */}
+          <Card className="relative border-l-4 border-l-pink-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Super Fans</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View super fan profiles and activities" />
+                  <ActionButton icon={Bot} tooltip="Get AI strategies for fan advocacy" />
+                  <ActionButton icon={Plug} tooltip="Connect loyalty and rewards platforms" />
+                  <ActionButton icon={Plus} tooltip="Add super fan manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Most loyal advocates</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-pink-600">{fanEngagementData.superFans}</span>
+                <Badge className="text-xs bg-pink-500/10 text-pink-600 border-pink-200">VIP</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
+                }} className="h-16 w-full">
+                  <AreaChart data={[
+                    { month: "Jan", superFans: Math.round(fanEngagementData.superFans * 0.80) }, // 120
+                    { month: "Feb", superFans: Math.round(fanEngagementData.superFans * 0.83) }, // 125
+                    { month: "Mar", superFans: Math.round(fanEngagementData.superFans * 0.87) }, // 130
+                    { month: "Apr", superFans: Math.round(fanEngagementData.superFans * 0.90) }, // 135
+                    { month: "May", superFans: Math.round(fanEngagementData.superFans * 0.95) }, // 142
+                    { month: "Jun", superFans: fanEngagementData.superFans } // 150
+                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillSuperFansMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="superFans"
+                      stroke="hsl(var(--chart-3))"
+                      fill="url(#fillSuperFansMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Elite Rate</span>
+                  <span className="font-medium">{Math.round((fanEngagementData.superFans / fanEngagementData.fans) * 100)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Heart className="h-3 w-3" />
+                  Brand ambassadors
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
