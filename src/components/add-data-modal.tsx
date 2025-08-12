@@ -146,7 +146,20 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
 
     setIsLoading(true)
     try {
-      const results = await PipelineService.batchImportCSV(user.id, csvData, section)
+      let processedCsvData = csvData
+
+      // For production section, detect if it's a simple song list
+      if (section === 'production' && !csvData.includes(',') && !csvData.includes('record_type')) {
+        // Convert song list to CSV format
+        const songLines = csvData.trim().split('\n').filter(line => line.trim())
+        const csvHeader = config.csvTemplate
+        const csvRows = songLines.map(songTitle => 
+          `${recordType},${songTitle.trim()},,,${recordType === 'unfinished' ? '0' : recordType === 'finished' ? '100' : '100'},,`
+        )
+        processedCsvData = csvHeader + '\n' + csvRows.join('\n')
+      }
+
+      const results = await PipelineService.batchImportCSV(user.id, processedCsvData, section)
       setImportResults(results)
       
       if (results.success > 0) {
@@ -176,6 +189,184 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
     a.click()
     document.body.removeChild(a)
     window.URL.revokeObjectURL(url)
+  }
+
+  const renderQuickForm = () => {
+    switch (section) {
+      case 'production':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="quick_title">Title*</Label>
+                <Input
+                  id="quick_title"
+                  value={formData.title || ''}
+                  onChange={(e) => handleInputChange('title', e.target.value)}
+                  placeholder="Track name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="quick_completion">Completion %</Label>
+                <Input
+                  id="quick_completion"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={formData.completion_percentage || 0}
+                  onChange={(e) => handleInputChange('completion_percentage', parseInt(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+        )
+      case 'marketing':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="quick_platform">Platform</Label>
+                <Input
+                  id="quick_platform"
+                  value={formData.platform || ''}
+                  onChange={(e) => handleInputChange('platform', e.target.value)}
+                  placeholder="e.g., Instagram"
+                />
+              </div>
+              {recordType === 'reach' && (
+                <div>
+                  <Label htmlFor="quick_reach">Reach Count</Label>
+                  <Input
+                    id="quick_reach"
+                    type="number"
+                    value={formData.reach_count || 0}
+                    onChange={(e) => handleInputChange('reach_count', parseInt(e.target.value))}
+                  />
+                </div>
+              )}
+              {recordType === 'engaged' && (
+                <div>
+                  <Label htmlFor="quick_engagement">Engagement Count</Label>
+                  <Input
+                    id="quick_engagement"
+                    type="number"
+                    value={formData.engagement_count || 0}
+                    onChange={(e) => handleInputChange('engagement_count', parseInt(e.target.value))}
+                  />
+                </div>
+              )}
+              {recordType === 'followers' && (
+                <div>
+                  <Label htmlFor="quick_followers">Follower Count</Label>
+                  <Input
+                    id="quick_followers"
+                    type="number"
+                    value={formData.follower_count || 0}
+                    onChange={(e) => handleInputChange('follower_count', parseInt(e.target.value))}
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      case 'fan_engagement':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="quick_fan_name">Name</Label>
+                <Input
+                  id="quick_fan_name"
+                  value={formData.contact_info?.name || ''}
+                  onChange={(e) => handleInputChange('contact_info', { 
+                    ...formData.contact_info, 
+                    name: e.target.value 
+                  })}
+                  placeholder="Fan's name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="quick_engagement_score">Score (1-100)</Label>
+                <Input
+                  id="quick_engagement_score"
+                  type="number"
+                  min="1"
+                  max="100"
+                  value={formData.engagement_score || 50}
+                  onChange={(e) => handleInputChange('engagement_score', parseInt(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+        )
+      case 'conversion':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="quick_contact">Contact Name*</Label>
+                <Input
+                  id="quick_contact"
+                  value={formData.contact_name || ''}
+                  onChange={(e) => handleInputChange('contact_name', e.target.value)}
+                  placeholder="Lead name"
+                />
+              </div>
+              <div>
+                <Label htmlFor="quick_deal_value">Deal Value ($)</Label>
+                <Input
+                  id="quick_deal_value"
+                  type="number"
+                  step="0.01"
+                  value={formData.deal_value || 0}
+                  onChange={(e) => handleInputChange('deal_value', parseFloat(e.target.value))}
+                />
+              </div>
+            </div>
+          </div>
+        )
+      case 'agent':
+        return (
+          <div className="space-y-4">
+            <div className="grid grid-cols-2 gap-4">
+              <div>
+                <Label htmlFor="quick_agent_name">Agent Name*</Label>
+                <Input
+                  id="quick_agent_name"
+                  value={formData.agent_name || ''}
+                  onChange={(e) => handleInputChange('agent_name', e.target.value)}
+                  placeholder="Agent's name"
+                />
+              </div>
+              {recordType === 'signed' && (
+                <div>
+                  <Label htmlFor="quick_commission">Commission %</Label>
+                  <Input
+                    id="quick_commission"
+                    type="number"
+                    step="0.01"
+                    value={formData.commission_rate || 15}
+                    onChange={(e) => handleInputChange('commission_rate', parseFloat(e.target.value))}
+                  />
+                </div>
+              )}
+              {recordType !== 'signed' && (
+                <div>
+                  <Label htmlFor="quick_agency">Agency</Label>
+                  <Input
+                    id="quick_agency"
+                    value={formData.agency_name || ''}
+                    onChange={(e) => handleInputChange('agency_name', e.target.value)}
+                    placeholder="Agency name"
+                  />
+                </div>
+              )}
+            </div>
+          </div>
+        )
+      default:
+        return <div>Quick form not implemented for this section</div>
+    }
   }
 
   const renderManualForm = () => {
@@ -555,37 +746,66 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
 
   // Render the dialog content
   const dialogContent = (
-    <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
-      <DialogHeader>
-        <DialogTitle className="flex items-center gap-2">
-          <Plus className="h-5 w-5" />
+    <DialogContent className="max-w-2xl max-h-[85vh] overflow-hidden">
+      <DialogHeader className="pb-4">
+        <DialogTitle className="flex items-center gap-2 text-lg">
+          <Plus className="h-5 w-5 text-primary" />
           {config.title}
         </DialogTitle>
-        <DialogDescription>
+        <DialogDescription className="text-sm text-muted-foreground">
           {config.description}
         </DialogDescription>
       </DialogHeader>
 
-      <Tabs defaultValue="manual" className="mt-4">
-        <TabsList className="grid w-full grid-cols-2">
-          <TabsTrigger value="manual" className="flex items-center gap-2">
-            <FileText className="h-4 w-4" />
-            Manual Entry
+      <Tabs defaultValue="quick" className="flex-1 flex flex-col">
+        <TabsList className="grid w-full grid-cols-3 mb-4">
+          <TabsTrigger value="quick" className="flex items-center gap-1 text-xs px-2">
+            <Plus className="h-3.5 w-3.5" />
+            Quick Add
           </TabsTrigger>
-          <TabsTrigger value="csv" className="flex items-center gap-2">
-            <Upload className="h-4 w-4" />
-            CSV Import
+          <TabsTrigger value="manual" className="flex items-center gap-1 text-xs px-2">
+            <FileText className="h-3.5 w-3.5" />
+            Full Form
+          </TabsTrigger>
+          <TabsTrigger value="csv" className="flex items-center gap-1 text-xs px-2">
+            <Upload className="h-3.5 w-3.5" />
+            Bulk Import
           </TabsTrigger>
         </TabsList>
 
-        <TabsContent value="manual" className="mt-6">
-          <form onSubmit={handleManualSubmit}>
-            <ScrollArea className="max-h-96 pr-4">
+        <TabsContent value="quick" className="flex-1 flex flex-col mt-0">
+          <form onSubmit={handleManualSubmit} className="flex-1 flex flex-col">
+            <div className="flex-1">
+              <div className="mb-4">
+                <Label className="text-sm font-medium">Record Type</Label>
+                <div className="mt-2">
+                  <Badge variant="secondary" className="text-xs">
+                    {config.recordTypes[recordType as keyof typeof config.recordTypes]}
+                  </Badge>
+                </div>
+              </div>
+              <Separator className="mb-4" />
+              {renderQuickForm()}
+            </div>
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
+              <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                Cancel
+              </Button>
+              <Button type="submit" disabled={isLoading} className="min-w-[100px]">
+                {isLoading ? 'Adding...' : 'Add Record'}
+              </Button>
+            </div>
+          </form>
+        </TabsContent>
+
+        <TabsContent value="manual" className="flex-1 flex flex-col mt-0">
+          <form onSubmit={handleManualSubmit} className="flex-1 flex flex-col">
+            <ScrollArea className="flex-1 pr-4">
               <div className="space-y-4">
                 <div>
-                  <Label>Record Type</Label>
+                  <Label className="text-sm font-medium">Record Type</Label>
                   <div className="mt-2">
-                    <Badge variant="secondary">
+                    <Badge variant="secondary" className="text-xs">
                       {config.recordTypes[recordType as keyof typeof config.recordTypes]}
                     </Badge>
                   </div>
@@ -594,27 +814,28 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
                 {renderManualForm()}
               </div>
             </ScrollArea>
-            <div className="flex justify-end gap-2 mt-6">
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
-              <Button type="submit" disabled={isLoading}>
+              <Button type="submit" disabled={isLoading} className="min-w-[100px]">
                 {isLoading ? 'Adding...' : 'Add Record'}
               </Button>
             </div>
           </form>
         </TabsContent>
 
-        <TabsContent value="csv" className="mt-6">
-          <div className="space-y-4">
-            <div>
-              <div className="flex items-center justify-between mb-2">
-                <Label>CSV Data</Label>
+        <TabsContent value="csv" className="flex-1 flex flex-col mt-0">
+          <div className="flex-1 flex flex-col">
+            <div className="flex-1">
+              <div className="flex items-center justify-between mb-3">
+                <Label className="text-sm font-medium">Bulk Import Data</Label>
                 <Button
                   type="button"
                   variant="outline"
                   size="sm"
                   onClick={downloadCSVTemplate}
+                  className="text-xs px-3 py-1"
                 >
                   Download Template
                 </Button>
@@ -622,14 +843,16 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
               <Textarea
                 value={csvData}
                 onChange={(e) => setCsvData(e.target.value)}
-                placeholder={`Paste your CSV data here. Expected format:\n${config.csvTemplate}`}
-                rows={8}
-                className="font-mono text-sm"
+                placeholder={section === 'production' 
+                  ? `CSV Format:\n${config.csvTemplate}\n\nOR Song List:\nJust paste a list of song names, one per line:\nSong Title 1\nSong Title 2\nSong Title 3`
+                  : `Paste your CSV data here. Expected format:\n${config.csvTemplate}`}
+                rows={10}
+                className="font-mono text-sm resize-none"
               />
             </div>
 
             {importResults && (
-              <div className="space-y-2">
+              <div className="space-y-2 mt-4 p-3 bg-muted/50 rounded-md">
                 <div className="flex items-center gap-2 text-sm">
                   <CheckCircle2 className="h-4 w-4 text-green-600" />
                   <span className="text-green-600">Successfully imported: {importResults.success}</span>
@@ -640,7 +863,7 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
                       <AlertCircle className="h-4 w-4 text-red-600" />
                       <span className="text-red-600">Errors: {importResults.errors.length}</span>
                     </div>
-                    <ScrollArea className="max-h-32">
+                    <ScrollArea className="max-h-24">
                       <div className="space-y-1">
                         {importResults.errors.map((error, index) => (
                           <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
@@ -654,15 +877,16 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
               </div>
             )}
 
-            <div className="flex justify-end gap-2">
+            <div className="flex justify-end gap-2 mt-6 pt-4 border-t">
               <Button type="button" variant="outline" onClick={() => setOpen(false)}>
                 Cancel
               </Button>
               <Button
                 onClick={handleCSVImport}
                 disabled={isLoading || !csvData.trim()}
+                className="min-w-[100px]"
               >
-                {isLoading ? 'Importing...' : 'Import CSV'}
+                {isLoading ? 'Importing...' : 'Import Data'}
               </Button>
             </div>
           </div>
