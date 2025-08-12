@@ -1,6 +1,8 @@
 'use client';
 
 import { useState } from 'react';
+
+export const dynamic = 'force-dynamic'
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
 import { Music, Eye, EyeOff } from 'lucide-react';

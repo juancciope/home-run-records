@@ -2,6 +2,8 @@ import Link from 'next/link';
 import { Music } from 'lucide-react';
 import { Button } from '@/components/ui/button';
 
+export const dynamic = 'force-dynamic'
+
 export default function ErrorPage() {
   return (
     <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10 bg-slate-950">

@@ -1,6 +1,8 @@
 'use client';
 
 import { useState, useEffect } from 'react';
+
+export const dynamic = 'force-dynamic'
 import { useRouter } from 'next/navigation';
 import { audienceQuestions, QuizQuestion } from '@/lib/quizQuestions';
 import { ArrowRight, ArrowLeft, Check, Sparkles } from 'lucide-react';
