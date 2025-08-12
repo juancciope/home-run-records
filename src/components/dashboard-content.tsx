@@ -50,7 +50,14 @@ import { useAuth } from "@/contexts/auth-context"
 import { ArtistOnboarding } from "./artist-onboarding"
 
 export function DashboardContent() {
-  const { availableArtists, user: authUser, isLoading } = useAuth();
+  const { availableArtists, user: authUser, isLoading, hasRole } = useAuth();
+  
+  // Redirect superadmin users to their specific dashboard
+  React.useEffect(() => {
+    if (authUser && hasRole('superadmin')) {
+      window.location.href = '/dashboard/superadmin';
+    }
+  }, [authUser, hasRole]);
   const user = availableArtists?.[0]; // Use first artist for now
   const [pipelineMetrics, setPipelineMetrics] = React.useState<{
     production: { unfinished: number; finished: number; released: number };

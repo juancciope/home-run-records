@@ -1,7 +1,7 @@
 "use client"
 
 import React, { createContext, useContext, useEffect, useState, useCallback, ReactNode } from 'react';
-import { getCurrentUser, supabase } from '@/lib/supabaseClient';
+import { createClient } from '@/utils/supabase/client';
 
 // Types for the multi-tenant architecture
 export type UserRole = 'superadmin' | 'artist_manager' | 'artist';
@@ -122,6 +122,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
     // Subscribe to auth state changes
     console.log('🎯 Setting up auth state change listener');
+    const supabase = createClient();
     const { data: authListener } = supabase.auth.onAuthStateChange(async (event, session) => {
       console.log('🔄 Auth state changed:', {
         event,
@@ -159,17 +160,20 @@ export function AuthProvider({ children }: AuthProviderProps) {
   }, [user?.id, currentAgency?.id]);
 
   const loadUser = async () => {
-    console.log('🚀 === STARTING loadUser function ===');
+    console.log('🚀 === STARTING loadUser function (new client) ===');
     try {
       console.log('🔄 Step 1: Setting isLoading to true');
       setIsLoading(true);
       
-      console.log('🔄 Step 2: Calling getCurrentUser()');
-      const currentUser = await getCurrentUser();
-      console.log('🔄 Step 3: getCurrentUser result:', {
+      const supabase = createClient();
+      console.log('🔄 Step 2: Getting current user with new client');
+      const { data: { user: currentUser }, error: userError } = await supabase.auth.getUser();
+      
+      console.log('🔄 Step 3: getUser result:', {
         id: currentUser?.id,
         email: currentUser?.email,
-        hasUser: !!currentUser
+        hasUser: !!currentUser,
+        error: userError
       });
       
       if (currentUser) {
@@ -289,6 +293,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     });
     
     try {
+      const supabase = createClient();
       console.log('🏢 Step 1: Querying agency_users table');
       const { data: agencyUsers, error } = await supabase
         .from('agency_users')
@@ -381,6 +386,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
   const loadAllAgencies = async () => {
     console.log('🌐 === STARTING loadAllAgencies function ===');
     try {
+      const supabase = createClient();
       console.log('🌐 Step 1: Querying all agencies');
       const { data: allAgencies, error } = await supabase
         .from('agencies')
@@ -438,6 +444,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
     if (!currentAgency) return;
 
     try {
+      const supabase = createClient();
       // Load artists for current agency
       const { data: artists, error } = await supabase
         .from('artists')
@@ -476,6 +483,7 @@ export function AuthProvider({ children }: AuthProviderProps) {
 
   const logout = async () => {
     try {
+      const supabase = createClient();
       const { error } = await supabase.auth.signOut();
       if (error) throw error;
       
