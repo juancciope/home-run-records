@@ -3,8 +3,12 @@
 import { useState } from 'react';
 import { useRouter } from 'next/navigation';
 import { createClient } from '@/utils/supabase/client';
-import { Music, Eye, EyeOff, CheckCircle, AlertCircle } from 'lucide-react';
+import { Music, Eye, EyeOff } from 'lucide-react';
 import Link from 'next/link';
+import { Button } from '@/components/ui/button';
+import { Input } from '@/components/ui/input';
+import { Label } from '@/components/ui/label';
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card';
 
 export default function SignUpPage() {
   const router = useRouter();
@@ -34,7 +38,6 @@ export default function SignUpPage() {
     setIsLoading(true);
 
     try {
-      // Sign up user
       const supabase = createClient();
       const { data, error: signUpError } = await supabase.auth.signUp({
         email,
@@ -47,7 +50,6 @@ export default function SignUpPage() {
       }
 
       if (data.user) {
-        // Redirect to dashboard
         router.push('/dashboard');
       }
     } catch (err) {
@@ -58,181 +60,130 @@ export default function SignUpPage() {
     }
   };
 
-  const getPasswordStrength = (password: string) => {
-    let strength = 0;
-    if (password.length >= 8) strength++;
-    if (/[A-Z]/.test(password)) strength++;
-    if (/[a-z]/.test(password)) strength++;
-    if (/[0-9]/.test(password)) strength++;
-    if (/[^A-Za-z0-9]/.test(password)) strength++;
-    return strength;
-  };
-
-  const passwordStrength = getPasswordStrength(password);
-  const strengthLabels = ['Very Weak', 'Weak', 'Fair', 'Good', 'Strong'];
-  const strengthColors = ['bg-red-500', 'bg-orange-500', 'bg-yellow-500', 'bg-blue-500', 'bg-green-500'];
-
   return (
-    <div className="min-h-screen bg-gradient-to-br from-purple-900 via-blue-900 to-indigo-900">
-      <div className="container mx-auto px-4 py-8">
-        {/* Header */}
-        <div className="text-center text-white mb-8">
-          <div className="flex items-center justify-center mb-4">
-            <div className="bg-gradient-to-r from-pink-500 to-purple-600 p-3 rounded-full mr-4">
-              <Music className="w-8 h-8 text-white" />
+    <div className="flex min-h-screen w-full items-center justify-center p-6 md:p-10" style={{ backgroundColor: '#0a0e27' }}>
+      <div className="w-full max-w-sm">
+        <div className="flex flex-col gap-6">
+          {/* Logo */}
+          <div className="flex items-center justify-center gap-2 font-medium text-white">
+            <div className="bg-violet-600 text-white flex size-8 items-center justify-center rounded-md">
+              <Music className="size-4" />
             </div>
-            <h1 className="text-4xl font-bold">Artist OS</h1>
+            <span className="text-xl font-bold">Artist OS</span>
           </div>
-          <h2 className="text-2xl font-bold mb-2">Create Your Artist Account</h2>
-          <p className="text-xl text-gray-300">Join the platform and start tracking your growth</p>
-        </div>
 
-        <div className="max-w-md mx-auto">
-          {/* Signup Form */}
-          <div className="bg-white/10 backdrop-blur-lg rounded-2xl p-8">
-            <form onSubmit={handleSubmit} className="space-y-6">
-              {/* Email */}
-              <div>
-                <label className="block text-white font-medium mb-2">Email Address</label>
-                <input
-                  type="email"
-                  required
-                  value={email}
-                  onChange={(e) => setEmail(e.target.value)}
-                  className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent"
-                  placeholder="your@email.com"
-                />
-              </div>
-
-              {/* Password */}
-              <div>
-                <label className="block text-white font-medium mb-2">Password</label>
-                <div className="relative">
-                  <input
-                    type={showPassword ? 'text' : 'password'}
+          {/* Card */}
+          <Card className="bg-white/10 backdrop-blur border-white/20">
+            <CardHeader className="text-center">
+              <CardTitle className="text-xl text-white">Create Your Artist Account</CardTitle>
+              <CardDescription className="text-gray-400">
+                Join the platform and start tracking your growth
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <form onSubmit={handleSubmit} className="space-y-4">
+                {/* Email */}
+                <div className="space-y-2">
+                  <Label htmlFor="email" className="text-white">Email Address</Label>
+                  <Input
+                    id="email"
+                    type="email"
                     required
-                    value={password}
-                    onChange={(e) => setPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent pr-12"
-                    placeholder="Create a strong password"
+                    value={email}
+                    onChange={(e) => setEmail(e.target.value)}
+                    className="bg-white/10 border-white/20 text-white placeholder:text-gray-500"
+                    placeholder="your@email.com"
                   />
-                  <button
-                    type="button"
-                    onClick={() => setShowPassword(!showPassword)}
-                    className="absolute right-3 top-3 text-gray-300 hover:text-white"
-                  >
-                    {showPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
                 </div>
-                
-                {/* Password Strength */}
-                {password && (
-                  <div className="mt-2">
-                    <div className="flex space-x-1 mb-1">
-                      {[1, 2, 3, 4, 5].map((level) => (
-                        <div
-                          key={level}
-                          className={`h-2 w-full rounded ${
-                            level <= passwordStrength 
-                              ? strengthColors[passwordStrength - 1] || 'bg-gray-500'
-                              : 'bg-gray-600'
-                          }`}
-                        />
-                      ))}
-                    </div>
-                    <span className="text-gray-300 text-sm">
-                      Password strength: {strengthLabels[passwordStrength - 1] || 'Very Weak'}
-                    </span>
+
+                {/* Password */}
+                <div className="space-y-2">
+                  <Label htmlFor="password" className="text-white">Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="password"
+                      type={showPassword ? 'text' : 'password'}
+                      required
+                      value={password}
+                      onChange={(e) => setPassword(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 pr-10"
+                      placeholder="Create a strong password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowPassword(!showPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Confirm Password */}
+                <div className="space-y-2">
+                  <Label htmlFor="confirmPassword" className="text-white">Confirm Password</Label>
+                  <div className="relative">
+                    <Input
+                      id="confirmPassword"
+                      type={showConfirmPassword ? 'text' : 'password'}
+                      required
+                      value={confirmPassword}
+                      onChange={(e) => setConfirmPassword(e.target.value)}
+                      className="bg-white/10 border-white/20 text-white placeholder:text-gray-500 pr-10"
+                      placeholder="Confirm your password"
+                    />
+                    <button
+                      type="button"
+                      onClick={() => setShowConfirmPassword(!showConfirmPassword)}
+                      className="absolute right-3 top-1/2 -translate-y-1/2 text-gray-400 hover:text-white"
+                    >
+                      {showConfirmPassword ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                    </button>
+                  </div>
+                </div>
+
+                {/* Error Message */}
+                {error && (
+                  <div className="rounded-md bg-red-500/10 p-3 text-sm text-red-400">
+                    {error}
                   </div>
                 )}
-              </div>
 
-              {/* Confirm Password */}
-              <div>
-                <label className="block text-white font-medium mb-2">Confirm Password</label>
-                <div className="relative">
-                  <input
-                    type={showConfirmPassword ? 'text' : 'password'}
-                    required
-                    value={confirmPassword}
-                    onChange={(e) => setConfirmPassword(e.target.value)}
-                    className="w-full px-4 py-3 bg-white/20 border border-white/30 rounded-lg text-white placeholder-gray-300 focus:outline-none focus:ring-2 focus:ring-pink-500 focus:border-transparent pr-12"
-                    placeholder="Confirm your password"
-                  />
-                  <button
-                    type="button"
-                    onClick={() => setShowConfirmPassword(!showConfirmPassword)}
-                    className="absolute right-3 top-3 text-gray-300 hover:text-white"
-                  >
-                    {showConfirmPassword ? <EyeOff className="w-5 h-5" /> : <Eye className="w-5 h-5" />}
-                  </button>
-                </div>
-                
-                {/* Password Match Indicator */}
-                {confirmPassword && (
-                  <div className="mt-2">
-                    {password === confirmPassword ? (
-                      <div className="flex items-center text-green-400 text-sm">
-                        <CheckCircle className="w-4 h-4 mr-1" />
-                        Passwords match
-                      </div>
-                    ) : (
-                      <div className="flex items-center text-red-400 text-sm">
-                        <AlertCircle className="w-4 h-4 mr-1" />
-                        Passwords do not match
-                      </div>
-                    )}
-                  </div>
-                )}
-              </div>
+                {/* Submit Button */}
+                <Button 
+                  type="submit" 
+                  disabled={isLoading}
+                  className="w-full bg-violet-600 hover:bg-violet-700 text-white"
+                >
+                  {isLoading ? 'Creating Account...' : 'Create Account'}
+                </Button>
 
-              {/* Error Message */}
-              {error && (
-                <div className="p-3 bg-red-500/20 border border-red-500/30 rounded-lg">
-                  <div className="flex items-center">
-                    <AlertCircle className="w-4 h-4 text-red-400 mr-2" />
-                    <span className="text-red-200 text-sm">{error}</span>
-                  </div>
-                </div>
-              )}
-
-              {/* Submit Button */}
-              <button
-                type="submit"
-                disabled={isLoading}
-                className={`w-full py-3 rounded-lg font-medium transition-all ${
-                  isLoading
-                    ? 'bg-gray-500/20 text-gray-400 cursor-not-allowed'
-                    : 'bg-gradient-to-r from-pink-500 to-purple-600 text-white hover:from-pink-600 hover:to-purple-700'
-                }`}
-              >
-                {isLoading ? 'Creating Account...' : 'Create Account'}
-              </button>
-
-              {/* Terms */}
-              <p className="text-center text-gray-300 text-sm">
-                By creating an account, you agree to our Terms of Service and Privacy Policy
-              </p>
-            </form>
-          </div>
+                {/* Terms */}
+                <p className="text-center text-xs text-gray-400">
+                  By creating an account, you agree to our{' '}
+                  <Link href="/terms" className="text-violet-400 hover:text-violet-300">
+                    Terms of Service
+                  </Link>
+                  {' '}and{' '}
+                  <Link href="/privacy" className="text-violet-400 hover:text-violet-300">
+                    Privacy Policy
+                  </Link>
+                </p>
+              </form>
+            </CardContent>
+          </Card>
 
           {/* Links */}
-          <div className="text-center mt-6 space-y-2">
-            <p className="text-gray-300">
+          <div className="text-center text-sm">
+            <p className="text-gray-400">
               Already have an account?{' '}
-              <Link 
-                href="/login"
-                className="text-pink-400 hover:text-pink-300 font-medium"
-              >
+              <Link href="/login" className="text-violet-400 hover:text-violet-300 font-medium">
                 Sign in here
               </Link>
             </p>
-            <p className="text-gray-300">
+            <p className="text-gray-400 mt-2">
               Want to discover your audience first?{' '}
-              <Link 
-                href="/find-your-audience"
-                className="text-pink-400 hover:text-pink-300 font-medium"
-              >
+              <Link href="/find-your-audience" className="text-violet-400 hover:text-violet-300 font-medium">
                 Take the assessment
               </Link>
             </p>

@@ -5,7 +5,7 @@ import { Music2, TrendingUp, Users, BarChart3, Sparkles, ArrowRight, Mic2, Radio
 
 export default function Home() {
   return (
-    <div className="min-h-screen bg-gradient-to-br from-slate-900 via-purple-900 to-slate-900">
+    <div className="min-h-screen" style={{ backgroundColor: '#0a0e27' }}>
       {/* Navigation */}
       <nav className="border-b border-white/10">
         <div className="container mx-auto px-6 py-4">
@@ -20,7 +20,7 @@ export default function Home() {
               <Button variant="ghost" className="text-white hover:text-white hover:bg-white/10" asChild>
                 <Link href="/login">Sign In</Link>
               </Button>
-              <Button className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0" asChild>
+              <Button className="bg-violet-600 hover:bg-violet-700 text-white border-0" asChild>
                 <Link href="/signup">Get Started</Link>
               </Button>
             </div>
@@ -45,7 +45,7 @@ export default function Home() {
           </p>
 
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0 text-base" asChild>
+            <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white border-0 text-base" asChild>
               <Link href="/signup">
                 Start Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
@@ -157,7 +157,7 @@ export default function Home() {
       </section>
 
       {/* Stats Section */}
-      <section className="bg-black/20 backdrop-blur py-20">
+      <section className="bg-black/10 py-20">
         <div className="container mx-auto px-6">
           <div className="grid md:grid-cols-4 gap-8 max-w-4xl mx-auto text-center">
             <div>
@@ -232,7 +232,7 @@ export default function Home() {
       </section>
 
       {/* CTA Section */}
-      <section className="bg-gradient-to-r from-violet-900/50 to-indigo-900/50 backdrop-blur py-20">
+      <section className="bg-violet-900/20 py-20">
         <div className="container mx-auto px-6 text-center">
           <h2 className="text-3xl font-bold mb-6 text-white">
             Ready to Take Control of Your Music Career?
@@ -241,7 +241,7 @@ export default function Home() {
             Join thousands of artists who are already using Artist OS to grow their fanbase and optimize their strategy.
           </p>
           <div className="flex flex-col sm:flex-row gap-4 justify-center">
-            <Button size="lg" className="bg-gradient-to-r from-violet-600 to-indigo-600 hover:from-violet-700 hover:to-indigo-700 text-white border-0" asChild>
+            <Button size="lg" className="bg-violet-600 hover:bg-violet-700 text-white border-0" asChild>
               <Link href="/signup">
                 Start Your Free Trial
                 <ArrowRight className="ml-2 h-5 w-5" />
