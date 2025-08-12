@@ -1,27 +1,31 @@
 import { createClient } from '@/utils/supabase/client';
 
-// Viberate API Types based on research
+// Viberate API Types based on real API response
 export interface VibrateArtist {
   uuid: string;
-  id: string;
+  id?: string;
   name: string;
   slug: string;
   image: string;
+  bio?: string;
   verified: boolean;
   rank?: number;
   spotify_id?: string;
-  genres?: string[];
-  social_links?: {
-    instagram?: string;
-    tiktok?: string;
-    facebook?: string;
-    twitter?: string;
-    youtube?: string;
-    spotify?: string;
-    apple_music?: string;
-    deezer?: string;
-    soundcloud?: string;
-  };
+  country?: any;
+  genre?: any;
+  subgenres?: any[];
+  status?: string;
+  social_links?: Array<{
+    platform?: string;
+    name?: string;
+    url: string;
+  }>;
+  tracks?: any[];
+  events?: any[];
+  fanbase?: any;
+  similar_artists?: any[];
+  ranks?: any;
+  fetched_at?: string;
   metrics?: {
     instagram_followers?: number;
     tiktok_followers?: number;
@@ -107,14 +111,15 @@ export class VibrateService {
         return null;
       }
 
-      const data = await response.json();
+      const result = await response.json();
       
-      if (data.error) {
-        console.error('Artist details error:', data.error);
+      if (result.error || !result.success) {
+        console.error('Artist details error:', result.error);
         return null;
       }
 
-      return data;
+      // Return the actual artist data from the API response
+      return result.data;
     } catch (error) {
       console.error('Error fetching artist details:', error);
       return null;
@@ -187,7 +192,8 @@ export class VibrateService {
       
       // Prepare the profile update data
       const profileUpdate = {
-        viberate_artist_id: artistData.id,
+        id: userId, // Ensure the user ID is included
+        viberate_artist_id: artistData.id || artistData.uuid,
         viberate_uuid: artistData.uuid,
         viberate_slug: artistData.slug,
         viberate_verified: artistData.verified || false,
@@ -198,16 +204,16 @@ export class VibrateService {
         artist_name: artistData.name,
         profile_image_url: artistData.image,
         
-        // Social media URLs
-        instagram_url: artistData.social_links?.instagram,
-        tiktok_url: artistData.social_links?.tiktok,
-        facebook_url: artistData.social_links?.facebook,
-        twitter_url: artistData.social_links?.twitter,
-        youtube_url: artistData.social_links?.youtube,
-        spotify_url: artistData.social_links?.spotify,
-        apple_music_url: artistData.social_links?.apple_music,
-        deezer_url: artistData.social_links?.deezer,
-        soundcloud_url: artistData.social_links?.soundcloud,
+        // Social media URLs - handle real Viberate API format
+        instagram_url: this.extractSocialUrl(artistData.social_links, 'instagram'),
+        tiktok_url: this.extractSocialUrl(artistData.social_links, 'tiktok'),
+        facebook_url: this.extractSocialUrl(artistData.social_links, 'facebook'),
+        twitter_url: this.extractSocialUrl(artistData.social_links, 'twitter'),
+        youtube_url: this.extractSocialUrl(artistData.social_links, 'youtube'),
+        spotify_url: this.extractSocialUrl(artistData.social_links, 'spotify'),
+        apple_music_url: this.extractSocialUrl(artistData.social_links, 'apple_music'),
+        deezer_url: this.extractSocialUrl(artistData.social_links, 'deezer'),
+        soundcloud_url: this.extractSocialUrl(artistData.social_links, 'soundcloud'),
         spotify_id: artistData.spotify_id,
         
         // Metrics
@@ -399,5 +405,19 @@ export class VibrateService {
         message: error instanceof Error ? error.message : 'Onboarding failed'
       };
     }
+  }
+
+  /**
+   * Helper method to extract social URLs from Vibrate API response
+   */
+  private static extractSocialUrl(socialLinks: any, platform: string): string | undefined {
+    if (!socialLinks || !Array.isArray(socialLinks)) return undefined;
+    
+    const link = socialLinks.find(link => 
+      link.platform?.toLowerCase() === platform.toLowerCase() ||
+      link.name?.toLowerCase() === platform.toLowerCase()
+    );
+    
+    return link?.url || undefined;
   }
 }
