@@ -26,7 +26,7 @@ export async function GET(request: NextRequest) {
     
     console.log('Artist lookup:', { artist, error: artistError });
     
-    const result = {
+    const result: any = {
       artistId: artist?.id,
       hasData: {
         social_links: artistData.social_links?.data?.length || 0,
