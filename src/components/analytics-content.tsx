@@ -1,7 +1,7 @@
 "use client"
 
-import { ReachDashboard } from "./reach-dashboard"
+import { AnalyticsDashboard } from "./analytics-dashboard"
 
 export function AnalyticsContent() {
-  return <ReachDashboard />;
+  return <AnalyticsDashboard />;
 }
