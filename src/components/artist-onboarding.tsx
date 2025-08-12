@@ -39,7 +39,7 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
     setError("");
     
     try {
-      const { VibrateService } = await import('@/lib/services/viberate-service');
+      const { VibrateService } = await import('@/lib/services/viberate-api');
       
       // Search for artist by name
       const artists = await VibrateService.searchArtist(artistName);
@@ -70,22 +70,19 @@ export function ArtistOnboarding({ onComplete }: ArtistOnboardingProps) {
     setError("");
     
     try {
-      const { VibrateService } = await import('@/lib/services/viberate-service');
-      const { ArtistService } = await import('@/lib/services/artist-service');
+      const { VibrateService } = await import('@/lib/services/viberate-api');
       
       // Find the selected artist
       const artist = searchResults.find(a => a.id === selectedArtist);
       if (!artist) throw new Error("Artist not found");
       
-      // Update profile with artist name first
-      console.log('Updating profile with artist name:', artist.name);
-      await ArtistService.updateProfile(user.id, {
-        artist_name: artist.name,
-      });
+      // Complete the full onboarding flow using our new service
+      console.log('Starting onboarding flow for artist:', artist.name);
+      const result = await VibrateService.completeOnboarding(user.id, artist.uuid, artist.name);
       
-      // Then sync artist data from Viberate
-      console.log('Syncing Viberate data for artist:', artist.id);
-      await VibrateService.syncArtistData(user.id, artist.id);
+      if (!result.success) {
+        throw new Error(result.message);
+      }
       
       setStep(3);
       
