@@ -14,11 +14,22 @@ export async function POST() {
     }
 
     // Check if user has a Viberate artist ID stored
-    const { data: profile } = await supabase
+    const { data: profile, error: profileQueryError } = await supabase
       .from('artist_profiles')
       .select('viberate_uuid, viberate_artist_id, artist_name')
       .eq('user_id', user.id)
       .single()
+
+    console.log('Profile query result:', { profile, profileQueryError, userId: user.id })
+
+    // Check for database access errors first
+    if (profileQueryError) {
+      console.error('Profile query error:', profileQueryError)
+      return NextResponse.json({ 
+        error: 'Failed to access artist profile data',
+        details: profileQueryError.message 
+      }, { status: 400 })
+    }
 
     if (!profile || (!profile.viberate_uuid && !profile.viberate_artist_id)) {
       // Try to find artist by name

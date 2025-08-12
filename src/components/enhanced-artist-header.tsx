@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import { Badge } from "@/components/ui/badge"
 import { Users, Music, AlertCircle } from "lucide-react"
-import { createClient } from '@/utils/supabase/client'
 import { Button } from "@/components/ui/button"
 
 interface ArtistData {
@@ -22,40 +21,19 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
   useEffect(() => {
     async function fetchArtistData() {
       try {
-        const supabase = createClient()
+        const response = await fetch('/api/artist-header')
         
-        // First try artist_profiles (where Viberate data is stored)
-        const { data: profile, error: profileError } = await supabase
-          .from('artist_profiles')
-          .select('*')
-          .eq('user_id', userId)
-          .single()
-
-        if (profile && !profileError) {
-          setArtistData({
-            name: profile.stage_name || profile.artist_name || 'Artist',
-            image: profile.profile_image_url || profile.avatar_url || profile.image_url || null,
-            followers: profile.spotify_followers || profile.total_followers || null,
-            hasViberateData: !!profile.viberate_uuid || !!profile.viberate_artist_id
-          })
+        if (response.ok) {
+          const data = await response.json()
+          setArtistData(data)
+        } else if (response.status === 404) {
+          const errorData = await response.json()
+          console.log('No artist data found:', errorData)
+          setError('No artist profile found')
         } else {
-          // Try artists table as fallback
-          const { data: artist, error: artistError } = await supabase
-            .from('artists')
-            .select('*')
-            .eq('user_id', userId)
-            .single()
-
-          if (artist && !artistError) {
-            setArtistData({
-              name: artist.stage_name || artist.name || 'Artist',
-              image: artist.avatar_url || artist.image || null,
-              followers: artist.total_followers || null,
-              hasViberateData: !!artist.viberate_uuid || !!artist.uuid
-            })
-          } else {
-            setError('No artist profile found')
-          }
+          const errorData = await response.json()
+          console.error('API error:', errorData)
+          setError('Failed to load artist data')
         }
       } catch (err) {
         console.error('Error fetching artist data:', err)
