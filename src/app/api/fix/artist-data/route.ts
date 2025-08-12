@@ -1,23 +1,23 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
 import { VibrateService } from '@/lib/services/viberate-api'
+import { getServerUser } from '@/lib/auth/server-auth'
 
 export async function POST() {
   try {
-    const supabase = await createClient()
+    const user = await getServerUser()
     
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    const supabase = await createClient()
 
     // Check if user has a Viberate artist ID stored
     const { data: profile, error: profileQueryError } = await supabase
       .from('artist_profiles')
       .select('viberate_uuid, viberate_artist_id, artist_name')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single()
 
     console.log('Profile query result:', { profile, profileQueryError, userId: user.id })
@@ -53,7 +53,7 @@ export async function POST() {
                 genres: artistData.genre ? [artistData.genre.name] : [],
                 updated_at: new Date().toISOString()
               })
-              .eq('user_id', user.id)
+              .eq('id', user.id)
 
             if (updateError) {
               console.error('Error updating artist profile:', updateError)
@@ -94,7 +94,7 @@ export async function POST() {
         genres: artistData.genre ? [artistData.genre.name] : [],
         updated_at: new Date().toISOString()
       })
-      .eq('user_id', user.id)
+      .eq('id', user.id)
 
     if (updateError) {
       console.error('Error updating artist profile:', updateError)
@@ -105,7 +105,7 @@ export async function POST() {
     const { data: artistRecord } = await supabase
       .from('artists')
       .select('id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single()
 
     if (artistRecord) {
@@ -119,7 +119,7 @@ export async function POST() {
           total_followers: artistData.metrics?.total_followers || artistData.metrics?.spotify_followers || 0,
           updated_at: new Date().toISOString()
         })
-        .eq('user_id', user.id)
+        .eq('id', user.id)
     }
 
     return NextResponse.json({ 

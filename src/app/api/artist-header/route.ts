@@ -1,16 +1,16 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { getServerUser } from '@/lib/auth/server-auth'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
+    const user = await getServerUser()
     
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    const supabase = await createClient()
 
     console.log('Fetching artist data for user:', user.id)
 
@@ -18,7 +18,7 @@ export async function GET() {
     const { data: profile, error: profileError } = await supabase
       .from('artist_profiles')
       .select('stage_name, artist_name, profile_image_url, avatar_url, image_url, spotify_followers, total_followers, viberate_uuid, viberate_artist_id')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
       .single()
 
     console.log('Artist profile query result:', { profile, profileError })

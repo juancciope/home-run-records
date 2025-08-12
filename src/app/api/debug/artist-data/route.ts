@@ -1,22 +1,22 @@
 import { NextResponse } from 'next/server'
 import { createClient } from '@/utils/supabase/server'
+import { getServerUser } from '@/lib/auth/server-auth'
 
 export async function GET() {
   try {
-    const supabase = await createClient()
+    const user = await getServerUser()
     
-    // Get the current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser()
-    
-    if (userError || !user) {
+    if (!user) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 })
     }
+
+    const supabase = await createClient()
 
     // Get data from artist_profiles table
     const { data: artistProfiles, error: profilesError } = await supabase
       .from('artist_profiles')
       .select('*')
-      .eq('user_id', user.id)
+      .eq('id', user.id)
 
     // Get data from artists table
     const { data: artists, error: artistsError } = await supabase
