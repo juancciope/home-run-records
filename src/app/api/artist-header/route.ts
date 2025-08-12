@@ -17,7 +17,7 @@ export async function GET() {
     // Try artist_profiles first (where Viberate data is stored)
     const { data: profile, error: profileError } = await supabase
       .from('artist_profiles')
-      .select('stage_name, artist_name, profile_image_url, avatar_url, image_url, spotify_followers, total_followers, viberate_uuid, viberate_artist_id')
+      .select('*')
       .eq('id', user.id)
       .single()
 
@@ -26,9 +26,9 @@ export async function GET() {
     if (profile && !profileError) {
       const artistData = {
         name: profile.stage_name || profile.artist_name || 'Artist',
-        image: profile.profile_image_url || profile.avatar_url || profile.image_url || null,
+        image: profile.profile_image_url || profile.image_url || null,
         followers: profile.spotify_followers || profile.total_followers || null,
-        hasViberateData: !!profile.viberate_uuid || !!profile.viberate_artist_id
+        hasViberateData: !!(profile.viberate_uuid || profile.viberate_artist_id)
       }
       console.log('Returning artist data from profile:', artistData)
       return NextResponse.json(artistData)
@@ -37,7 +37,7 @@ export async function GET() {
     // Try artists table as fallback
     const { data: artist, error: artistError } = await supabase
       .from('artists')
-      .select('stage_name, name, avatar_url, image, total_followers, viberate_uuid, uuid')
+      .select('stage_name, name, avatar_url, image, total_followers, uuid')
       .eq('user_id', user.id)
       .single()
 
@@ -48,7 +48,7 @@ export async function GET() {
         name: artist.stage_name || artist.name || 'Artist',
         image: artist.avatar_url || artist.image || null,
         followers: artist.total_followers || null,
-        hasViberateData: !!artist.viberate_uuid || !!artist.uuid
+        hasViberateData: !!artist.uuid
       }
       console.log('Returning artist data from artists:', artistData)
       return NextResponse.json(artistData)
