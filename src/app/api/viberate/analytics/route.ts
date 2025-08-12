@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function GET(request: NextRequest) {
   const searchParams = request.nextUrl.searchParams;
@@ -12,7 +12,11 @@ export async function GET(request: NextRequest) {
   try {
     console.log('Fetching analytics data from database for artist UUID:', artistId);
 
-    const supabase = await createClient();
+    // Use service role for server-side operations
+    const supabase = createClient(
+      process.env.NEXT_PUBLIC_SUPABASE_URL!,
+      process.env.SUPABASE_SERVICE_ROLE_KEY!
+    );
 
     // Query artist data from database
     const { data: artist, error: artistError } = await supabase

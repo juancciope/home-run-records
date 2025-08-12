@@ -80,10 +80,25 @@ export function AnalyticsDashboard() {
       
       try {
         setIsLoading(true)
-        // Load analytics data from API
-        const response = await fetch('/api/viberate/analytics')
-        const data = await response.json()
-        setAnalyticsData(data)
+        
+        // First try to get user profile to find artist UUID
+        const { ArtistService } = await import('@/lib/services/artist-service');
+        const profile = await ArtistService.getArtistProfile(user.id, user.email || '');
+        
+        if (profile?.viberate_artist_id) {
+          // Load analytics data from API with artist UUID
+          const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`)
+          const data = await response.json()
+          
+          if (data && !data.error) {
+            setAnalyticsData(data)
+          } else {
+            throw new Error(data.message || 'Failed to load analytics')
+          }
+        } else {
+          // No Viberate connection, show placeholder data
+          throw new Error('No Viberate connection found')
+        }
       } catch (error) {
         console.error('Error loading analytics:', error)
         // Use mock data for demo
@@ -108,6 +123,8 @@ export function AnalyticsDashboard() {
             { date: "Apr", spotify: 950, youtube: 460, instagram: 2000, tiktok: 480 },
             { date: "May", spotify: 1019, youtube: 467, instagram: 2052, tiktok: 502 },
           ],
+          isRealData: false,
+          message: 'Using demo data - connect Viberate to see real analytics'
         })
       } finally {
         setIsLoading(false)
