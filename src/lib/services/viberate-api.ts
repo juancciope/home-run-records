@@ -79,8 +79,9 @@ export class VibrateService {
    */
   static async searchArtist(query: string): Promise<VibrateSearchResult[]> {
     try {
-      // Use our existing endpoint that works
-      const response = await fetch(`/api/viberate/search?q=${encodeURIComponent(query)}`);
+      // Use absolute URL for server-side requests
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://home-run-records.vercel.app';
+      const response = await fetch(`${baseUrl}/api/viberate/search?q=${encodeURIComponent(query)}`);
       
       if (!response.ok) {
         throw new Error(`Search failed: ${response.status}`);
@@ -104,7 +105,9 @@ export class VibrateService {
    */
   static async getArtistDetails(uuid: string): Promise<VibrateArtist | null> {
     try {
-      const response = await fetch(`/api/viberate/artist/${uuid}`);
+      // Use absolute URL for server-side requests
+      const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'https://home-run-records.vercel.app';
+      const response = await fetch(`${baseUrl}/api/viberate/artist/${uuid}`);
       
       if (!response.ok) {
         console.error(`Failed to fetch artist details: ${response.status}`);
