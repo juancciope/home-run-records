@@ -135,29 +135,31 @@ export function AnalyticsDashboard() {
         const targetUUID = artistUUID || 'c803da56-c6bd-4c61-addb-f1063544a1a2'
         console.log('Loading analytics for UUID:', targetUUID)
         
-        // Load artist information
-        if (profile?.artist_name || profile?.stage_name) {
+        // Load artist information from the artists table
+        const { createClient } = await import('@/utils/supabase/client')
+        const supabase = createClient()
+        
+        const { data: artistData } = await supabase
+          .from('artists')
+          .select('name, image')
+          .eq('uuid', targetUUID)
+          .single()
+        
+        if (artistData) {
           setArtistInfo({
-            name: profile.stage_name || profile.artist_name || 'Artist',
-            image: profile.profile_image_url || null
+            name: artistData.name || 'Artist',
+            image: artistData.image || null
           })
         } else {
-          // Try to get artist info from the artists table
-          const { createClient } = await import('@/utils/supabase/client')
-          const supabase = createClient()
+          // Fallback to user profile name if available
+          const displayName = profile?.first_name && profile?.last_name 
+            ? `${profile.first_name} ${profile.last_name}`
+            : user?.email?.split('@')[0] || 'Artist'
           
-          const { data: artistData } = await supabase
-            .from('artists')
-            .select('name, image')
-            .eq('uuid', targetUUID)
-            .single()
-          
-          if (artistData) {
-            setArtistInfo({
-              name: artistData.name || 'Artist',
-              image: artistData.image || null
-            })
-          }
+          setArtistInfo({
+            name: displayName,
+            image: profile?.avatar_url || null
+          })
         }
         
         const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(targetUUID)}`)
