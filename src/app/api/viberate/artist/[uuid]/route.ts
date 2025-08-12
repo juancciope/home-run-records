@@ -158,7 +158,7 @@ export async function GET(
 
     // Parse responses with detailed logging
     let details, links, bio, fanbaseDistribution, ranks, tracks, events, similarArtists;
-    let fanbase = {};
+    const fanbase: Record<string, any> = {};
 
     console.log('Response statuses:', {
       details: detailsResponse?.status,
