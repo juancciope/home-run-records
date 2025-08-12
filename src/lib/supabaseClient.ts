@@ -54,24 +54,17 @@ export const signOut = async () => {
 };
 
 export const getCurrentUser = async () => {
-  console.log('🔑 === STARTING getCurrentUser function ===');
+  console.log('🔑 === STARTING getCurrentUser function (using getSession only) ===');
   try {
-    console.log('🔑 Step 1: Calling supabase.auth.getUser()');
+    console.log('🔑 Step 1: Using getSession instead of getUser to avoid timeout');
     
-    // Add timeout to prevent hanging
-    const timeoutPromise = new Promise((_, reject) => {
-      setTimeout(() => reject(new Error('getCurrentUser timeout after 10 seconds')), 10000);
-    });
+    const { data: { session }, error } = await supabase.auth.getSession();
     
-    const getUserPromise = supabase.auth.getUser();
-    
-    console.log('🔑 Step 1a: Waiting for getUser with 10s timeout');
-    const { data: { user }, error } = await Promise.race([getUserPromise, timeoutPromise]) as any;
-    
-    console.log('🔑 Step 2: getUser result:', {
-      hasUser: !!user,
-      userId: user?.id,
-      userEmail: user?.email,
+    console.log('🔑 Step 2: getSession result:', {
+      hasSession: !!session,
+      hasUser: !!session?.user,
+      userId: session?.user?.id,
+      userEmail: session?.user?.email,
       error: error ? {
         message: error.message,
         name: error.name
@@ -79,43 +72,19 @@ export const getCurrentUser = async () => {
     });
     
     if (error) {
-      console.error('💥 getCurrentUser error:', error);
+      console.error('💥 getCurrentUser (getSession) error:', error);
       throw error;
     }
     
     console.log('🔑 === COMPLETED getCurrentUser function ===');
-    return user;
+    return session?.user || null;
   } catch (error) {
     console.error('💥 FATAL ERROR in getCurrentUser:', {
       error,
       message: error instanceof Error ? error.message : 'Unknown error',
       stack: error instanceof Error ? error.stack : 'No stack trace'
     });
-    
-    // If it's a timeout, try alternative approach
-    if (error instanceof Error && error.message.includes('timeout')) {
-      console.log('🔑 Timeout detected, trying alternative approach with getSession');
-      try {
-        const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-        console.log('🔑 getSession result:', {
-          hasSession: !!session,
-          hasUser: !!session?.user,
-          userEmail: session?.user?.email
-        });
-        
-        if (sessionError) {
-          console.error('💥 getSession error:', sessionError);
-          return null;
-        }
-        
-        return session?.user || null;
-      } catch (sessionErr) {
-        console.error('💥 Alternative approach also failed:', sessionErr);
-        return null;
-      }
-    }
-    
-    throw error;
+    return null;
   }
 };
 
