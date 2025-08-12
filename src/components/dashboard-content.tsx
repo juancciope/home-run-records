@@ -627,7 +627,7 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   followers: { label: "Followers", color: "hsl(var(--chart-1))" }
                 }} className="h-16 w-full">
-                  <LineChart data={[
+                  <AreaChart data={[
                     { month: "Jan", followers: Math.round(marketingData.followers * 0.70) }, // 14.8K
                     { month: "Feb", followers: Math.round(marketingData.followers * 0.76) }, // 16.1K
                     { month: "Mar", followers: Math.round(marketingData.followers * 0.82) }, // 17.4K
@@ -635,14 +635,21 @@ export function DashboardContent() {
                     { month: "May", followers: Math.round(marketingData.followers * 0.94) }, // 19.9K
                     { month: "Jun", followers: marketingData.followers } // 21.2K
                   ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
-                    <Line
+                    <defs>
+                      <linearGradient id="fillFollowersMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
                       type="monotone"
                       dataKey="followers"
                       stroke="hsl(var(--chart-1))"
+                      fill="url(#fillFollowersMini)"
                       strokeWidth={1.5}
                       dot={false}
                     />
-                  </LineChart>
+                  </AreaChart>
                 </ChartContainer>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Follow-through Rate</span>
