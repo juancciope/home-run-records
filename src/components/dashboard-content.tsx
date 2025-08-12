@@ -461,127 +461,192 @@ export function DashboardContent() {
       </div>
 
       {/* Marketing Reach */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Megaphone className="h-5 w-5 text-primary" />
-          <div>
-            <h2 className="text-xl font-semibold">Marketing Reach</h2>
-            <p className="text-muted-foreground">Expand your audience and engagement</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Megaphone className="h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">Marketing Reach</h2>
+              <p className="text-sm text-muted-foreground">Expand your audience and engagement</p>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+            <span>Awareness</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Engagement</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Following</span>
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Total Reach with Area Chart */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
+        <div className="grid gap-4 md:grid-cols-3 relative">
+          {/* Flow indicators for mobile */}
+          <div className="md:hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+          </div>
+
+          {/* Total Reach */}
+          <Card className="relative border-l-4 border-l-blue-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <span>Total Reach</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>The total number of unique people who have been exposed to your content across all platforms. This includes social media impressions, streaming platform reach, and other touchpoints.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </CardTitle>
-              <CardDescription>6-month growth trend</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <ChartContainer config={reachChartConfig} className="aspect-auto h-[200px] w-full">
-                <AreaChart accessibilityLayer data={reachTrendData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
-                  <defs>
-                    <linearGradient id="fillReach" x1="0" y1="0" x2="0" y2="1">
-                      <stop offset="5%" stopColor="var(--color-reach)" stopOpacity={0.8} />
-                      <stop offset="95%" stopColor="var(--color-reach)" stopOpacity={0.1} />
-                    </linearGradient>
-                  </defs>
-                  <CartesianGrid vertical={false} />
-                  <XAxis 
-                    dataKey="month" 
-                    tickLine={false} 
-                    axisLine={false} 
-                    tickMargin={8}
-                    tickFormatter={(value) => value.slice(0, 3)}
-                  />
-                  <Area
-                    type="monotone"
-                    dataKey="reach"
-                    stroke="var(--color-reach)"
-                    fill="url(#fillReach)"
-                    strokeWidth={2}
-                    dot={false}
-                    activeDot={{ r: 6 }}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </AreaChart>
-              </ChartContainer>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-2xl font-bold">{(marketingData.totalReach / 1000).toFixed(0)}K</span>
                 <div className="flex items-center gap-1">
-                  <span className="text-sm text-green-600">+84% growth</span>
-                  {marketingData.isRealData && (
-                    <Badge variant="outline" className="text-xs bg-green-500/10 text-green-600 border-green-200">
-                      Live
-                    </Badge>
+                  <ActionButton icon={Info} tooltip="View reach sources and demographics" />
+                  <ActionButton icon={Bot} tooltip="Get AI insights for expanding reach" />
+                  <ActionButton icon={Plug} tooltip="Connect marketing platforms" />
+                  <ActionButton icon={Plus} tooltip="Add reach data manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Unique people exposed to content</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums">{(marketingData.totalReach / 1000).toFixed(0)}K</span>
+                <div className="flex items-center gap-1">
+                  {marketingData.isRealData ? (
+                    <Badge className="text-xs bg-green-500/10 text-green-600 border-green-200">Live</Badge>
+                  ) : (
+                    <Badge variant="secondary" className="text-xs">Demo</Badge>
                   )}
                 </div>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={reachChartConfig} className="h-16 w-full">
+                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillReachMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="reach"
+                      stroke="hsl(var(--chart-2))"
+                      fill="url(#fillReachMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">6-month growth</span>
+                  <span className="font-medium text-green-600">+84%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <TrendingUp className="h-3 w-3" />
+                  Expanding awareness
+                </p>
               </div>
             </CardContent>
           </Card>
 
           {/* Engaged Audience */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
+          <Card className="relative border-l-4 border-l-purple-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <span>Engaged Audience</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>People who actively interact with your content through likes, comments, shares, saves, and other engagement actions. This is your most valuable audience segment.</p>
-                  </TooltipContent>
-                </Tooltip>
-              </CardTitle>
-              <CardDescription>Active interactions</CardDescription>
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{(marketingData.engaged / 1000).toFixed(1)}K</div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
-                  <div 
-                    className="h-full bg-primary rounded-full"
-                    style={{ width: `${(marketingData.engaged / marketingData.totalReach) * 100}%` }}
-                  />
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View engagement metrics and patterns" />
+                  <ActionButton icon={Bot} tooltip="Get AI recommendations for engagement" />
+                  <ActionButton icon={Plug} tooltip="Connect social media tools" />
+                  <ActionButton icon={Plus} tooltip="Add engagement data manually" />
                 </div>
-                <span className="text-sm text-muted-foreground whitespace-nowrap">13.3%</span>
+              </CardTitle>
+              <CardDescription className="text-xs">Active content interactions</CardDescription>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-purple-600">{(marketingData.engaged / 1000).toFixed(1)}K</span>
+                <Badge variant="outline" className="text-xs border-purple-600 text-purple-600">Engaged</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  engaged: { label: "Engaged", color: "hsl(var(--chart-3))" }
+                }} className="h-16 w-full">
+                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <defs>
+                      <linearGradient id="fillEngagedMini" x1="0" y1="0" x2="0" y2="1">
+                        <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
+                        <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.1} />
+                      </linearGradient>
+                    </defs>
+                    <Area
+                      type="monotone"
+                      dataKey="engaged"
+                      stroke="hsl(var(--chart-3))"
+                      fill="url(#fillEngagedMini)"
+                      strokeWidth={1.5}
+                      dot={false}
+                    />
+                  </AreaChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Engagement Rate</span>
+                  <span className="font-medium">{((marketingData.engaged / marketingData.totalReach) * 100).toFixed(1)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Heart className="h-3 w-3" />
+                  High interaction quality
+                </p>
               </div>
             </CardContent>
           </Card>
 
           {/* Total Followers */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
+          <Card className="relative border-l-4 border-l-green-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <span>Total Followers</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Combined follower count from all your social media platforms including Instagram, TikTok, Facebook, Twitter, and YouTube subscribers.</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View follower breakdown by platform" />
+                  <ActionButton icon={Bot} tooltip="Get AI strategies for follower growth" />
+                  <ActionButton icon={Plug} tooltip="Connect social platforms" />
+                  <ActionButton icon={Plus} tooltip="Add follower data manually" />
+                </div>
               </CardTitle>
-              <CardDescription>Across all platforms</CardDescription>
+              <CardDescription className="text-xs">Across all platforms</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-purple-600">{(marketingData.followers / 1000).toFixed(1)}K</div>
-              <p className="text-sm text-muted-foreground mt-2">
-                <TrendingUp className="inline h-3 w-3 mr-1" />
-                46% conversion rate
-              </p>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-green-600">{(marketingData.followers / 1000).toFixed(1)}K</span>
+                <Badge className="text-xs bg-green-500/10 text-green-600 border-green-200">Growing</Badge>
+              </div>
+              <div className="space-y-2">
+                <ChartContainer config={{
+                  followers: { label: "Followers", color: "hsl(var(--chart-1))" }
+                }} className="h-16 w-full">
+                  <LineChart data={[
+                    { month: "Jan", followers: Math.round(marketingData.followers * 0.7) },
+                    { month: "Feb", followers: Math.round(marketingData.followers * 0.75) },
+                    { month: "Mar", followers: Math.round(marketingData.followers * 0.82) },
+                    { month: "Apr", followers: Math.round(marketingData.followers * 0.88) },
+                    { month: "May", followers: Math.round(marketingData.followers * 0.94) },
+                    { month: "Jun", followers: marketingData.followers }
+                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    <Line
+                      type="monotone"
+                      dataKey="followers"
+                      stroke="hsl(var(--chart-1))"
+                      strokeWidth={2}
+                      dot={false}
+                    />
+                  </LineChart>
+                </ChartContainer>
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Conversion Rate</span>
+                  <span className="font-medium">{Math.round((marketingData.followers / marketingData.engaged) * 100)}%</span>
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  Building community
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
