@@ -199,68 +199,34 @@ export class VibrateService {
         return false;
       }
       
-      // Prepare the profile update data
-      const profileUpdate = {
-        id: userId, // Ensure the user ID is included
-        email: userEmail, // Required field
-        viberate_artist_id: artistData.id || artistData.uuid,
-        viberate_uuid: artistData.uuid,
-        viberate_slug: artistData.slug,
-        viberate_verified: artistData.verified || false,
-        viberate_rank: artistData.rank,
-        viberate_last_sync: new Date().toISOString(),
-        
-        // Update artist name if not set
-        artist_name: artistData.name,
-        profile_image_url: artistData.image,
-        
-        // Social media URLs - handle real Viberate API format
-        instagram_url: this.extractSocialUrl(artistData.social_links, 'instagram'),
-        tiktok_url: this.extractSocialUrl(artistData.social_links, 'tiktok'),
-        facebook_url: this.extractSocialUrl(artistData.social_links, 'facebook'),
-        twitter_url: this.extractSocialUrl(artistData.social_links, 'twitter'),
-        youtube_url: this.extractSocialUrl(artistData.social_links, 'youtube'),
-        spotify_url: this.extractSocialUrl(artistData.social_links, 'spotify'),
-        apple_music_url: this.extractSocialUrl(artistData.social_links, 'apple_music'),
-        deezer_url: this.extractSocialUrl(artistData.social_links, 'deezer'),
-        soundcloud_url: this.extractSocialUrl(artistData.social_links, 'soundcloud'),
+      // Use the new sync helper for consistent data storage
+      const { ArtistSyncHelper } = await import('./artist-sync-helper');
+      
+      const syncData = {
+        uuid: artistData.uuid,
+        name: artistData.name,
+        slug: artistData.slug,
+        image: artistData.image,
+        bio: artistData.bio,
+        verified: artistData.verified || false,
+        rank: artistData.rank,
         spotify_id: artistData.spotify_id,
-        
-        // Metrics
-        instagram_followers: artistData.metrics?.instagram_followers || 0,
-        tiktok_followers: artistData.metrics?.tiktok_followers || 0,
-        facebook_followers: artistData.metrics?.facebook_followers || 0,
-        twitter_followers: artistData.metrics?.twitter_followers || 0,
-        youtube_subscribers: artistData.metrics?.youtube_subscribers || 0,
-        spotify_followers: artistData.metrics?.spotify_followers || 0,
-        spotify_monthly_listeners: artistData.metrics?.spotify_monthly_listeners || 0,
-        deezer_followers: artistData.metrics?.deezer_followers || 0,
-        soundcloud_followers: artistData.metrics?.soundcloud_followers || 0,
-        total_followers: artistData.metrics?.total_followers || 0,
-        engagement_rate: artistData.metrics?.engagement_rate || 0,
-        
-        // Social links as JSON
-        social_links: artistData.social_links || {},
-        
-        // Mark onboarding as completed
-        onboarding_completed: true,
-        
-        updated_at: new Date().toISOString()
+        country: artistData.country,
+        genre: artistData.genre,
+        subgenres: artistData.subgenres,
+        social_links: artistData.social_links,
+        metrics: artistData.metrics
       };
-
-      const { error } = await supabase
-        .from('artist_profiles')
-        .upsert(profileUpdate, { 
-          onConflict: 'id'
-        });
-
-      if (error) {
-        console.error('Error updating artist profile:', error);
+      
+      const success = await ArtistSyncHelper.syncArtistDataToAllTables(userId, userEmail, syncData);
+      
+      if (success) {
+        console.log('Artist profile updated successfully using sync helper');
+        return true;
+      } else {
+        console.error('Failed to sync artist data using helper');
         return false;
       }
-
-      console.log('Artist profile updated successfully');
-      return true;
     } catch (error) {
       console.error('Error in updateArtistProfile:', error);
       return false;

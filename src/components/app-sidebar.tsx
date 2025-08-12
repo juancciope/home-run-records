@@ -39,6 +39,8 @@ export function AppSidebar({ ...props }: React.ComponentProps<typeof Sidebar>) {
   }];
   
   // Prepare user data for NavUser component  
+  // TODO: In the future, we could enhance this to show artist name in sidebar too
+  // For now, keeping it as user data to avoid confusion
   const userData = {
     name: profile?.first_name && profile?.last_name 
       ? `${profile.first_name} ${profile.last_name}`
