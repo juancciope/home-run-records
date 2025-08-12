@@ -238,8 +238,17 @@ CREATE INDEX IF NOT EXISTS idx_artist_profiles_onboarding ON public.artist_profi
 CREATE INDEX IF NOT EXISTS idx_artist_metrics_user_date ON public.artist_metrics(user_id, date);
 CREATE INDEX IF NOT EXISTS idx_artist_metrics_type_platform ON public.artist_metrics(metric_type, platform);
 CREATE INDEX IF NOT EXISTS idx_releases_user_status ON public.releases(user_id, status);
-CREATE INDEX IF NOT EXISTS idx_artists_uuid ON public.artists(uuid);
-CREATE INDEX IF NOT EXISTS idx_artists_name ON public.artists(name);
+-- Create indexes for artists table (only if columns exist)
+DO $$ 
+BEGIN
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'artists' AND column_name = 'uuid') THEN
+        CREATE INDEX IF NOT EXISTS idx_artists_uuid ON public.artists(uuid);
+    END IF;
+    
+    IF EXISTS (SELECT 1 FROM information_schema.columns WHERE table_name = 'artists' AND column_name = 'name') THEN
+        CREATE INDEX IF NOT EXISTS idx_artists_name ON public.artists(name);
+    END IF;
+END $$;
 CREATE INDEX IF NOT EXISTS idx_agency_users_agency_id ON public.agency_users(agency_id);
 CREATE INDEX IF NOT EXISTS idx_agency_users_user_id ON public.agency_users(user_id);
 
