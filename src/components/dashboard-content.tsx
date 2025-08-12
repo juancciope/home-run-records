@@ -18,6 +18,11 @@ import {
   Wifi,
   WifiOff,
   Info,
+  Bot,
+  Plug,
+  Plus,
+  ArrowRight,
+  ChevronRight,
 } from "lucide-react"
 import {
   Tooltip,
@@ -48,6 +53,38 @@ import {
 } from "recharts"
 import { useAuth } from "@/contexts/auth-provider"
 import { ArtistOnboarding } from "./artist-onboarding"
+
+// Action Button Component for pipeline cards
+function ActionButton({ 
+  icon: Icon, 
+  tooltip, 
+  variant = "ghost",
+  onClick 
+}: { 
+  icon: any; 
+  tooltip: string; 
+  variant?: "ghost" | "outline"; 
+  onClick?: () => void;
+}) {
+  return (
+    <Tooltip>
+      <TooltipTrigger asChild>
+        <Button
+          variant={variant}
+          size="sm"
+          className="h-7 w-7 p-0 shrink-0"
+          onClick={onClick}
+        >
+          <Icon className="h-3.5 w-3.5" />
+          <span className="sr-only">{tooltip}</span>
+        </Button>
+      </TooltipTrigger>
+      <TooltipContent side="top" className="text-xs">
+        <p>{tooltip}</p>
+      </TooltipContent>
+    </Tooltip>
+  );
+}
 
 export function DashboardContent() {
   const { user: authUser, isLoading, profile } = useAuth();
@@ -284,115 +321,140 @@ export function DashboardContent() {
       </div>
 
       {/* Production Pipeline */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <Package className="h-5 w-5 text-primary" />
-          <div>
-            <h2 className="text-xl font-semibold">Production Pipeline</h2>
-            <p className="text-muted-foreground">Track your creative output from idea to release</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <Package className="h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">Production Pipeline</h2>
+              <p className="text-sm text-muted-foreground">Track your creative output from idea to release</p>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+            <span>In Progress</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Ready</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Live</span>
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3">
+        <div className="grid gap-4 md:grid-cols-3 relative">
+          {/* Flow indicators for mobile */}
+          <div className="md:hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+          </div>
+
           {/* Unfinished Projects */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
-                <span>Unfinished Projects</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Number of songs, albums, or other creative projects that are currently being worked on but not yet completed. This includes demos, works in progress, and tracks in production.</p>
-                  </TooltipContent>
-                </Tooltip>
+          <Card className="relative border-l-4 border-l-orange-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>In Progress</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View details about projects in progress" />
+                  <ActionButton icon={Bot} tooltip="Get AI suggestions for completing projects" />
+                  <ActionButton icon={Plug} tooltip="Connect project management tools" />
+                  <ActionButton icon={Plus} tooltip="Add new project manually" />
+                </div>
               </CardTitle>
-              <CardDescription>Projects in progress</CardDescription>
+              <CardDescription className="text-xs">Projects in development</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{productionData.unfinished}</div>
-              <p className="text-sm text-muted-foreground mt-3 flex items-center">
-                <Activity className="h-3 w-3 mr-1" />
-                Focus on completion
-              </p>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums">{productionData.unfinished}</span>
+                <Badge variant="secondary" className="text-xs">Active</Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Priority</span>
+                  <span className="font-medium">High</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div className="h-full w-3/4 bg-orange-500 rounded-full" />
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Activity className="h-3 w-3" />
+                  Focus on completion
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Finished Projects */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
+          {/* Ready to Release */}
+          <Card className="relative border-l-4 border-l-yellow-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
                 <span>Ready to Release</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Completed tracks that are mastered and ready for distribution but haven't been released yet. These are your release-ready assets waiting for the right moment to launch.</p>
-                  </TooltipContent>
-                </Tooltip>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View tracks ready for release" />
+                  <ActionButton icon={Bot} tooltip="Get AI-powered release strategy suggestions" />
+                  <ActionButton icon={Plug} tooltip="Connect distribution platforms" />
+                  <ActionButton icon={Plus} tooltip="Add new completed track" />
+                </div>
               </CardTitle>
-              <CardDescription>Completed, awaiting release</CardDescription>
+              <CardDescription className="text-xs">Completed, awaiting launch</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{productionData.finished}</div>
-              <p className="text-sm text-muted-foreground mt-3 flex items-center">
-                <Target className="h-3 w-3 mr-1" />
-                Schedule releases
-              </p>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-yellow-600">{productionData.finished}</span>
+                <Badge variant="outline" className="text-xs border-yellow-600 text-yellow-600">Ready</Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Next Release</span>
+                  <span className="font-medium">2 weeks</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div className="h-full w-2/3 bg-yellow-500 rounded-full" />
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Target className="h-3 w-3" />
+                  Schedule releases
+                </p>
+              </div>
             </CardContent>
           </Card>
 
-          {/* Released with RadialBar */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base flex items-center justify-between">
-                <span>Released Tracks</span>
-                <Tooltip>
-                  <TooltipTrigger>
-                    <Info className="h-4 w-4 text-muted-foreground hover:text-foreground transition-colors" />
-                  </TooltipTrigger>
-                  <TooltipContent className="max-w-xs">
-                    <p>Total number of tracks currently live on streaming platforms and stores. This represents your active catalog that's available to fans and generating streams/revenue.</p>
-                  </TooltipContent>
-                </Tooltip>
+          {/* Released Tracks */}
+          <Card className="relative border-l-4 border-l-green-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Live Catalog</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View released tracks performance" />
+                  <ActionButton icon={Bot} tooltip="Optimize catalog with AI insights" />
+                  <ActionButton icon={Plug} tooltip="Connect streaming platforms" />
+                  <ActionButton icon={Plus} tooltip="Add tracks to catalog" />
+                </div>
               </CardTitle>
-              <CardDescription>Live & generating revenue</CardDescription>
+              <CardDescription className="text-xs">Live & generating revenue</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ChartContainer config={productionChartConfig} className="mx-auto aspect-square max-h-[180px] w-full">
-                <RadialBarChart accessibilityLayer cx="50%" cy="50%" innerRadius="60%" outerRadius="90%" data={productionChartData}>
-                  <PolarGrid gridType="circle" radialLines={false} stroke="none" />
-                  <RadialBar dataKey="value" cornerRadius={6} fill="hsl(var(--chart-1))" />
-                  <PolarRadiusAxis tick={false} tickLine={false} axisLine={false}>
-                    <Label
-                      content={({ viewBox }) => {
-                        if (viewBox && "cx" in viewBox && "cy" in viewBox) {
-                          return (
-                            <text x={viewBox.cx} y={viewBox.cy} textAnchor="middle" dominantBaseline="middle">
-                              <tspan 
-                                x={viewBox.cx} 
-                                y={(viewBox.cy || 0) - 6} 
-                                className="fill-foreground font-bold text-2xl"
-                              >
-                                {productionData.released}
-                              </tspan>
-                              <tspan 
-                                x={viewBox.cx} 
-                                y={(viewBox.cy || 0) + 16} 
-                                className="fill-muted-foreground text-sm"
-                              >
-                                Released
-                              </tspan>
-                            </text>
-                          );
-                        }
-                      }}
-                    />
-                  </PolarRadiusAxis>
-                </RadialBarChart>
-              </ChartContainer>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-green-600">{productionData.released}</span>
+                <Badge className="text-xs bg-green-500/10 text-green-600 border-green-200">Live</Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Completion</span>
+                  <span className="font-medium">{Math.round((productionData.released / (productionData.unfinished + productionData.finished + productionData.released)) * 100)}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 rounded-full"
+                    style={{ width: `${Math.round((productionData.released / (productionData.unfinished + productionData.finished + productionData.released)) * 100)}%` }}
+                  />
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Zap className="h-3 w-3" />
+                  Earning revenue
+                </p>
+              </div>
             </CardContent>
           </Card>
         </div>
@@ -674,82 +736,148 @@ export function DashboardContent() {
       </div>
 
       {/* Conversion Pipeline */}
-      <div className="space-y-4">
-        <div className="flex items-center gap-2">
-          <DollarSign className="h-5 w-5 text-primary" />
-          <div>
-            <h2 className="text-xl font-semibold">Conversion Pipeline</h2>
-            <p className="text-muted-foreground">Transform interest into revenue</p>
+      <div className="space-y-6">
+        <div className="flex items-center justify-between">
+          <div className="flex items-center gap-2">
+            <DollarSign className="h-5 w-5 text-primary" />
+            <div>
+              <h2 className="text-xl font-semibold tracking-tight">Conversion Pipeline</h2>
+              <p className="text-sm text-muted-foreground">Transform interest into revenue</p>
+            </div>
+          </div>
+          <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+            <span>Leads</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Qualified</span>
+            <ArrowRight className="h-3 w-3 mx-2" />
+            <span>Closed</span>
           </div>
         </div>
         
-        <div className="grid gap-6 md:grid-cols-3">
-          {/* Leads with Bar Chart */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base">Lead Generation</CardTitle>
-              <CardDescription>Funnel performance</CardDescription>
+        <div className="grid gap-4 md:grid-cols-3 relative">
+          {/* Flow indicators for mobile */}
+          <div className="md:hidden absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2 flex items-center gap-2 z-10 pointer-events-none">
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+            <div className="bg-background border rounded-full p-1">
+              <ChevronRight className="h-3 w-3 text-muted-foreground" />
+            </div>
+          </div>
+
+          {/* Lead Generation */}
+          <Card className="relative border-l-4 border-l-blue-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Lead Generation</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View lead sources and performance" />
+                  <ActionButton icon={Bot} tooltip="Get AI-powered lead generation insights" />
+                  <ActionButton icon={Plug} tooltip="Connect lead capture tools" />
+                  <ActionButton icon={Plus} tooltip="Add leads manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Initial interest capture</CardDescription>
             </CardHeader>
-            <CardContent>
-              <ChartContainer config={conversionChartConfig} className="aspect-auto h-[140px] w-full">
-                <BarChart accessibilityLayer data={conversionFunnelData} margin={{ left: 12, right: 12, top: 12, bottom: 12 }}>
-                  <CartesianGrid vertical={false} />
-                  <XAxis 
-                    dataKey="stage" 
-                    tickLine={false} 
-                    axisLine={false} 
-                    tickMargin={8}
-                  />
-                  <Bar 
-                    dataKey="value" 
-                    fill="var(--color-value)" 
-                    radius={[2, 2, 0, 0]}
-                  />
-                  <ChartTooltip content={<ChartTooltipContent />} />
-                </BarChart>
-              </ChartContainer>
-              <div className="flex justify-between items-center mt-2">
-                <span className="text-2xl font-bold">{conversionData.leads}</span>
-                <span className="text-sm text-muted-foreground">Total leads</span>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums">{conversionData.leads}</span>
+                <Badge variant="secondary" className="text-xs">Prospects</Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">This Month</span>
+                  <span className="font-medium">+{Math.round(conversionData.leads * 0.15)}</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div className="h-full w-4/5 bg-blue-500 rounded-full" />
+                </div>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Users className="h-3 w-3" />
+                  Growing pipeline
+                </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Opportunities */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base">Opportunities</CardTitle>
-              <CardDescription>Qualified prospects</CardDescription>
+          {/* Qualified Opportunities */}
+          <Card className="relative border-l-4 border-l-yellow-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Qualified Opportunities</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View opportunity details and stages" />
+                  <ActionButton icon={Bot} tooltip="Get AI recommendations for conversions" />
+                  <ActionButton icon={Plug} tooltip="Connect CRM and sales tools" />
+                  <ActionButton icon={Plus} tooltip="Add opportunity manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Vetted prospects</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-yellow-600">{conversionData.opportunities}</div>
-              <div className="flex items-center gap-2 mt-2">
-                <div className="h-2 w-full bg-muted rounded-full overflow-hidden">
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-yellow-600">{conversionData.opportunities}</span>
+                <Badge variant="outline" className="text-xs border-yellow-600 text-yellow-600">Qualified</Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Conversion</span>
+                  <span className="font-medium">{Math.round((conversionData.opportunities / conversionData.leads) * 100)}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
                   <div 
-                    className="h-full bg-yellow-600 rounded-full"
+                    className="h-full bg-yellow-500 rounded-full"
                     style={{ width: `${(conversionData.opportunities / conversionData.leads) * 100}%` }}
                   />
                 </div>
-                <span className="text-sm text-muted-foreground whitespace-nowrap">27% conversion</span>
+                <p className="text-xs text-muted-foreground flex items-center gap-1">
+                  <Target className="h-3 w-3" />
+                  Ready to convert
+                </p>
               </div>
             </CardContent>
           </Card>
 
-          {/* Sales */}
-          <Card className="bg-sidebar">
-            <CardHeader>
-              <CardTitle className="text-base">Closed Sales</CardTitle>
-              <CardDescription>Successful conversions</CardDescription>
+          {/* Closed Sales */}
+          <Card className="relative border-l-4 border-l-green-500">
+            <CardHeader className="pb-3">
+              <CardTitle className="text-sm font-semibold flex items-center justify-between">
+                <span>Closed Sales</span>
+                <div className="flex items-center gap-1">
+                  <ActionButton icon={Info} tooltip="View sales performance and revenue" />
+                  <ActionButton icon={Bot} tooltip="Analyze sales patterns with AI" />
+                  <ActionButton icon={Plug} tooltip="Connect payment and analytics tools" />
+                  <ActionButton icon={Plus} tooltip="Record sale manually" />
+                </div>
+              </CardTitle>
+              <CardDescription className="text-xs">Successful conversions</CardDescription>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold text-green-600">{conversionData.sales}</div>
-              <p className="text-sm text-muted-foreground mt-2">
-                <Zap className="inline h-3 w-3 mr-1" />
-                38% close rate
-              </p>
-              <p className="text-sm font-medium mt-1">
-                Revenue: ${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}
-              </p>
+            <CardContent className="space-y-4">
+              <div className="flex items-baseline justify-between">
+                <span className="text-3xl font-bold tabular-nums text-green-600">{conversionData.sales}</span>
+                <Badge className="text-xs bg-green-500/10 text-green-600 border-green-200">Closed</Badge>
+              </div>
+              <div className="space-y-2">
+                <div className="flex items-center justify-between text-sm">
+                  <span className="text-muted-foreground">Close Rate</span>
+                  <span className="font-medium">{Math.round((conversionData.sales / conversionData.opportunities) * 100)}%</span>
+                </div>
+                <div className="h-1.5 w-full bg-muted rounded-full overflow-hidden">
+                  <div 
+                    className="h-full bg-green-500 rounded-full"
+                    style={{ width: `${(conversionData.sales / conversionData.opportunities) * 100}%` }}
+                  />
+                </div>
+                <div className="flex items-center justify-between">
+                  <p className="text-xs text-muted-foreground flex items-center gap-1">
+                    <Zap className="h-3 w-3" />
+                    Generating revenue
+                  </p>
+                  <span className="text-xs font-semibold text-green-600">
+                    ${(pipelineMetrics?.conversion?.revenue || 12450).toLocaleString()}
+                  </span>
+                </div>
+              </div>
             </CardContent>
           </Card>
         </div>
