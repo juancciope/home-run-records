@@ -309,26 +309,16 @@ export function AnalyticsDashboard() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex items-center justify-between space-y-2">
-        <div className="flex items-center space-x-4">
-          {artistInfo && (
-            <Avatar className="h-16 w-16">
-              <AvatarImage src={artistInfo.image || undefined} alt={artistInfo.name} />
-              <AvatarFallback className="bg-primary/10 text-primary font-semibold text-lg">
-                <User className="h-8 w-8" />
-              </AvatarFallback>
-            </Avatar>
-          )}
-          <div>
-            <h2 className="text-3xl font-bold tracking-tight">
-              {artistInfo?.name || 'Analytics Dashboard'}
-            </h2>
-            <p className="text-muted-foreground">
-              Your complete audience reach and engagement across all platforms
-            </p>
-          </div>
+      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
+        <div className="min-w-0 flex-1">
+          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
+            Analytics Dashboard
+          </h2>
+          <p className="text-muted-foreground">
+            Your complete audience reach and engagement across all platforms
+          </p>
         </div>
-        <div className="flex items-center space-x-2">
+        <div className="flex items-center space-x-2 shrink-0">
           <Button variant="outline" size="sm">
             <Calendar className="h-4 w-4 mr-2" />
             Last 30 days
