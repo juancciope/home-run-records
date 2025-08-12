@@ -5,6 +5,7 @@ import { EnhancedArtistHeader } from "@/components/enhanced-artist-header";
 import { ArtistSwitcher } from "@/components/artist-switcher";
 import { requireAuth, getUserWithFullData } from "@/lib/auth/server-auth";
 
+export const dynamic = 'force-dynamic'
 
 export default async function DashboardLayout({
   children,

@@ -10,6 +10,8 @@ import { useAuth } from "@/contexts/auth-provider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
 
+export const dynamic = 'force-dynamic'
+
 // User Header Component
 function UserHeader() {
   const { user, profile, isLoading } = useAuth();

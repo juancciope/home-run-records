@@ -19,6 +19,8 @@ export const metadata: Metadata = {
   description: "Professional platform for music artists and agencies to track performance and grow their audience",
 };
 
+export const dynamic = 'force-dynamic'
+
 export default async function RootLayout({
   children,
 }: Readonly<{
