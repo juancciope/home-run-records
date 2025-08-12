@@ -103,19 +103,19 @@ export function AddDataModal({ section, recordType, onRecordAdded, children }: A
       let result = null
       switch (section) {
         case 'production':
-          result = await PipelineService.addProductionRecord(recordWithUserId)
+          result = await PipelineService.addProductionRecord(recordWithUserId as any)
           break
         case 'marketing':
-          result = await PipelineService.addMarketingRecord(recordWithUserId)
+          result = await PipelineService.addMarketingRecord(recordWithUserId as any)
           break
         case 'fan_engagement':
-          result = await PipelineService.addFanEngagementRecord(recordWithUserId)
+          result = await PipelineService.addFanEngagementRecord(recordWithUserId as any)
           break
         case 'conversion':
-          result = await PipelineService.addConversionRecord(recordWithUserId)
+          result = await PipelineService.addConversionRecord(recordWithUserId as any)
           break
         case 'agent':
-          result = await PipelineService.addAgentRecord(recordWithUserId)
+          result = await PipelineService.addAgentRecord(recordWithUserId as any)
           break
       }
 
