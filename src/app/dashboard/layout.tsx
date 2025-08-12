@@ -5,10 +5,11 @@ import { requireAuth, getUserWithProfile } from "@/lib/auth/server-auth";
 import { redirect } from "next/navigation";
 import { Badge } from "@/components/ui/badge";
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar";
-import { User } from "lucide-react";
+import { Music, Users } from "lucide-react";
+import { createClient } from "@/utils/supabase/server";
 
-// User Header Component
-async function UserHeader() {
+// Artist Header Component
+async function ArtistHeader() {
   const authData = await getUserWithProfile();
   
   if (!authData?.user) {
@@ -17,44 +18,80 @@ async function UserHeader() {
 
   const { user, profile } = authData;
 
-  const displayName = profile?.first_name && profile?.last_name 
-    ? `${profile.first_name} ${profile.last_name}`
-    : user.email?.split('@')[0] || "User";
+  // Get the artist data from the database
+  const supabase = await createClient();
+  
+  // First, try to get artist directly linked to user
+  let artistQuery = supabase
+    .from('artists')
+    .select('*')
+    .eq('user_id', user.id)
+    .single();
 
-  const getRoleBadge = () => {
-    if (profile?.global_role === 'superadmin') {
-      return (
-        <Badge variant="default" className="bg-purple-500/10 text-purple-700 dark:text-purple-400 text-xs">
-          Super Admin
-        </Badge>
-      );
+  let { data: artist } = await artistQuery;
+
+  // If no direct artist, check if user is part of an agency and get first artist
+  if (!artist && profile?.global_role === 'artist_manager') {
+    const { data: agencyUser } = await supabase
+      .from('agency_users')
+      .select('agency_id')
+      .eq('user_id', user.id)
+      .single();
+
+    if (agencyUser?.agency_id) {
+      const { data: artists } = await supabase
+        .from('artists')
+        .select('*')
+        .eq('agency_id', agencyUser.agency_id)
+        .limit(1);
+      
+      artist = artists?.[0];
     }
-    if (profile?.global_role === 'artist_manager') {
-      return (
-        <Badge variant="default" className="bg-blue-500/10 text-blue-700 dark:text-blue-400 text-xs">
-          Agency Manager
-        </Badge>
-      );
+  }
+
+  // If still no artist, try artist_profiles table
+  if (!artist) {
+    const { data: artistProfile } = await supabase
+      .from('artist_profiles')
+      .select('*')
+      .eq('user_id', user.id)
+      .single();
+    
+    if (artistProfile) {
+      artist = {
+        stage_name: artistProfile.stage_name || artistProfile.artist_name,
+        avatar_url: artistProfile.avatar_url,
+        total_followers: artistProfile.total_followers
+      };
     }
-    return (
-      <Badge variant="secondary" className="text-xs">
-        Artist
-      </Badge>
-    );
-  };
+  }
+
+  const displayName = artist?.stage_name || artist?.name || profile?.first_name || user.email?.split('@')[0] || "Artist";
+  const avatarUrl = artist?.avatar_url || artist?.image || profile?.avatar_url;
+  const followers = artist?.total_followers;
 
   return (
     <div className="flex items-center gap-3">
-      <Avatar className="h-10 w-10 border-2 border-border">
-        <AvatarImage src={profile?.avatar_url} alt={displayName} />
-        <AvatarFallback className="bg-primary/10 text-primary font-semibold">
-          <User className="h-5 w-5" />
+      <Avatar className="h-12 w-12 border-2 border-border shadow-md">
+        <AvatarImage src={avatarUrl} alt={displayName} className="object-cover" />
+        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+          <Music className="h-6 w-6" />
         </AvatarFallback>
       </Avatar>
       <div>
         <h1 className="text-xl font-bold text-foreground">{displayName}</h1>
-        <div className="flex items-center gap-2">
-          {getRoleBadge()}
+        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+          {followers && (
+            <div className="flex items-center gap-1">
+              <Users className="h-3.5 w-3.5" />
+              <span>{followers.toLocaleString()} followers</span>
+            </div>
+          )}
+          {profile?.global_role === 'artist_manager' && (
+            <Badge variant="outline" className="text-xs ml-1">
+              Manager
+            </Badge>
+          )}
         </div>
       </div>
     </div>
@@ -83,7 +120,7 @@ export default async function DashboardLayout({
             <div className="flex items-center justify-between w-full px-6">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="-ml-1" />
-                <UserHeader />
+                <ArtistHeader />
               </div>
             </div>
           </header>
