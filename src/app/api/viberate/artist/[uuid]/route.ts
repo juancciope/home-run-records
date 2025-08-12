@@ -13,30 +13,42 @@ export async function GET(
     return NextResponse.json({ error: 'Artist UUID is required' }, { status: 400 });
   }
 
-  if (!VIBERATE_API_KEY) {
+  if (!VIBERATE_API_KEY || VIBERATE_API_KEY === 'your-viberate-api-key-here') {
     console.warn('Viberate API key not configured, returning mock artist data');
     return NextResponse.json({
-      uuid,
-      name: 'Mock Artist',
-      image: 'https://via.placeholder.com/300x300?text=Mock+Artist',
-      bio: 'This is a mock artist profile for development purposes.',
-      country: { name: 'United States', code: 'US' },
-      genre: { name: 'Pop' },
-      subgenres: [{ name: 'Pop Rock' }],
-      rank: 1000,
-      verified: true,
-      social_links: [
-        { platform: 'spotify', url: 'https://open.spotify.com/artist/mock' },
-        { platform: 'instagram', url: 'https://instagram.com/mockartist' }
-      ],
-      tracks: [
-        { track_id: 'mock-1', name: 'Mock Song 1', release_date: '2024-01-01' },
-        { track_id: 'mock-2', name: 'Mock Song 2', release_date: '2024-02-01' }
-      ],
-      events: [],
-      fanbase: { total: 50000, distribution: {} },
-      similar_artists: [],
-      ranks: { global: 1000, country: 100 }
+      success: true,
+      data: {
+        uuid,
+        name: 'Mock Artist',
+        image: 'https://via.placeholder.com/300x300?text=Mock+Artist',
+        bio: 'This is a mock artist profile for development purposes.',
+        country: { name: 'United States', code: 'US' },
+        genre: { name: 'Pop' },
+        subgenres: [{ name: 'Pop Rock' }],
+        rank: 1000,
+        verified: true,
+        social_links: [
+          { channel: 'spotify', link: 'https://open.spotify.com/artist/mock' },
+          { channel: 'instagram', link: 'https://instagram.com/mockartist' }
+        ],
+        tracks: [
+          { uuid: 'mock-1', name: 'Mock Song 1', slug: 'mock-song-1' },
+          { uuid: 'mock-2', name: 'Mock Song 2', slug: 'mock-song-2' }
+        ],
+        events: [],
+        fanbase: {},
+        fanbase_distribution: {
+          spotify: { followers: 25000 },
+          instagram: { followers: 15000 },
+          youtube: { followers: 10000 }
+        },
+        similar_artists: [],
+        ranks: { 
+          current: { global: 1000, country: 100 },
+          previous: { global: 1100, country: 110 }
+        },
+        fetched_at: new Date().toISOString()
+      }
     });
   }
 
@@ -49,21 +61,28 @@ export async function GET(
     console.log('Fetching complete artist data for UUID:', uuid);
     console.log('API Key available:', !!VIBERATE_API_KEY);
 
-    // Fetch all artist data using the correct Viberate API endpoint structure
-    // Based on successful call pattern: /artist/{uuid}/{platform}/{data-type}
+    // Fetch all artist data using the CORRECT Viberate API endpoints from documentation
+    const currentDate = new Date().toISOString().split('T')[0];
+    const lastMonth = new Date(Date.now() - 30 * 24 * 60 * 60 * 1000).toISOString().split('T')[0];
+    
     const [
       detailsResponse,
       linksResponse,
+      bioResponse,
+      fanbaseDistributionResponse,
+      ranksResponse,
+      tracksResponse,
+      eventsResponse,
+      similarArtistsResponse,
+      // Historical fanbase data (last 30 days)
       spotifyFanbaseResponse,
       facebookFanbaseResponse,
       instagramFanbaseResponse,
       youtubeFanbaseResponse,
-      tiktokFanbaseResponse,
-      tracksResponse,
-      eventsResponse
+      tiktokFanbaseResponse
     ] = await Promise.all([
       // Basic artist details
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}`, { 
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/details`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
@@ -74,57 +93,87 @@ export async function GET(
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
       
-      // Platform-specific fanbase data
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/spotify/fanbase`, { 
+      // Bio
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/viberate/bio`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
       
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/facebook/fanbase`, { 
+      // Fanbase distribution (current totals)
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/viberate/fanbase-distribution`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
       
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/instagram/fanbase`, { 
+      // Ranks
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/viberate/ranks`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
       
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/youtube/fanbase`, { 
+      // Tracks - with limit and offset parameters
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/viberate/tracks?limit=50&offset=0`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
       
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/tiktok/fanbase`, { 
+      // Events - with required parameters
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/viberate/events?entity=all&data-type=upcoming`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
       
-      // Other data
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/tracks`, { 
+      // Similar artists
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/viberate/similar-artists`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
       
-      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/events`, { 
+      // Historical fanbase data (last 30 days for trend data)
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/spotify/fanbase-historical?date-from=${lastMonth}&date-to=${currentDate}`, { 
+        headers,
+        signal: AbortSignal.timeout(10000) 
+      }).catch(() => null),
+      
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/facebook/fanbase-historical?date-from=${lastMonth}&date-to=${currentDate}`, { 
+        headers,
+        signal: AbortSignal.timeout(10000) 
+      }).catch(() => null),
+      
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/instagram/fanbase-historical?date-from=${lastMonth}&date-to=${currentDate}`, { 
+        headers,
+        signal: AbortSignal.timeout(10000) 
+      }).catch(() => null),
+      
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/youtube/fanbase-historical?date-from=${lastMonth}&date-to=${currentDate}`, { 
+        headers,
+        signal: AbortSignal.timeout(10000) 
+      }).catch(() => null),
+      
+      fetch(`${VIBERATE_BASE_URL}/artist/${uuid}/tiktok/fanbase-historical?date-from=${lastMonth}&date-to=${currentDate}`, { 
         headers,
         signal: AbortSignal.timeout(10000) 
       }).catch(() => null),
     ]);
 
     // Parse responses with detailed logging
-    let details, links, fanbase = {}, events, tracks;
+    let details, links, bio, fanbaseDistribution, ranks, tracks, events, similarArtists;
+    let fanbase = {};
 
     console.log('Response statuses:', {
       details: detailsResponse?.status,
       links: linksResponse?.status,
+      bio: bioResponse?.status,
+      fanbaseDistribution: fanbaseDistributionResponse?.status,
+      ranks: ranksResponse?.status,
+      tracks: tracksResponse?.status,
+      events: eventsResponse?.status,
+      similarArtists: similarArtistsResponse?.status,
       spotify_fanbase: spotifyFanbaseResponse?.status,
       facebook_fanbase: facebookFanbaseResponse?.status,
       instagram_fanbase: instagramFanbaseResponse?.status,
       youtube_fanbase: youtubeFanbaseResponse?.status,
       tiktok_fanbase: tiktokFanbaseResponse?.status,
-      events: eventsResponse?.status,
-      tracks: tracksResponse?.status,
     });
 
     if (detailsResponse?.ok) {
@@ -136,8 +185,37 @@ export async function GET(
     
     if (linksResponse?.ok) {
       links = await linksResponse.json();
+      console.log('Links data:', links);
     } else {
-      console.log('Links failed:', linksResponse?.status);
+      console.log('Links failed:', linksResponse?.status, await linksResponse?.text?.());
+    }
+    
+    if (bioResponse?.ok) {
+      bio = await bioResponse.json();
+      console.log('Bio data:', bio);
+    } else {
+      console.log('Bio failed:', bioResponse?.status, await bioResponse?.text?.());
+    }
+    
+    if (fanbaseDistributionResponse?.ok) {
+      fanbaseDistribution = await fanbaseDistributionResponse.json();
+      console.log('Fanbase distribution data:', fanbaseDistribution);
+    } else {
+      console.log('Fanbase distribution failed:', fanbaseDistributionResponse?.status, await fanbaseDistributionResponse?.text?.());
+    }
+    
+    if (ranksResponse?.ok) {
+      ranks = await ranksResponse.json();
+      console.log('Ranks data:', ranks);
+    } else {
+      console.log('Ranks failed:', ranksResponse?.status, await ranksResponse?.text?.());
+    }
+    
+    if (similarArtistsResponse?.ok) {
+      similarArtists = await similarArtistsResponse.json();
+      console.log('Similar artists data:', similarArtists);
+    } else {
+      console.log('Similar artists failed:', similarArtistsResponse?.status, await similarArtistsResponse?.text?.());
     }
     
     // Parse platform-specific fanbase data
@@ -163,14 +241,16 @@ export async function GET(
     
     if (eventsResponse?.ok) {
       events = await eventsResponse.json();
+      console.log('Events data:', events);
     } else {
-      console.log('Events failed:', eventsResponse?.status);
+      console.log('Events failed:', eventsResponse?.status, await eventsResponse?.text?.());
     }
     
     if (tracksResponse?.ok) {
       tracks = await tracksResponse.json();
+      console.log('Tracks data:', tracks);
     } else {
-      console.log('Tracks failed:', tracksResponse?.status);
+      console.log('Tracks failed:', tracksResponse?.status, await tracksResponse?.text?.());
     }
 
     // Combine all data into a single artist profile object
@@ -179,17 +259,20 @@ export async function GET(
       name: details?.data?.name || 'Unknown Artist',
       slug: details?.data?.slug || '',
       image: details?.data?.image || '',
-      bio: details?.data?.bio || '',
+      bio: bio?.data?.bio || details?.data?.bio || '',
       country: details?.data?.country || null,
       genre: details?.data?.genre || null,
       subgenres: details?.data?.subgenres || [],
-      rank: details?.data?.rank || 0,
+      rank: ranks?.data?.current?.global || details?.data?.rank || 0,
       status: details?.data?.status || '',
       verified: details?.data?.verified || false,
-      social_links: links || {},
-      tracks: tracks || {},
-      events: events || {},
-      fanbase: fanbase, // Now contains platform-specific data
+      social_links: links?.data || [],
+      tracks: tracks?.data || [],
+      events: events?.data || [],
+      fanbase: fanbase, // Now contains platform-specific historical data
+      fanbase_distribution: fanbaseDistribution?.data || {},
+      ranks: ranks?.data || {},
+      similar_artists: similarArtists?.data || [],
       fetched_at: new Date().toISOString()
     };
 

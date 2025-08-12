@@ -1,5 +1,5 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { createClient } from '@/utils/supabase/server';
+import { createClient } from '@supabase/supabase-js';
 
 export async function POST(request: NextRequest) {
   try {
@@ -40,7 +40,11 @@ export async function POST(request: NextRequest) {
         image: artistData.image
       });
       
-      const supabase = await createClient();
+      // Use service role for server-side operations
+      const supabase = createClient(
+        process.env.NEXT_PUBLIC_SUPABASE_URL!,
+        process.env.SUPABASE_SERVICE_ROLE_KEY!
+      );
       
       // Insert or update artist record
       const { data: artistRecord, error: artistError } = await supabase
@@ -74,8 +78,12 @@ export async function POST(request: NextRequest) {
       }
 
       const artistDbId = artistRecord?.id;
+      console.log('Artist DB ID:', artistDbId);
 
       if (artistDbId) {
+        console.log('Processing artist data for storage...');
+        console.log('Social links available:', artistData.social_links?.data?.length || 0);
+        
         // Store social links - handle the correct data structure
         if (artistData.social_links?.data?.length > 0) {
           const { error: linksError } = await supabase
@@ -90,27 +98,31 @@ export async function POST(request: NextRequest) {
               url: link.link
             }));
 
-            const { error: insertLinksError } = await supabase
+            console.log('Attempting to insert social links:', socialLinks);
+            const { data: insertedLinks, error: insertLinksError } = await supabase
               .from('artist_social_links')
-              .insert(socialLinks);
+              .insert(socialLinks)
+              .select();
 
             if (insertLinksError) {
               console.error('Error storing social links:', insertLinksError);
+              console.error('Failed data:', socialLinks);
             } else {
-              console.log(`Successfully stored ${socialLinks.length} social links`);
+              console.log(`Successfully stored ${insertedLinks?.length || 0} social links`);
+              console.log('Inserted:', insertedLinks);
             }
           }
         }
 
         // Store tracks - handle the correct data structure
-        if (artistData.tracks?.data?.length > 0) {
+        if (artistData.tracks?.length > 0) {
           const { error: tracksDeleteError } = await supabase
             .from('artist_tracks')
             .delete()
             .eq('artist_id', artistDbId);
 
           if (!tracksDeleteError) {
-            const tracks = artistData.tracks.data.map((track: { uuid: string; name: string; slug: string }) => ({
+            const tracks = artistData.tracks.map((track: { uuid: string; name: string; slug: string }) => ({
               artist_id: artistDbId,
               track_id: track.uuid,
               name: track.name,
@@ -131,7 +143,13 @@ export async function POST(request: NextRequest) {
         }
 
         // Store fanbase data - first delete then insert to avoid conflict issues
-        if (artistData.fanbase) {
+        console.log('Fanbase data available:', {
+          hasFanbase: !!artistData.fanbase,
+          hasFanbaseDistribution: !!artistData.fanbase_distribution,
+          distributionKeys: artistData.fanbase_distribution ? Object.keys(artistData.fanbase_distribution) : []
+        });
+        
+        if (artistData.fanbase || artistData.fanbase_distribution) {
           // Delete existing fanbase data for this artist
           const { error: deleteError } = await supabase
             .from('artist_fanbase')
@@ -139,14 +157,35 @@ export async function POST(request: NextRequest) {
             .eq('artist_id', artistDbId);
 
           if (!deleteError) {
+            // Calculate total fans from fanbase_distribution or historical data
+            let totalFans = 0;
+            let distribution = {};
+            
+            // Handle the nested data structure from Viberate API
+            if (artistData.fanbase_distribution?.data) {
+              distribution = artistData.fanbase_distribution.data;
+              // Sum up all platform followers from distribution
+              Object.entries(distribution).forEach(([key, value]) => {
+                if (typeof value === 'number' && key.includes('followers')) {
+                  totalFans += value;
+                }
+                if (typeof value === 'number' && key.includes('subscribers')) {
+                  totalFans += value;
+                }
+              });
+            }
+            
             // Insert new fanbase data
             const { error: fanbaseError } = await supabase
               .from('artist_fanbase')
               .insert({
                 artist_id: artistDbId,
-                total_fans: Object.values(artistData.fanbase.data || {}).reduce((sum: number, val: unknown) => sum + (typeof val === 'number' ? val : 0), 0),
-                distribution: artistData.fanbase.data || {},
-                data: artistData.fanbase,
+                total_fans: totalFans,
+                distribution: distribution,
+                data: {
+                  historical: artistData.fanbase,
+                  distribution: artistData.fanbase_distribution
+                },
                 fetched_at: artistData.fetched_at,
                 updated_at: new Date().toISOString()
               });
@@ -154,7 +193,7 @@ export async function POST(request: NextRequest) {
             if (fanbaseError) {
               console.error('Error storing fanbase:', fanbaseError);
             } else {
-              console.log('Successfully stored fanbase data');
+              console.log('Successfully stored fanbase data with total fans:', totalFans);
             }
           } else {
             console.error('Error deleting old fanbase data:', deleteError);
@@ -177,17 +216,21 @@ export async function POST(request: NextRequest) {
               updated_at: string;
             }> = [];
             
-            // Extract ranks from the nested structure
-            Object.entries(artistData.ranks.data).forEach(([platform, rankData]) => {
-              const typedRankData = rankData as { current?: Record<string, unknown>; previous?: Record<string, unknown> };
-              if (typedRankData?.current) {
-                Object.entries(typedRankData.current).forEach(([rankType, rankValue]) => {
+            // Extract ranks from the nested structure (data.platform.current/previous)
+            Object.entries(artistData.ranks.data).forEach(([platform, platformData]: [string, any]) => {
+              if (platformData?.current) {
+                Object.entries(platformData.current).forEach(([rankType, rankValue]) => {
                   if (typeof rankValue === 'number') {
                     ranksArray.push({
                       artist_id: artistDbId,
                       rank_type: `${platform}_${rankType}`,
                       rank_value: rankValue,
-                      data: { platform, type: rankType, current: rankValue, previous: typedRankData.previous?.[rankType] },
+                      data: { 
+                        platform,
+                        type: rankType, 
+                        current: rankValue, 
+                        previous: platformData.previous?.[rankType] 
+                      },
                       updated_at: new Date().toISOString()
                     });
                   }
