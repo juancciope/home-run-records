@@ -1,0 +1,675 @@
+"use client"
+
+import * as React from "react"
+import { Dialog, DialogContent, DialogDescription, DialogHeader, DialogTitle, DialogTrigger } from "@/components/ui/dialog"
+import { Button } from "@/components/ui/button"
+import { Input } from "@/components/ui/input"
+import { Label } from "@/components/ui/label"
+import { Textarea } from "@/components/ui/textarea"
+import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
+import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Badge } from "@/components/ui/badge"
+import { Separator } from "@/components/ui/separator"
+import { ScrollArea } from "@/components/ui/scroll-area"
+import { Plus, Upload, FileText, AlertCircle, CheckCircle2, X } from "lucide-react"
+import { useAuth } from "@/contexts/auth-provider"
+import { PipelineService } from "@/lib/services/pipeline-service"
+import { toast } from "sonner"
+
+interface AddDataModalProps {
+  section: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent'
+  recordType: string
+  onRecordAdded?: () => void
+  children?: React.ReactNode
+}
+
+const SECTION_CONFIGS = {
+  production: {
+    title: 'Add Production Record',
+    description: 'Add tracks, projects, or releases to your production pipeline',
+    recordTypes: {
+      unfinished: 'Work in Progress',
+      finished: 'Ready to Release',
+      released: 'Live Catalog'
+    },
+    csvTemplate: 'record_type,title,artist_name,description,completion_percentage,release_date,platforms'
+  },
+  marketing: {
+    title: 'Add Marketing Record',
+    description: 'Track your marketing reach, engagement, and follower growth',
+    recordTypes: {
+      reach: 'Total Reach',
+      engaged: 'Engaged Audience',
+      followers: 'Followers'
+    },
+    csvTemplate: 'record_type,platform,campaign_name,reach_count,engagement_count,follower_count,date_recorded'
+  },
+  fan_engagement: {
+    title: 'Add Fan Engagement Record',
+    description: 'Manage fan contacts and engagement levels',
+    recordTypes: {
+      captured: 'Data Captured',
+      fans: 'Active Fans',
+      super_fans: 'Super Fans'
+    },
+    csvTemplate: 'record_type,contact_name,contact_email,engagement_level,source,engagement_score'
+  },
+  conversion: {
+    title: 'Add Conversion Record',
+    description: 'Track leads, opportunities, and sales in your conversion funnel',
+    recordTypes: {
+      leads: 'Lead Generation',
+      opportunities: 'Qualified Opportunities',
+      sales: 'Closed Sales'
+    },
+    csvTemplate: 'record_type,contact_name,contact_email,deal_value,probability,stage,source,notes'
+  },
+  agent: {
+    title: 'Add Agent Record',
+    description: 'Manage your agent pipeline and representation network',
+    recordTypes: {
+      potential: 'Potential Agents',
+      meeting_booked: 'Meetings Booked',
+      signed: 'Agents Signed'
+    },
+    csvTemplate: 'record_type,agent_name,agency_name,contact_email,specialization,meeting_date,commission_rate'
+  }
+}
+
+export function AddDataModal({ section, recordType, onRecordAdded, children }: AddDataModalProps) {
+  const { user } = useAuth()
+  const [open, setOpen] = React.useState(false)
+  const [isLoading, setIsLoading] = React.useState(false)
+  const [csvData, setCsvData] = React.useState('')
+  const [importResults, setImportResults] = React.useState<{ success: number; errors: string[] } | null>(null)
+  
+  const config = SECTION_CONFIGS[section]
+  const [formData, setFormData] = React.useState<Record<string, any>>({
+    record_type: recordType,
+  })
+
+  const handleInputChange = (field: string, value: any) => {
+    setFormData(prev => ({ ...prev, [field]: value }))
+  }
+
+  const handleManualSubmit = async (e: React.FormEvent) => {
+    e.preventDefault()
+    if (!user?.id) return
+
+    setIsLoading(true)
+    try {
+      const recordWithUserId = { ...formData, user_id: user.id }
+      
+      let result = null
+      switch (section) {
+        case 'production':
+          result = await PipelineService.addProductionRecord(recordWithUserId)
+          break
+        case 'marketing':
+          result = await PipelineService.addMarketingRecord(recordWithUserId)
+          break
+        case 'fan_engagement':
+          result = await PipelineService.addFanEngagementRecord(recordWithUserId)
+          break
+        case 'conversion':
+          result = await PipelineService.addConversionRecord(recordWithUserId)
+          break
+        case 'agent':
+          result = await PipelineService.addAgentRecord(recordWithUserId)
+          break
+      }
+
+      if (result) {
+        toast.success('Record added successfully!')
+        setFormData({ record_type: recordType })
+        setOpen(false)
+        onRecordAdded?.()
+      } else {
+        toast.error('Failed to add record')
+      }
+    } catch (error) {
+      console.error('Error adding record:', error)
+      toast.error('Error adding record')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const handleCSVImport = async () => {
+    if (!user?.id || !csvData.trim()) return
+
+    setIsLoading(true)
+    try {
+      const results = await PipelineService.batchImportCSV(user.id, csvData, section)
+      setImportResults(results)
+      
+      if (results.success > 0) {
+        toast.success(`Successfully imported ${results.success} records!`)
+        onRecordAdded?.()
+      }
+      
+      if (results.errors.length > 0) {
+        toast.error(`${results.errors.length} records failed to import`)
+      }
+    } catch (error) {
+      console.error('Error importing CSV:', error)
+      toast.error('Error importing CSV data')
+    } finally {
+      setIsLoading(false)
+    }
+  }
+
+  const downloadCSVTemplate = () => {
+    const csvContent = config.csvTemplate + '\n' // Just headers
+    const blob = new Blob([csvContent], { type: 'text/csv' })
+    const url = window.URL.createObjectURL(blob)
+    const a = document.createElement('a')
+    a.href = url
+    a.download = `${section}_template.csv`
+    document.body.appendChild(a)
+    a.click()
+    document.body.removeChild(a)
+    window.URL.revokeObjectURL(url)
+  }
+
+  const renderManualForm = () => {
+    switch (section) {
+      case 'production':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="title">Track/Project Title*</Label>
+              <Input
+                id="title"
+                value={formData.title || ''}
+                onChange={(e) => handleInputChange('title', e.target.value)}
+                placeholder="Enter track or project title"
+              />
+            </div>
+            <div>
+              <Label htmlFor="artist_name">Artist Name</Label>
+              <Input
+                id="artist_name"
+                value={formData.artist_name || ''}
+                onChange={(e) => handleInputChange('artist_name', e.target.value)}
+                placeholder="Artist or band name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={formData.description || ''}
+                onChange={(e) => handleInputChange('description', e.target.value)}
+                placeholder="Brief description of the project"
+                rows={3}
+              />
+            </div>
+            <div>
+              <Label htmlFor="completion_percentage">Completion %</Label>
+              <Input
+                id="completion_percentage"
+                type="number"
+                min="0"
+                max="100"
+                value={formData.completion_percentage || 0}
+                onChange={(e) => handleInputChange('completion_percentage', parseInt(e.target.value))}
+              />
+            </div>
+            {recordType === 'released' && (
+              <div>
+                <Label htmlFor="release_date">Release Date</Label>
+                <Input
+                  id="release_date"
+                  type="date"
+                  value={formData.release_date || ''}
+                  onChange={(e) => handleInputChange('release_date', e.target.value)}
+                />
+              </div>
+            )}
+          </div>
+        )
+      
+      case 'marketing':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="platform">Platform</Label>
+              <Input
+                id="platform"
+                value={formData.platform || ''}
+                onChange={(e) => handleInputChange('platform', e.target.value)}
+                placeholder="e.g., Instagram, TikTok, Spotify"
+              />
+            </div>
+            <div>
+              <Label htmlFor="campaign_name">Campaign Name</Label>
+              <Input
+                id="campaign_name"
+                value={formData.campaign_name || ''}
+                onChange={(e) => handleInputChange('campaign_name', e.target.value)}
+                placeholder="Name of the marketing campaign"
+              />
+            </div>
+            {recordType === 'reach' && (
+              <div>
+                <Label htmlFor="reach_count">Reach Count</Label>
+                <Input
+                  id="reach_count"
+                  type="number"
+                  value={formData.reach_count || 0}
+                  onChange={(e) => handleInputChange('reach_count', parseInt(e.target.value))}
+                  placeholder="Number of people reached"
+                />
+              </div>
+            )}
+            {recordType === 'engaged' && (
+              <div>
+                <Label htmlFor="engagement_count">Engagement Count</Label>
+                <Input
+                  id="engagement_count"
+                  type="number"
+                  value={formData.engagement_count || 0}
+                  onChange={(e) => handleInputChange('engagement_count', parseInt(e.target.value))}
+                  placeholder="Number of engagements"
+                />
+              </div>
+            )}
+            {recordType === 'followers' && (
+              <div>
+                <Label htmlFor="follower_count">Follower Count</Label>
+                <Input
+                  id="follower_count"
+                  type="number"
+                  value={formData.follower_count || 0}
+                  onChange={(e) => handleInputChange('follower_count', parseInt(e.target.value))}
+                  placeholder="Number of new followers"
+                />
+              </div>
+            )}
+            <div>
+              <Label htmlFor="date_recorded">Date</Label>
+              <Input
+                id="date_recorded"
+                type="date"
+                value={formData.date_recorded || new Date().toISOString().split('T')[0]}
+                onChange={(e) => handleInputChange('date_recorded', e.target.value)}
+              />
+            </div>
+          </div>
+        )
+
+      case 'fan_engagement':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="contact_name">Contact Name</Label>
+              <Input
+                id="contact_name"
+                value={formData.contact_info?.name || ''}
+                onChange={(e) => handleInputChange('contact_info', { 
+                  ...formData.contact_info, 
+                  name: e.target.value 
+                })}
+                placeholder="Fan's name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact_email">Email</Label>
+              <Input
+                id="contact_email"
+                type="email"
+                value={formData.contact_info?.email || ''}
+                onChange={(e) => handleInputChange('contact_info', { 
+                  ...formData.contact_info, 
+                  email: e.target.value 
+                })}
+                placeholder="Fan's email address"
+              />
+            </div>
+            <div>
+              <Label htmlFor="engagement_level">Engagement Level</Label>
+              <Select
+                value={formData.engagement_level}
+                onValueChange={(value) => handleInputChange('engagement_level', value)}
+              >
+                <SelectTrigger>
+                  <SelectValue placeholder="Select engagement level" />
+                </SelectTrigger>
+                <SelectContent>
+                  <SelectItem value="captured">Captured</SelectItem>
+                  <SelectItem value="active">Active</SelectItem>
+                  <SelectItem value="super">Super Fan</SelectItem>
+                </SelectContent>
+              </Select>
+            </div>
+            <div>
+              <Label htmlFor="source">Source</Label>
+              <Input
+                id="source"
+                value={formData.source || ''}
+                onChange={(e) => handleInputChange('source', e.target.value)}
+                placeholder="Where did you capture this fan?"
+              />
+            </div>
+            <div>
+              <Label htmlFor="engagement_score">Engagement Score (1-100)</Label>
+              <Input
+                id="engagement_score"
+                type="number"
+                min="1"
+                max="100"
+                value={formData.engagement_score || 50}
+                onChange={(e) => handleInputChange('engagement_score', parseInt(e.target.value))}
+              />
+            </div>
+          </div>
+        )
+
+      case 'conversion':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="contact_name">Contact Name*</Label>
+              <Input
+                id="contact_name"
+                value={formData.contact_name || ''}
+                onChange={(e) => handleInputChange('contact_name', e.target.value)}
+                placeholder="Lead or customer name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact_email">Email</Label>
+              <Input
+                id="contact_email"
+                type="email"
+                value={formData.contact_email || ''}
+                onChange={(e) => handleInputChange('contact_email', e.target.value)}
+                placeholder="Contact email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact_phone">Phone</Label>
+              <Input
+                id="contact_phone"
+                value={formData.contact_phone || ''}
+                onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                placeholder="Contact phone number"
+              />
+            </div>
+            <div>
+              <Label htmlFor="deal_value">Deal Value ($)</Label>
+              <Input
+                id="deal_value"
+                type="number"
+                step="0.01"
+                value={formData.deal_value || 0}
+                onChange={(e) => handleInputChange('deal_value', parseFloat(e.target.value))}
+                placeholder="Potential or actual deal value"
+              />
+            </div>
+            <div>
+              <Label htmlFor="probability">Probability (0-1)</Label>
+              <Input
+                id="probability"
+                type="number"
+                step="0.01"
+                min="0"
+                max="1"
+                value={formData.probability || 0.5}
+                onChange={(e) => handleInputChange('probability', parseFloat(e.target.value))}
+                placeholder="0.5 = 50% chance"
+              />
+            </div>
+            <div>
+              <Label htmlFor="source">Source</Label>
+              <Input
+                id="source"
+                value={formData.source || ''}
+                onChange={(e) => handleInputChange('source', e.target.value)}
+                placeholder="Where did this lead come from?"
+              />
+            </div>
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes || ''}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Additional notes about this contact"
+                rows={3}
+              />
+            </div>
+          </div>
+        )
+
+      case 'agent':
+        return (
+          <div className="space-y-4">
+            <div>
+              <Label htmlFor="agent_name">Agent Name*</Label>
+              <Input
+                id="agent_name"
+                value={formData.agent_name || ''}
+                onChange={(e) => handleInputChange('agent_name', e.target.value)}
+                placeholder="Agent's full name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="agency_name">Agency Name</Label>
+              <Input
+                id="agency_name"
+                value={formData.agency_name || ''}
+                onChange={(e) => handleInputChange('agency_name', e.target.value)}
+                placeholder="Agency or company name"
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact_email">Email</Label>
+              <Input
+                id="contact_email"
+                type="email"
+                value={formData.contact_email || ''}
+                onChange={(e) => handleInputChange('contact_email', e.target.value)}
+                placeholder="Agent's email"
+              />
+            </div>
+            <div>
+              <Label htmlFor="contact_phone">Phone</Label>
+              <Input
+                id="contact_phone"
+                value={formData.contact_phone || ''}
+                onChange={(e) => handleInputChange('contact_phone', e.target.value)}
+                placeholder="Agent's phone number"
+              />
+            </div>
+            <div>
+              <Label htmlFor="specialization">Specialization</Label>
+              <Input
+                id="specialization"
+                value={formData.specialization?.join(', ') || ''}
+                onChange={(e) => handleInputChange('specialization', e.target.value.split(', ').filter(s => s.trim()))}
+                placeholder="e.g., Music, Film, Brand Partnerships"
+              />
+            </div>
+            {recordType === 'meeting_booked' && (
+              <div>
+                <Label htmlFor="meeting_date">Meeting Date</Label>
+                <Input
+                  id="meeting_date"
+                  type="datetime-local"
+                  value={formData.meeting_date || ''}
+                  onChange={(e) => handleInputChange('meeting_date', e.target.value)}
+                />
+              </div>
+            )}
+            {recordType === 'signed' && (
+              <>
+                <div>
+                  <Label htmlFor="commission_rate">Commission Rate (%)</Label>
+                  <Input
+                    id="commission_rate"
+                    type="number"
+                    step="0.01"
+                    value={formData.commission_rate || 15}
+                    onChange={(e) => handleInputChange('commission_rate', parseFloat(e.target.value))}
+                    placeholder="e.g., 15 for 15%"
+                  />
+                </div>
+                <div>
+                  <Label htmlFor="contract_value">Contract Value ($)</Label>
+                  <Input
+                    id="contract_value"
+                    type="number"
+                    step="0.01"
+                    value={formData.contract_value || 0}
+                    onChange={(e) => handleInputChange('contract_value', parseFloat(e.target.value))}
+                    placeholder="Total contract value"
+                  />
+                </div>
+              </>
+            )}
+            <div>
+              <Label htmlFor="notes">Notes</Label>
+              <Textarea
+                id="notes"
+                value={formData.notes || ''}
+                onChange={(e) => handleInputChange('notes', e.target.value)}
+                placeholder="Additional notes about this agent"
+                rows={3}
+              />
+            </div>
+          </div>
+        )
+
+      default:
+        return <div>Form not implemented for this section</div>
+    }
+  }
+
+  return (
+    <Dialog open={open} onOpenChange={setOpen}>
+      <DialogTrigger asChild>
+        {children || (
+          <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+            <Plus className="h-3.5 w-3.5" />
+          </Button>
+        )}
+      </DialogTrigger>
+      <DialogContent className="max-w-2xl max-h-[80vh] overflow-hidden">
+        <DialogHeader>
+          <DialogTitle className="flex items-center gap-2">
+            <Plus className="h-5 w-5" />
+            {config.title}
+          </DialogTitle>
+          <DialogDescription>
+            {config.description}
+          </DialogDescription>
+        </DialogHeader>
+
+        <Tabs defaultValue="manual" className="mt-4">
+          <TabsList className="grid w-full grid-cols-2">
+            <TabsTrigger value="manual" className="flex items-center gap-2">
+              <FileText className="h-4 w-4" />
+              Manual Entry
+            </TabsTrigger>
+            <TabsTrigger value="csv" className="flex items-center gap-2">
+              <Upload className="h-4 w-4" />
+              CSV Import
+            </TabsTrigger>
+          </TabsList>
+
+          <TabsContent value="manual" className="mt-6">
+            <form onSubmit={handleManualSubmit}>
+              <ScrollArea className="max-h-96 pr-4">
+                <div className="space-y-4">
+                  <div>
+                    <Label>Record Type</Label>
+                    <div className="mt-2">
+                      <Badge variant="secondary">
+                        {config.recordTypes[recordType as keyof typeof config.recordTypes]}
+                      </Badge>
+                    </div>
+                  </div>
+                  <Separator />
+                  {renderManualForm()}
+                </div>
+              </ScrollArea>
+              <div className="flex justify-end gap-2 mt-6">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button type="submit" disabled={isLoading}>
+                  {isLoading ? 'Adding...' : 'Add Record'}
+                </Button>
+              </div>
+            </form>
+          </TabsContent>
+
+          <TabsContent value="csv" className="mt-6">
+            <div className="space-y-4">
+              <div>
+                <div className="flex items-center justify-between mb-2">
+                  <Label>CSV Data</Label>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadCSVTemplate}
+                  >
+                    Download Template
+                  </Button>
+                </div>
+                <Textarea
+                  value={csvData}
+                  onChange={(e) => setCsvData(e.target.value)}
+                  placeholder={`Paste your CSV data here. Expected format:\n${config.csvTemplate}`}
+                  rows={8}
+                  className="font-mono text-sm"
+                />
+              </div>
+
+              {importResults && (
+                <div className="space-y-2">
+                  <div className="flex items-center gap-2 text-sm">
+                    <CheckCircle2 className="h-4 w-4 text-green-600" />
+                    <span className="text-green-600">Successfully imported: {importResults.success}</span>
+                  </div>
+                  {importResults.errors.length > 0 && (
+                    <div className="space-y-1">
+                      <div className="flex items-center gap-2 text-sm">
+                        <AlertCircle className="h-4 w-4 text-red-600" />
+                        <span className="text-red-600">Errors: {importResults.errors.length}</span>
+                      </div>
+                      <ScrollArea className="max-h-32">
+                        <div className="space-y-1">
+                          {importResults.errors.map((error, index) => (
+                            <div key={index} className="text-xs text-red-600 bg-red-50 p-2 rounded">
+                              {error}
+                            </div>
+                          ))}
+                        </div>
+                      </ScrollArea>
+                    </div>
+                  )}
+                </div>
+              )}
+
+              <div className="flex justify-end gap-2">
+                <Button type="button" variant="outline" onClick={() => setOpen(false)}>
+                  Cancel
+                </Button>
+                <Button
+                  onClick={handleCSVImport}
+                  disabled={isLoading || !csvData.trim()}
+                >
+                  {isLoading ? 'Importing...' : 'Import CSV'}
+                </Button>
+              </div>
+            </div>
+          </TabsContent>
+        </Tabs>
+      </DialogContent>
+    </Dialog>
+  )
+}

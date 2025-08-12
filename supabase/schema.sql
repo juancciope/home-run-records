@@ -30,12 +30,30 @@ create table public.strategy_plans (
   updated_at timestamp with time zone default timezone('utc'::text, now()) not null
 );
 
+-- Artist profiles table
+create table public.artist_profiles (
+  id uuid references public.users(id) on delete cascade primary key,
+  email text not null,
+  artist_name text,
+  stage_name text,
+  genre text,
+  bio text,
+  profile_image_url text,
+  website_url text,
+  social_links jsonb default '{}'::jsonb,
+  viberate_artist_id text,
+  onboarding_completed boolean default false,
+  created_at timestamp with time zone default timezone('utc'::text, now()) not null,
+  updated_at timestamp with time zone default timezone('utc'::text, now()) not null
+);
+
 -- Row Level Security (RLS) Policies
 
 -- Enable RLS
 alter table public.users enable row level security;
 alter table public.quiz_answers enable row level security;
 alter table public.strategy_plans enable row level security;
+alter table public.artist_profiles enable row level security;
 
 -- Users can only see their own data
 create policy "Users can view own profile" on public.users
@@ -125,3 +143,25 @@ create trigger handle_updated_at_quiz_answers
 create trigger handle_updated_at_strategy_plans
   before update on public.strategy_plans
   for each row execute procedure public.handle_updated_at();
+
+create trigger handle_updated_at_artist_profiles
+  before update on public.artist_profiles
+  for each row execute procedure public.handle_updated_at();
+
+-- Artist profiles policies
+create policy "Users can view own artist profile" on public.artist_profiles
+  for select using (auth.uid() = id);
+
+create policy "Users can insert own artist profile" on public.artist_profiles
+  for insert with check (auth.uid() = id);
+
+create policy "Users can update own artist profile" on public.artist_profiles
+  for update using (auth.uid() = id);
+
+create policy "Admins can view all artist profiles" on public.artist_profiles
+  for select using (
+    exists (
+      select 1 from public.users
+      where id = auth.uid() and role = 'admin'
+    )
+  );

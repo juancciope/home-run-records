@@ -56,6 +56,7 @@ import {
 } from "recharts"
 import { useAuth } from "@/contexts/auth-provider"
 import { ArtistOnboarding } from "./artist-onboarding"
+import { AddDataModal } from "./add-data-modal"
 
 // Action Button Component for pipeline cards
 function ActionButton({ 
@@ -89,6 +90,43 @@ function ActionButton({
   );
 }
 
+// Add Data Action Button Component
+function AddDataButton({ 
+  section,
+  recordType,
+  tooltip,
+  onRecordAdded
+}: { 
+  section: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent';
+  recordType: string;
+  tooltip: string;
+  onRecordAdded?: () => void;
+}) {
+  return (
+    <AddDataModal
+      section={section}
+      recordType={recordType}
+      onRecordAdded={onRecordAdded}
+    >
+      <Tooltip>
+        <TooltipTrigger asChild>
+          <Button
+            variant="ghost"
+            size="sm"
+            className="h-7 w-7 p-0 shrink-0"
+          >
+            <Plus className="h-3.5 w-3.5" />
+            <span className="sr-only">{tooltip}</span>
+          </Button>
+        </TooltipTrigger>
+        <TooltipContent side="top" className="text-xs">
+          <p>{tooltip}</p>
+        </TooltipContent>
+      </Tooltip>
+    </AddDataModal>
+  );
+}
+
 export function DashboardContent() {
   const { user: authUser, isLoading, profile } = useAuth();
   
@@ -109,6 +147,18 @@ export function DashboardContent() {
     followers: 21200,
     isRealData: false,
   });
+
+  // Function to refresh pipeline data
+  const refreshPipelineData = React.useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      // Re-run the loadPipelineMetrics function
+      await loadPipelineMetrics();
+    } catch (error) {
+      console.error('Error refreshing pipeline data:', error);
+    }
+  }, [user?.id]);
 
   // Marketing funnel calculations:
   // Total Reach (342K) → Engaged Audience (45.6K) → Followers (21.2K)
@@ -374,7 +424,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View details about projects in progress" />
                   <ActionButton icon={Bot} tooltip="Get AI suggestions for completing projects" />
                   <ActionButton icon={Plug} tooltip="Connect project management tools" />
-                  <ActionButton icon={Plus} tooltip="Add new project manually" />
+                  <AddDataButton 
+                    section="production" 
+                    recordType="unfinished" 
+                    tooltip="Add new project manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Projects in development</CardDescription>
@@ -409,7 +464,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View tracks ready for release" />
                   <ActionButton icon={Bot} tooltip="Get AI-powered release strategy suggestions" />
                   <ActionButton icon={Plug} tooltip="Connect distribution platforms" />
-                  <ActionButton icon={Plus} tooltip="Add new completed track" />
+                  <AddDataButton 
+                    section="production" 
+                    recordType="finished" 
+                    tooltip="Add new completed track"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Completed, awaiting launch</CardDescription>
@@ -444,7 +504,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View released tracks performance" />
                   <ActionButton icon={Bot} tooltip="Optimize catalog with AI insights" />
                   <ActionButton icon={Plug} tooltip="Connect streaming platforms" />
-                  <ActionButton icon={Plus} tooltip="Add tracks to catalog" />
+                  <AddDataButton 
+                    section="production" 
+                    recordType="released" 
+                    tooltip="Add tracks to catalog"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Live & generating revenue</CardDescription>
@@ -514,7 +579,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View reach sources and demographics" />
                   <ActionButton icon={Bot} tooltip="Get AI insights for expanding reach" />
                   <ActionButton icon={Plug} tooltip="Connect marketing platforms" />
-                  <ActionButton icon={Plus} tooltip="Add reach data manually" />
+                  <AddDataButton 
+                    section="marketing" 
+                    recordType="reach" 
+                    tooltip="Add reach data manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Unique people exposed to content</CardDescription>
@@ -570,7 +640,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View engagement metrics and patterns" />
                   <ActionButton icon={Bot} tooltip="Get AI recommendations for engagement" />
                   <ActionButton icon={Plug} tooltip="Connect social media tools" />
-                  <ActionButton icon={Plus} tooltip="Add engagement data manually" />
+                  <AddDataButton 
+                    section="marketing" 
+                    recordType="engaged" 
+                    tooltip="Add engagement data manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Active content interactions</CardDescription>
@@ -622,7 +697,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View follower breakdown by platform" />
                   <ActionButton icon={Bot} tooltip="Get AI strategies for follower growth" />
                   <ActionButton icon={Plug} tooltip="Connect social platforms" />
-                  <ActionButton icon={Plus} tooltip="Add follower data manually" />
+                  <AddDataButton 
+                    section="marketing" 
+                    recordType="followers" 
+                    tooltip="Add follower data manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Across all platforms</CardDescription>
@@ -713,7 +793,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View captured data sources and quality" />
                   <ActionButton icon={Bot} tooltip="Get AI strategies for data capture" />
                   <ActionButton icon={Plug} tooltip="Connect email marketing tools" />
-                  <ActionButton icon={Plus} tooltip="Add contact data manually" />
+                  <AddDataButton 
+                    section="fan_engagement" 
+                    recordType="captured" 
+                    tooltip="Add contact data manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Email & contact information</CardDescription>
@@ -772,7 +857,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View fan activity and engagement patterns" />
                   <ActionButton icon={Bot} tooltip="Get AI insights for fan activation" />
                   <ActionButton icon={Plug} tooltip="Connect fan engagement platforms" />
-                  <ActionButton icon={Plus} tooltip="Add fan activity manually" />
+                  <AddDataButton 
+                    section="fan_engagement" 
+                    recordType="fans" 
+                    tooltip="Add fan activity manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Regular engagement & support</CardDescription>
@@ -822,7 +912,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View super fan profiles and activities" />
                   <ActionButton icon={Bot} tooltip="Get AI strategies for fan advocacy" />
                   <ActionButton icon={Plug} tooltip="Connect loyalty and rewards platforms" />
-                  <ActionButton icon={Plus} tooltip="Add super fan manually" />
+                  <AddDataButton 
+                    section="fan_engagement" 
+                    recordType="super_fans" 
+                    tooltip="Add super fan manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Most loyal advocates</CardDescription>
@@ -913,7 +1008,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View agent prospect details and research" />
                   <ActionButton icon={Bot} tooltip="Get AI insights for agent outreach" />
                   <ActionButton icon={Plug} tooltip="Connect industry databases and networks" />
-                  <ActionButton icon={Plus} tooltip="Add potential agent manually" />
+                  <AddDataButton 
+                    section="agent" 
+                    recordType="potential" 
+                    tooltip="Add potential agent manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Identified representation prospects</CardDescription>
@@ -972,7 +1072,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View scheduled meetings and preparation notes" />
                   <ActionButton icon={Bot} tooltip="Get AI meeting preparation and talking points" />
                   <ActionButton icon={Plug} tooltip="Connect calendar and CRM systems" />
-                  <ActionButton icon={Plus} tooltip="Schedule meeting manually" />
+                  <AddDataButton 
+                    section="agent" 
+                    recordType="meeting_booked" 
+                    tooltip="Schedule meeting manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Scheduled agent meetings</CardDescription>
@@ -1031,7 +1136,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View signed agent details and contracts" />
                   <ActionButton icon={Bot} tooltip="Get AI strategies for agent relationship management" />
                   <ActionButton icon={Plug} tooltip="Connect legal and contract management tools" />
-                  <ActionButton icon={Plus} tooltip="Add signed agent manually" />
+                  <AddDataButton 
+                    section="agent" 
+                    recordType="signed" 
+                    tooltip="Add signed agent manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Active representation deals</CardDescription>
@@ -1122,7 +1232,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View lead sources and performance" />
                   <ActionButton icon={Bot} tooltip="Get AI-powered lead generation insights" />
                   <ActionButton icon={Plug} tooltip="Connect lead capture tools" />
-                  <ActionButton icon={Plus} tooltip="Add leads manually" />
+                  <AddDataButton 
+                    section="conversion" 
+                    recordType="leads" 
+                    tooltip="Add leads manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Initial interest capture</CardDescription>
@@ -1157,7 +1272,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View opportunity details and stages" />
                   <ActionButton icon={Bot} tooltip="Get AI recommendations for conversions" />
                   <ActionButton icon={Plug} tooltip="Connect CRM and sales tools" />
-                  <ActionButton icon={Plus} tooltip="Add opportunity manually" />
+                  <AddDataButton 
+                    section="conversion" 
+                    recordType="opportunities" 
+                    tooltip="Add opportunity manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Vetted prospects</CardDescription>
@@ -1195,7 +1315,12 @@ export function DashboardContent() {
                   <ActionButton icon={Info} tooltip="View sales performance and revenue" />
                   <ActionButton icon={Bot} tooltip="Analyze sales patterns with AI" />
                   <ActionButton icon={Plug} tooltip="Connect payment and analytics tools" />
-                  <ActionButton icon={Plus} tooltip="Record sale manually" />
+                  <AddDataButton 
+                    section="conversion" 
+                    recordType="sales" 
+                    tooltip="Record sale manually"
+                    onRecordAdded={refreshPipelineData}
+                  />
                 </div>
               </CardTitle>
               <CardDescription className="text-xs">Successful conversions</CardDescription>

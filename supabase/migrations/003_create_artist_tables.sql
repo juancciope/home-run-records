@@ -110,12 +110,14 @@ CREATE TABLE IF NOT EXISTS artist_similar (
 -- Create index for faster lookups
 CREATE INDEX IF NOT EXISTS idx_artist_similar_artist_id ON artist_similar(artist_id);
 
--- Update artist_profiles table to reference the new artists table
-ALTER TABLE artist_profiles 
-ADD COLUMN IF NOT EXISTS artist_uuid TEXT REFERENCES artists(uuid);
-
--- Create index on the new reference
-CREATE INDEX IF NOT EXISTS idx_artist_profiles_artist_uuid ON artist_profiles(artist_uuid);
+-- Update artist_profiles table to reference the new artists table (if it exists)
+DO $$ 
+BEGIN
+  IF EXISTS (SELECT FROM information_schema.tables WHERE table_name = 'artist_profiles') THEN
+    ALTER TABLE artist_profiles ADD COLUMN IF NOT EXISTS artist_uuid TEXT REFERENCES artists(uuid);
+    CREATE INDEX IF NOT EXISTS idx_artist_profiles_artist_uuid ON artist_profiles(artist_uuid);
+  END IF;
+END $$;
 
 -- Add updated_at trigger for artists table
 CREATE OR REPLACE FUNCTION update_updated_at_column()

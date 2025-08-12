@@ -405,14 +405,34 @@ export class ArtistService {
   /**
    * Get business pipeline metrics
    */
-  static async getPipelineMetrics(_userId: string): Promise<{
+  static async getPipelineMetrics(userId: string): Promise<{
     production: { unfinished: number; finished: number; released: number };
     marketing: { totalReach: number; engagedAudience: number; totalFollowers: number; youtubeSubscribers: number };
     fanEngagement: { capturedData: number; fans: number; superFans: number };
     conversion: { leads: number; opportunities: number; sales: number; revenue: number };
   } | null> {
     try {
-      // For now, return mock data since RPC functions don't exist yet
+      // Import PipelineService dynamically to avoid circular imports
+      const { PipelineService } = await import('./pipeline-service');
+      
+      // Try to get real data from the database
+      const pipelineData = await PipelineService.getAllPipelineMetrics(userId);
+      
+      if (pipelineData) {
+        return {
+          production: pipelineData.production,
+          marketing: {
+            totalReach: pipelineData.marketing.totalReach,
+            engagedAudience: pipelineData.marketing.engagedAudience,
+            totalFollowers: pipelineData.marketing.totalFollowers,
+            youtubeSubscribers: 0 // Not tracked separately
+          },
+          fanEngagement: pipelineData.fanEngagement,
+          conversion: pipelineData.conversion
+        };
+      }
+      
+      // Fallback to mock data if no real data exists
       return {
         production: {
           unfinished: 12,
