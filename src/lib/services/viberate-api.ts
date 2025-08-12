@@ -190,9 +190,19 @@ export class VibrateService {
     try {
       const supabase = createClient();
       
+      // Get user email for the required email field
+      const { data: { user } } = await supabase.auth.getUser();
+      const userEmail = user?.email;
+      
+      if (!userEmail) {
+        console.error('User email not available for profile update');
+        return false;
+      }
+      
       // Prepare the profile update data
       const profileUpdate = {
         id: userId, // Ensure the user ID is included
+        email: userEmail, // Required field
         viberate_artist_id: artistData.id || artistData.uuid,
         viberate_uuid: artistData.uuid,
         viberate_slug: artistData.slug,
