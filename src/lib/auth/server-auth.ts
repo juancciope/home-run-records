@@ -67,6 +67,32 @@ export async function getUserProfile(userId: string): Promise<UserProfile | null
 
   if (error) {
     console.error('Error getting user profile:', error)
+    
+    // If profile doesn't exist, try to create it
+    if (error.code === 'PGRST116') {
+      console.log('Profile not found, attempting to create...')
+      const user = await getServerUser()
+      if (user?.email) {
+        const { data: newProfile, error: createError } = await supabase
+          .from('users')
+          .insert({
+            id: userId,
+            email: user.email,
+            global_role: 'artist',
+            is_active: true
+          })
+          .select()
+          .single()
+        
+        if (createError) {
+          console.error('Error creating user profile:', createError)
+          return null
+        }
+        
+        return newProfile
+      }
+    }
+    
     return null
   }
 
