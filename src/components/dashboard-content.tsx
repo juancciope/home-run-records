@@ -317,10 +317,10 @@ export function DashboardContent() {
     sales: 45,
   };
 
-  const agentData = {
-    potentialAgents: 28,
-    meetingsBooked: 12,
-    agentsSigned: 3,
+  const agentData = pipelineMetrics?.agent || {
+    potentialAgents: 0,
+    meetingsBooked: 0,
+    agentsSigned: 0,
   };
 
   // Chart configurations
@@ -431,7 +431,7 @@ export function DashboardContent() {
       {/* Dashboard Header */}
       <div className="flex items-center justify-between">
         <div>
-          <h1 className="text-3xl font-bold">Business Intelligence Dashboard</h1>
+          <h1 className="text-3xl font-bold">Business Growth Dashboard</h1>
           <p className="text-muted-foreground">
             Your complete view of performance across all business realms
           </p>
