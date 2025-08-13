@@ -1,6 +1,14 @@
 "use client"
 
 import * as React from "react"
+
+// Utility function to format numbers properly without showing 0K
+const formatNumber = (num: number): string => {
+  if (num === 0) return '0';
+  if (num >= 1000000) return `${(num / 1000000).toFixed(1)}M`;
+  if (num >= 1000) return `${(num / 1000).toFixed(1)}K`;
+  return num.toString();
+}
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card"
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
@@ -878,7 +886,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-bold tabular-nums">{(marketingData.totalReach / 1000).toFixed(0)}K</span>
+                <span className="text-3xl font-bold tabular-nums">{formatNumber(marketingData.totalReach)}</span>
                 <div className="flex items-center gap-1">
                   {marketingData.isRealData ? (
                     <Badge className="text-xs bg-green-500/10 text-green-600 border-green-200">Live</Badge>
@@ -945,7 +953,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-bold tabular-nums text-green-600">{(marketingData.followers / 1000).toFixed(1)}K</span>
+                <span className="text-3xl font-bold tabular-nums text-green-600">{formatNumber(marketingData.followers)}</span>
                 <Badge className="text-xs bg-green-500/10 text-green-600 border-green-200">Growing</Badge>
               </div>
               <div className="space-y-2">
@@ -975,7 +983,9 @@ export function DashboardContent() {
                 </ChartContainer>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Follow-through Rate</span>
-                  <span className="font-medium">{((marketingData.followers / marketingData.totalReach) * 100).toFixed(1)}%</span>
+                  <span className="font-medium">
+                    {marketingData.totalReach === 0 ? '0.0' : ((marketingData.followers / marketingData.totalReach) * 100).toFixed(1)}%
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Users className="h-3 w-3" />
@@ -1006,7 +1016,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-bold tabular-nums text-purple-600">{(marketingData.engaged / 1000).toFixed(1)}K</span>
+                <span className="text-3xl font-bold tabular-nums text-purple-600">{formatNumber(marketingData.engaged)}</span>
                 <Badge variant="outline" className="text-xs border-purple-600 text-purple-600">Engaged</Badge>
               </div>
               <div className="space-y-2">
@@ -1038,7 +1048,9 @@ export function DashboardContent() {
                 </ChartContainer>
                 <div className="flex items-center justify-between text-sm">
                   <span className="text-muted-foreground">Engagement Rate</span>
-                  <span className="font-medium">{((marketingData.engaged / marketingData.totalReach) * 100).toFixed(1)}%</span>
+                  <span className="font-medium">
+                    {marketingData.totalReach === 0 ? '0.0' : ((marketingData.engaged / marketingData.totalReach) * 100).toFixed(1)}%
+                  </span>
                 </div>
                 <p className="text-xs text-muted-foreground flex items-center gap-1">
                   <Heart className="h-3 w-3" />
@@ -1119,7 +1131,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-bold tabular-nums">{(fanEngagementData.capturedData / 1000).toFixed(1)}K</span>
+                <span className="text-3xl font-bold tabular-nums">{formatNumber(fanEngagementData.capturedData)}</span>
                 <Badge variant="secondary" className="text-xs">Potential</Badge>
               </div>
               <div className="space-y-2">
@@ -1180,7 +1192,7 @@ export function DashboardContent() {
             </CardHeader>
             <CardContent className="space-y-4">
               <div className="flex items-baseline justify-between">
-                <span className="text-3xl font-bold tabular-nums text-orange-600">{(fanEngagementData.fans / 1000).toFixed(1)}K</span>
+                <span className="text-3xl font-bold tabular-nums text-orange-600">{formatNumber(fanEngagementData.fans)}</span>
                 <Badge variant="outline" className="text-xs border-orange-600 text-orange-600">Active</Badge>
               </div>
               <div className="space-y-2">

@@ -387,7 +387,7 @@ export function ReachDashboard() {
     (analyticsData.platforms.twitter?.followers || 0);
 
   // Calculate engagement rate
-  const engagementRate = analyticsData.totalFollowers > 0 
+  const engagementRate = analyticsData.totalReach > 0 
     ? ((analyticsData.engagedAudience / analyticsData.totalReach) * 100).toFixed(1)
     : "0";
 
@@ -447,7 +447,7 @@ export function ReachDashboard() {
                      'subscribers' in data ? data.subscribers : 
                      'fans' in data ? data.fans : 0;
     const engagement = 'engagement' in data ? data.engagement : 
-                      followers > 0 ? Math.round((followers / analyticsData.totalFollowers) * 100) : 0;
+                      (followers > 0 && analyticsData.totalFollowers > 0) ? Math.round((followers / analyticsData.totalFollowers) * 100) : 0;
     
     return {
       platform: PLATFORM_META[platform as keyof typeof PLATFORM_META]?.name || platform,
@@ -813,7 +813,7 @@ export function ReachDashboard() {
                             <p className="font-semibold">{data.name}</p>
                             <p className="text-sm">{formatNumber(data.value)} followers</p>
                             <p className="text-xs text-muted-foreground">
-                              {((data.value / analyticsData.totalFollowers) * 100).toFixed(1)}% of total
+                              {analyticsData.totalFollowers > 0 ? ((data.value / analyticsData.totalFollowers) * 100).toFixed(1) : '0.0'}% of total
                             </p>
                           </div>
                         );
@@ -833,7 +833,7 @@ export function ReachDashboard() {
                   />
                   <span className="text-xs">{platform.name}</span>
                   <span className="text-xs text-muted-foreground ml-auto">
-                    {((platform.value / analyticsData.totalFollowers) * 100).toFixed(0)}%
+                    {analyticsData.totalFollowers > 0 ? ((platform.value / analyticsData.totalFollowers) * 100).toFixed(0) : '0'}%
                   </span>
                 </div>
               ))}
@@ -880,7 +880,7 @@ export function ReachDashboard() {
                   </div>
                   <div className="relative">
                     <Progress 
-                      value={(platform.followers / analyticsData.totalFollowers) * 100} 
+                      value={analyticsData.totalFollowers > 0 ? (platform.followers / analyticsData.totalFollowers) * 100 : 0} 
                       className="h-2"
                     />
                   </div>
