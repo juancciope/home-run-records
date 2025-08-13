@@ -30,7 +30,7 @@ import {
 import { cn } from "@/lib/utils"
 import { format } from "date-fns"
 import { useAuth } from "@/contexts/auth-provider"
-import { PipelineService } from "@/lib/services/pipeline-service"
+import { GoalsService } from "@/lib/services/goals-service"
 import { toast } from "sonner"
 
 interface AddGoalModalProps {
@@ -234,8 +234,8 @@ export function AddGoalModal({ section, recordType, onGoalAdded, children }: Add
         status: 'active' as const
       }
 
-      // Add goal to pipeline service
-      await PipelineService.addGoal(goalData)
+      // Add goal using new goals service
+      await GoalsService.addGoal(goalData)
       
       toast.success("Goal added successfully!")
       setOpen(false)

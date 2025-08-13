@@ -1,4 +1,4 @@
-Cache bust for deployment: 2025-08-13-14:10:00
+Cache bust for deployment: 2025-08-13-14:20:00
 This file forces a fresh deployment to clear any cached client configurations.
-Build timestamp: 9a2f43b (enhanced goal debugging - JWT context analysis)
-Status: Track saving works ✅ | Enhanced goal debugging for JWT issue ⚡
+Build timestamp: 2f8a91c (COMPLETE GOALS REWRITE - new service + optimized RLS)
+Status: Track saving works ✅ | Goals completely rewritten from scratch 🔥

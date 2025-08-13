@@ -182,6 +182,7 @@ export function DashboardContent() {
     
     try {
       const { PipelineService } = await import('@/lib/services/pipeline-service');
+      const { GoalsService } = await import('@/lib/services/goals-service');
       
       // Load goals for each section and record type
       const [
@@ -195,15 +196,15 @@ export function DashboardContent() {
         fanEngagementFans,
         fanEngagementSuperFans
       ] = await Promise.all([
-        PipelineService.getActiveGoalsForCard(user.id, 'production', 'unfinished'),
-        PipelineService.getActiveGoalsForCard(user.id, 'production', 'finished'),
-        PipelineService.getActiveGoalsForCard(user.id, 'production', 'released'),
-        PipelineService.getActiveGoalsForCard(user.id, 'marketing', 'reach'),
-        PipelineService.getActiveGoalsForCard(user.id, 'marketing', 'engaged'),
-        PipelineService.getActiveGoalsForCard(user.id, 'marketing', 'followers'),
-        PipelineService.getActiveGoalsForCard(user.id, 'fan_engagement', 'captured'),
-        PipelineService.getActiveGoalsForCard(user.id, 'fan_engagement', 'fans'),
-        PipelineService.getActiveGoalsForCard(user.id, 'fan_engagement', 'super_fans')
+        GoalsService.getActiveGoalsForCard(user.id, 'production', 'unfinished'),
+        GoalsService.getActiveGoalsForCard(user.id, 'production', 'finished'),
+        GoalsService.getActiveGoalsForCard(user.id, 'production', 'released'),
+        GoalsService.getActiveGoalsForCard(user.id, 'marketing', 'reach'),
+        GoalsService.getActiveGoalsForCard(user.id, 'marketing', 'engaged'),
+        GoalsService.getActiveGoalsForCard(user.id, 'marketing', 'followers'),
+        GoalsService.getActiveGoalsForCard(user.id, 'fan_engagement', 'captured'),
+        GoalsService.getActiveGoalsForCard(user.id, 'fan_engagement', 'fans'),
+        GoalsService.getActiveGoalsForCard(user.id, 'fan_engagement', 'super_fans')
       ]);
 
       setGoals({
