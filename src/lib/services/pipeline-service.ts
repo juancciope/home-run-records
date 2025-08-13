@@ -236,9 +236,9 @@ export class PipelineService {
       // Ensure record has required fields and valid values
       const cleanRecord = {
         user_id: record.user_id,
-        record_type: record.record_type || 'imported_fans',
+        record_type: record.record_type || 'fans',
         contact_info: record.contact_info || {},
-        engagement_level: record.engagement_level || 'imported',
+        engagement_level: record.engagement_level || 'captured',
         source: record.source || 'csv_import',
         engagement_score: record.engagement_score || 0,
         last_interaction: record.last_interaction,
@@ -668,6 +668,18 @@ export class PipelineService {
             else if (header === 'source' && type === 'fan_engagement') {
               record.source = value || 'imported';
             }
+            // Handle engagement_level for fan engagement (map to valid constraint values)
+            else if (header === 'engagement_level' && type === 'fan_engagement') {
+              // Map common values to valid constraint values
+              const lowerValue = value.toLowerCase();
+              if (lowerValue.includes('super') || lowerValue.includes('high')) {
+                record.engagement_level = 'super';
+              } else if (lowerValue.includes('active') || lowerValue.includes('engaged')) {
+                record.engagement_level = 'active';
+              } else {
+                record.engagement_level = 'captured'; // default
+              }
+            }
             // Handle date fields
             else if (header.includes('date') && value) {
               // Try to parse date
@@ -689,8 +701,8 @@ export class PipelineService {
             // Ensure we only pass valid fields for fan engagement
             const fanRecord: any = {
               user_id: userId,
-              record_type: record.record_type || 'imported_fans',
-              engagement_level: record.engagement_level || 'imported',
+              record_type: record.record_type || 'fans',
+              engagement_level: record.engagement_level || 'captured',
               source: record.source || 'csv_import',
               contact_info: record.contact_info || {},
               engagement_score: record.engagement_score || 0,
