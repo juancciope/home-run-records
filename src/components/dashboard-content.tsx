@@ -26,6 +26,7 @@ import {
   UserCheck,
   Calendar,
   Handshake,
+  Clock,
 } from "lucide-react"
 import {
   Tooltip,
@@ -58,6 +59,15 @@ import { useAuth } from "@/contexts/auth-provider"
 import { ArtistOnboarding } from "./artist-onboarding"
 import { AddDataModal } from "./add-data-modal"
 import { AddGoalModal } from "./add-goal-modal"
+
+// Time range options for historical data
+const TIME_RANGES = {
+  "4w": { label: "4 Weeks", months: 1 },
+  "3m": { label: "3 Months", months: 3 },
+  "6m": { label: "6 Months", months: 6 },
+  "1y": { label: "1 Year", months: 12 },
+  "all": { label: "All Time", months: 36 }, // 3 years max for performance
+};
 
 // Helper function to generate recent months with real dates
 function generateRecentMonths(count: number = 6) {
@@ -164,6 +174,8 @@ export function DashboardContent() {
   const [isLoadingMetrics, setIsLoadingMetrics] = React.useState(true);
   const [needsOnboarding, setNeedsOnboarding] = React.useState(false);
   const [hasVibrateConnection, setHasVibrateConnection] = React.useState(false);
+  const [marketingTimeRange, setMarketingTimeRange] = React.useState("6m");
+  const [fanEngagementTimeRange, setFanEngagementTimeRange] = React.useState("6m");
   const [marketingData, setMarketingData] = React.useState({
     totalReach: 342000,
     engaged: 45600,
@@ -340,8 +352,10 @@ export function DashboardContent() {
     agentsSigned: 0,
   };
 
-  // Generate real dates for charts
-  const recentMonths = generateRecentMonths(6);
+  // Generate real dates for charts based on time range
+  const marketingMonths = generateRecentMonths(TIME_RANGES[marketingTimeRange as keyof typeof TIME_RANGES]?.months || 6);
+  const fanEngagementMonths = generateRecentMonths(TIME_RANGES[fanEngagementTimeRange as keyof typeof TIME_RANGES]?.months || 6);
+  const recentMonths = generateRecentMonths(6); // For non-filtered sections
 
   // Chart configurations
   const productionChartConfig = {
@@ -389,18 +403,18 @@ export function DashboardContent() {
     },
   ];
 
-  const reachTrendData = recentMonths.map((monthInfo, index) => ({
+  const reachTrendData = marketingMonths.map((monthInfo, index) => ({
     month: monthInfo.monthYear,
     date: monthInfo.fullDate,
-    reach: Math.round(marketingData.totalReach * (0.54 + (index * 0.077))), // Growth trend
-    engaged: Math.round(marketingData.engaged * (0.53 + (index * 0.078))), // Proportional growth
+    reach: Math.round(marketingData.totalReach * (0.54 + (index * (0.46 / (marketingMonths.length - 1))))), // Dynamic growth
+    engaged: Math.round(marketingData.engaged * (0.53 + (index * (0.47 / (marketingMonths.length - 1))))), // Dynamic growth
   }));
 
-  const fanEngagementTrendData = recentMonths.map((monthInfo, index) => ({
+  const fanEngagementTrendData = fanEngagementMonths.map((monthInfo, index) => ({
     month: monthInfo.monthYear,
     date: monthInfo.fullDate,
-    fans: Math.round(fanEngagementData.fans * (0.87 + (index * 0.022))), // Steady growth
-    superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * 0.033))), // Faster growth
+    fans: Math.round(fanEngagementData.fans * (0.87 + (index * (0.13 / (fanEngagementMonths.length - 1))))), // Dynamic growth
+    superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * (0.20 / (fanEngagementMonths.length - 1))))), // Dynamic growth
   }));
 
   const conversionFunnelData = [
@@ -739,12 +753,30 @@ export function DashboardContent() {
               <p className="text-sm text-muted-foreground">Expand your audience and engagement</p>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
-            <span>Awareness</span>
-            <ArrowRight className="h-3 w-3 mx-2" />
-            <span>Engagement</span>
-            <ArrowRight className="h-3 w-3 mx-2" />
-            <span>Following</span>
+          <div className="flex items-center gap-4">
+            {hasVibrateConnection && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <select
+                  value={marketingTimeRange}
+                  onChange={(e) => setMarketingTimeRange(e.target.value)}
+                  className="text-xs border rounded px-2 py-1 bg-background"
+                >
+                  {Object.entries(TIME_RANGES).map(([key, range]) => (
+                    <option key={key} value={key}>
+                      {range.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+              <span>Awareness</span>
+              <ArrowRight className="h-3 w-3 mx-2" />
+              <span>Engagement</span>
+              <ArrowRight className="h-3 w-3 mx-2" />
+              <span>Following</span>
+            </div>
           </div>
         </div>
         
@@ -854,11 +886,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   followers: { label: "Followers", color: "hsl(var(--chart-1))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                  <AreaChart data={marketingMonths.map((monthInfo, index) => ({
                     month: monthInfo.month,
                     date: monthInfo.fullDate,
-                    followers: Math.round(marketingData.followers * (0.70 + (index * 0.05)))
-                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    followers: Math.round(marketingData.followers * (0.70 + (index * (0.30 / (marketingMonths.length - 1)))))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 15 }}>
                     <defs>
                       <linearGradient id="fillFollowersMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
@@ -962,12 +994,30 @@ export function DashboardContent() {
               <p className="text-sm text-muted-foreground">Build deeper connections with your audience</p>
             </div>
           </div>
-          <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
-            <span>Capture</span>
-            <ArrowRight className="h-3 w-3 mx-2" />
-            <span>Activate</span>
-            <ArrowRight className="h-3 w-3 mx-2" />
-            <span>Advocate</span>
+          <div className="flex items-center gap-4">
+            {hasVibrateConnection && (
+              <div className="flex items-center gap-2">
+                <Clock className="h-4 w-4 text-muted-foreground" />
+                <select
+                  value={fanEngagementTimeRange}
+                  onChange={(e) => setFanEngagementTimeRange(e.target.value)}
+                  className="text-xs border rounded px-2 py-1 bg-background"
+                >
+                  {Object.entries(TIME_RANGES).map(([key, range]) => (
+                    <option key={key} value={key}>
+                      {range.label}
+                    </option>
+                  ))}
+                </select>
+              </div>
+            )}
+            <div className="hidden md:flex items-center gap-1 text-xs text-muted-foreground font-medium">
+              <span>Capture</span>
+              <ArrowRight className="h-3 w-3 mx-2" />
+              <span>Activate</span>
+              <ArrowRight className="h-3 w-3 mx-2" />
+              <span>Advocate</span>
+            </div>
           </div>
         </div>
         
@@ -1010,11 +1060,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   captured: { label: "Captured", color: "hsl(var(--chart-5))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                  <AreaChart data={fanEngagementMonths.map((monthInfo, index) => ({
                     month: monthInfo.month,
                     date: monthInfo.fullDate,
-                    captured: Math.round(fanEngagementData.capturedData * (0.65 + (index * 0.058)))
-                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    captured: Math.round(fanEngagementData.capturedData * (0.65 + (index * (0.35 / (fanEngagementMonths.length - 1)))))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 15 }}>
                     <defs>
                       <linearGradient id="fillCapturedMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8} />
@@ -1132,11 +1182,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                  <AreaChart data={fanEngagementMonths.map((monthInfo, index) => ({
                     month: monthInfo.month,
                     date: monthInfo.fullDate,
-                    superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * 0.033)))
-                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                    superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * (0.20 / (fanEngagementMonths.length - 1)))))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 15 }}>
                     <defs>
                       <linearGradient id="fillSuperFansMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
