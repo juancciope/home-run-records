@@ -432,67 +432,6 @@ export class PipelineService {
     }
   }
 
-  // =================
-  // BATCH OPERATIONS
-  // =================
-
-  static async batchImportCSV(
-    userId: string,
-    csvData: string,
-    type: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent'
-  ): Promise<{ success: number; errors: string[] }> {
-    try {
-      const lines = csvData.split('\n').filter(line => line.trim());
-      const headers = lines[0].split(',').map(h => h.trim());
-      const results = { success: 0, errors: [] as string[] };
-
-      for (let i = 1; i < lines.length; i++) {
-        try {
-          const values = lines[i].split(',').map(v => v.trim());
-          const record: Record<string, unknown> = { user_id: userId };
-          
-          headers.forEach((header, index) => {
-            if (values[index]) {
-              record[header] = values[index];
-            }
-          });
-
-          // Add records based on type
-          let result = null;
-          switch (type) {
-            case 'production':
-              result = await this.addProductionRecord(record as any);
-              break;
-            case 'marketing':
-              result = await this.addMarketingRecord(record as any);
-              break;
-            case 'fan_engagement':
-              result = await this.addFanEngagementRecord(record as any);
-              break;
-            case 'conversion':
-              result = await this.addConversionRecord(record as any);
-              break;
-            case 'agent':
-              result = await this.addAgentRecord(record as any);
-              break;
-          }
-
-          if (result) {
-            results.success++;
-          } else {
-            results.errors.push(`Row ${i + 1}: Failed to import record`);
-          }
-        } catch (error) {
-          results.errors.push(`Row ${i + 1}: ${error}`);
-        }
-      }
-
-      return results;
-    } catch (error) {
-      console.error('Error batch importing CSV:', error);
-      return { success: 0, errors: [`Failed to process CSV: ${error}`] };
-    }
-  }
 
   // =================
   // GOALS MANAGEMENT
