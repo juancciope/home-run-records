@@ -87,7 +87,7 @@ export function PersistentArtistHeader() {
     artistData.image,
     profile?.avatar_url,
     `https://ui-avatars.com/api/?name=${encodeURIComponent(artistData.name)}&size=128&background=6366f1&color=ffffff&bold=true`
-  ].filter(Boolean)
+  ].filter(Boolean) as string[]
 
   return (
     <div className="flex items-center gap-4">
