@@ -294,42 +294,66 @@ export function DashboardContent() {
       const hasConnection = !!profile?.viberate_artist_id;
       setHasVibrateConnection(hasConnection);
       
-      // Load real marketing data if Viberate is connected
-      if (hasConnection && profile?.viberate_artist_id) {
-        try {
-          const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
-          const vibrateData = await response.json();
-          
-          if (vibrateData && !vibrateData.error) {
-            console.log('Loaded Viberate analytics data:', vibrateData);
-            setMarketingData({
-              totalReach: vibrateData.totalReach,
-              engaged: vibrateData.engagedAudience,
-              followers: vibrateData.totalFollowers,
-              isRealData: vibrateData.isRealData || false,
-            });
+      // Load real marketing data from database
+      try {
+        const { PipelineService } = await import('@/lib/services/pipeline-service');
+        const realMarketingData = await PipelineService.getMarketingMetrics(user.id);
+        
+        console.log('Loaded real marketing data from database:', realMarketingData);
+        
+        // Use real marketing data if available, otherwise use dummy data
+        let marketingDataToSet = {
+          totalReach: realMarketingData.totalReach || 0,
+          engaged: realMarketingData.engagedAudience || 0,
+          followers: realMarketingData.totalFollowers || 0,
+          isRealData: true,
+        };
+
+        // If Viberate is connected, add Viberate follower data to the real database data
+        if (hasConnection && profile?.viberate_artist_id) {
+          try {
+            const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
+            const vibrateData = await response.json();
+            
+            if (vibrateData && !vibrateData.error) {
+              console.log('Adding Viberate follower data to real marketing data:', vibrateData.totalFollowers);
+              // Add Viberate followers to the database followers count
+              marketingDataToSet.followers += vibrateData.totalFollowers || 0;
+            }
+          } catch (error) {
+            console.warn('Error loading Viberate analytics:', error);
           }
-        } catch (error) {
-          console.warn('Error loading Viberate analytics:', error);
-          // Keep mock data if API call fails
         }
-      } else {
-        // Use mock data for demo
+
+        // Only use dummy data if no real data exists at all
+        if (marketingDataToSet.totalReach === 0 && marketingDataToSet.engaged === 0 && marketingDataToSet.followers === 0) {
+          marketingDataToSet = {
+            totalReach: 0,
+            engaged: 0,
+            followers: 0,
+            isRealData: false,
+          };
+        }
+
+        setMarketingData(marketingDataToSet);
+      } catch (error) {
+        console.error('Error loading marketing metrics:', error);
+        // Fallback to dummy data only if there's an error
         setMarketingData({
-          totalReach: metrics?.marketing?.totalReach || 342000,
-          engaged: metrics?.marketing?.engagedAudience || 45600,
-          followers: metrics?.marketing?.totalFollowers || 21200,
+          totalReach: 0,
+          engaged: 0,
+          followers: 0,
           isRealData: false,
         });
       }
 
       // Load historical data for charts  
       try {
-        const { PipelineService } = await import('@/lib/services/pipeline-service');
         const monthsToLoad = TIME_RANGES[marketingTimeRange as keyof typeof TIME_RANGES]?.months || 6;
         
         // Load marketing historical data
         const marketingHistory = await PipelineService.getMarketingHistoricalData(user.id, monthsToLoad);
+        console.log('Loaded marketing historical data:', marketingHistory);
         setMarketingHistoricalData(marketingHistory);
         
         // Load fan engagement historical data  
@@ -442,15 +466,15 @@ export function DashboardContent() {
     },
   ];
 
-  // Use real historical data if available, otherwise fall back to calculated data
+  // Use real historical data if available, otherwise show current totals as flat line
   const reachTrendData = marketingHistoricalData.length > 0 
     ? marketingHistoricalData 
     : marketingMonths.map((monthInfo, index) => ({
         month: monthInfo.monthYear,
         date: monthInfo.fullDate,
-        reach: Math.round(marketingData.totalReach * (0.54 + (index * (0.46 / (marketingMonths.length - 1))))),
-        engaged: Math.round(marketingData.engaged * (0.53 + (index * (0.47 / (marketingMonths.length - 1))))),
-        followers: Math.round(marketingData.followers * (0.52 + (index * (0.48 / (marketingMonths.length - 1))))),
+        reach: index === marketingMonths.length - 1 ? marketingData.totalReach : 0, // Only show current total in latest month
+        engaged: index === marketingMonths.length - 1 ? marketingData.engaged : 0,
+        followers: index === marketingMonths.length - 1 ? marketingData.followers : 0,
       }));
 
   const fanEngagementTrendData = fanEngagementHistoricalData.length > 0
@@ -458,9 +482,9 @@ export function DashboardContent() {
     : fanEngagementMonths.map((monthInfo, index) => ({
         month: monthInfo.monthYear,
         date: monthInfo.fullDate,
-        captured: Math.round(fanEngagementData.capturedData * (0.65 + (index * (0.35 / (fanEngagementMonths.length - 1))))),
-        fans: Math.round(fanEngagementData.fans * (0.87 + (index * (0.13 / (fanEngagementMonths.length - 1))))),
-        superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * (0.20 / (fanEngagementMonths.length - 1))))),
+        captured: index === fanEngagementMonths.length - 1 ? fanEngagementData.capturedData : 0, // Only show current total in latest month
+        fans: index === fanEngagementMonths.length - 1 ? fanEngagementData.fans : 0,
+        superFans: index === fanEngagementMonths.length - 1 ? fanEngagementData.superFans : 0,
       }));
 
   const conversionFunnelData = [
