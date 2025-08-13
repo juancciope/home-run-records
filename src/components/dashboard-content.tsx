@@ -453,12 +453,7 @@ export function DashboardContent() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          {hasVibrateConnection ? (
-            <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400">
-              <Wifi className="h-3 w-3 mr-1" />
-              Live Data
-            </Badge>
-          ) : (
+          {!hasVibrateConnection && (
             <Badge variant="secondary">
               <WifiOff className="h-3 w-3 mr-1" />
               Demo Mode
@@ -466,7 +461,7 @@ export function DashboardContent() {
           )}
           <Button variant="outline" size="sm" onClick={() => setNeedsOnboarding(true)}>
             <Database className="h-4 w-4 mr-2" />
-            {hasVibrateConnection ? 'Manage Connection' : 'Connect Data'}
+            {hasVibrateConnection ? 'Refresh Data' : 'Connect Data'}
           </Button>
         </div>
       </div>
@@ -795,14 +790,20 @@ export function DashboardContent() {
                 </div>
               </div>
               <div className="space-y-2">
-                <ChartContainer config={reachChartConfig} className="h-16 w-full">
-                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                <ChartContainer config={reachChartConfig} className="h-20 w-full">
+                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 15 }}>
                     <defs>
                       <linearGradient id="fillReachMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8} />
                         <stop offset="95%" stopColor="hsl(var(--chart-2))" stopOpacity={0.1} />
                       </linearGradient>
                     </defs>
+                    <XAxis 
+                      dataKey="month" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
+                    />
                     <Area
                       type="monotone"
                       dataKey="reach"
@@ -913,14 +914,20 @@ export function DashboardContent() {
               <div className="space-y-2">
                 <ChartContainer config={{
                   engaged: { label: "Engaged", color: "hsl(var(--chart-3))" }
-                }} className="h-16 w-full">
-                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                }} className="h-20 w-full">
+                  <AreaChart data={reachTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 15 }}>
                     <defs>
                       <linearGradient id="fillEngagedMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
                         <stop offset="95%" stopColor="hsl(var(--chart-3))" stopOpacity={0.1} />
                       </linearGradient>
                     </defs>
+                    <XAxis 
+                      dataKey="month" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
+                    />
                     <Area
                       type="monotone"
                       dataKey="engaged"
@@ -1061,14 +1068,20 @@ export function DashboardContent() {
                 <Badge variant="outline" className="text-xs border-orange-600 text-orange-600">Active</Badge>
               </div>
               <div className="space-y-2">
-                <ChartContainer config={engagementChartConfig} className="h-16 w-full">
-                  <AreaChart data={fanEngagementTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                <ChartContainer config={engagementChartConfig} className="h-20 w-full">
+                  <AreaChart data={fanEngagementTrendData} margin={{ left: 0, right: 0, top: 2, bottom: 15 }}>
                     <defs>
                       <linearGradient id="fillFansMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
                         <stop offset="95%" stopColor="hsl(var(--chart-1))" stopOpacity={0.1} />
                       </linearGradient>
                     </defs>
+                    <XAxis 
+                      dataKey="month" 
+                      axisLine={false}
+                      tickLine={false}
+                      tick={{ fontSize: 10, fill: 'var(--muted-foreground)' }}
+                    />
                     <Area
                       type="monotone"
                       dataKey="fans"

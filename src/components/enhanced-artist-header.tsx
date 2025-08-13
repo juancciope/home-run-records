@@ -135,8 +135,9 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
             </div>
           )}
           {artistData.hasViberateData && (
-            <Badge variant="outline" className="text-xs">
-              API Connected
+            <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">
+              <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
+              Live Data
             </Badge>
           )}
         </div>

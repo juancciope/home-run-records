@@ -462,11 +462,28 @@ export function ReachDashboard() {
     <TooltipProvider>
       <div className="space-y-6">
       {/* Page Header */}
-      <div className="space-y-2">
-        <h2 className="text-2xl font-semibold text-foreground">Analytics Dashboard</h2>
-        <p className="text-muted-foreground">
-          Your complete audience reach and engagement across all platforms
-        </p>
+      <div className="flex items-center justify-between">
+        <div className="space-y-2">
+          <h2 className="text-2xl font-semibold text-foreground">Analytics Dashboard</h2>
+          <p className="text-muted-foreground">
+            Your complete audience reach and engagement across all platforms
+          </p>
+        </div>
+        <div className="flex items-center gap-2">
+          <Clock className="h-4 w-4 text-muted-foreground" />
+          <span className="text-sm text-muted-foreground">Time Range:</span>
+          <select
+            value={selectedTimeRange}
+            onChange={(e) => setSelectedTimeRange(e.target.value)}
+            className="text-sm border rounded px-3 py-2 bg-background font-medium"
+          >
+            {Object.entries(TIME_RANGES).map(([key, range]) => (
+              <option key={key} value={key}>
+                {range.label}
+              </option>
+            ))}
+          </select>
+        </div>
       </div>
 
       {/* Hero Metrics */}
