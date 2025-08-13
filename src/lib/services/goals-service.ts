@@ -53,30 +53,14 @@ export class GoalsService {
 
   static async getGoals(userId: string, section?: string, recordType?: string): Promise<Goal[]> {
     try {
-      console.log('📋 [GOALS-SERVICE] Fetching goals:', { userId, section, recordType });
+      console.log('📋 [GOALS-SERVICE] Fetching goals (USING EXACT PATTERN AS TRACKS):', { userId, section, recordType });
       
+      // Use EXACT same pattern as working getProductionRecords
       const supabase = await this.getSupabaseClient();
-      
-      // Get current session directly
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        console.error('❌ [GOALS-SERVICE] No valid session for fetch:', sessionError);
-        throw new Error('User must be authenticated to fetch goals');
-      }
-      
-      // Verify the requested userId matches the authenticated user
-      if (userId !== session.user.id) {
-        console.error('❌ [GOALS-SERVICE] User ID mismatch for fetch:', { 
-          requestedUserId: userId, 
-          sessionUserId: session.user.id 
-        });
-        return [];
-      }
       
       let query = supabase
         .from('goals')
         .select('*')
-        .eq('user_id', userId) // Explicit filter for performance
         .order('created_at', { ascending: false });
 
       if (section) {
@@ -89,13 +73,7 @@ export class GoalsService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('❌ [GOALS-SERVICE] Supabase error fetching goals:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          queryParams: { userId, section, recordType }
-        });
+        console.error('❌ [GOALS-SERVICE] Supabase error fetching goals:', error);
         throw error;
       }
       
@@ -111,16 +89,10 @@ export class GoalsService {
     try {
       const supabase = await this.getSupabaseClient();
       
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        throw new Error('User must be authenticated to update goals');
-      }
-      
       const { data, error } = await supabase
         .from('goals')
         .update({ ...updates, updated_at: new Date().toISOString() })
         .eq('id', goalId)
-        .eq('user_id', session.user.id) // Additional security filter
         .select()
         .single();
 
@@ -139,16 +111,10 @@ export class GoalsService {
     try {
       const supabase = await this.getSupabaseClient();
       
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        throw new Error('User must be authenticated to delete goals');
-      }
-      
       const { error } = await supabase
         .from('goals')
         .delete()
-        .eq('id', goalId)
-        .eq('user_id', session.user.id); // Additional security filter
+        .eq('id', goalId);
 
       if (error) {
         console.error('❌ [GOALS-SERVICE] Error deleting goal:', error);

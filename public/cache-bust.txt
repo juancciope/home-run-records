@@ -1,4 +1,5 @@
-Cache bust for deployment: 2025-08-13-14:30:00
+Cache bust for deployment: 2025-08-13-15:15:00
 This file forces a fresh deployment to clear any cached client configurations.
-Build timestamp: 4f9d62a (FIXED AUTHENTICATION - now using same pattern as working tracks)
-Status: Track saving works ✅ | Goals now use SAME auth pattern as tracks 🎯
+Build timestamp: 7e8f91b (REMOVED DUPLICATE GOALS CODE + EXACT TRACK PATTERN)
+Status: Track saving works ✅ | Goals now use IDENTICAL query pattern as tracks 🎯
+CRITICAL FIX: Removed explicit user_id filtering that was conflicting with RLS
