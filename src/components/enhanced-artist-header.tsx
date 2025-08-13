@@ -17,23 +17,34 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
   const [artistData, setArtistData] = useState<ArtistData | null>(null)
   const [loading, setLoading] = useState(true)
   const [error, setError] = useState<string | null>(null)
+  const [userProfile, setUserProfile] = useState<any>(null)
 
   useEffect(() => {
     async function fetchArtistData() {
       try {
+        // First try to get artist data
         const response = await fetch('/api/artist-header')
         
         if (response.ok) {
           const data = await response.json()
           setArtistData(data)
-        } else if (response.status === 404) {
-          const errorData = await response.json()
-          console.log('No artist data found:', errorData)
-          setError('No artist profile found')
         } else {
-          const errorData = await response.json()
-          console.error('API error:', errorData)
-          setError('Failed to load artist data')
+          // If no artist data, try to get user profile
+          const profileResponse = await fetch('/api/user/profile')
+          if (profileResponse.ok) {
+            const profile = await profileResponse.json()
+            setUserProfile(profile)
+          }
+          
+          if (response.status === 404) {
+            const errorData = await response.json()
+            console.log('No artist data found:', errorData)
+            setError('No artist profile found')
+          } else {
+            const errorData = await response.json()
+            console.error('API error:', errorData)
+            setError('Failed to load artist data')
+          }
         }
       } catch (err) {
         console.error('Error fetching artist data:', err)
@@ -80,16 +91,32 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
   }
 
   if (error || !artistData) {
+    const displayName = userProfile?.first_name && userProfile?.last_name 
+      ? `${userProfile.first_name} ${userProfile.last_name}`
+      : userProfile?.first_name 
+      ? userProfile.first_name
+      : userProfile?.email?.split('@')[0] 
+      || 'Artist'
+    
+    const initial = displayName.charAt(0).toUpperCase()
+    
     return (
-      <div className="flex items-center gap-3">
-        <Avatar className="h-12 w-12 border-2 border-border shadow-md">
-          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white">
-            <Music className="h-6 w-6" />
+      <div className="flex items-center gap-4">
+        <Avatar className="h-14 w-14 border-2 border-primary/20 shadow-lg">
+          {userProfile?.avatar_url ? (
+            <AvatarImage 
+              src={userProfile.avatar_url} 
+              alt={displayName} 
+              className="object-cover"
+            />
+          ) : null}
+          <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
+            <span className="text-xl">{initial}</span>
           </AvatarFallback>
         </Avatar>
-        <div>
+        <div className="flex-1">
           <div className="flex items-center gap-2">
-            <h1 className="text-xl font-bold text-foreground">Artist Profile</h1>
+            <h1 className="text-2xl font-bold text-foreground">{displayName}</h1>
             <Badge variant="outline" className="text-xs">
               <AlertCircle className="h-3 w-3 mr-1" />
               Not Synced
@@ -100,7 +127,7 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
             variant="link" 
             className="h-auto p-0 text-sm text-muted-foreground hover:text-primary"
           >
-            Click to refresh artist data
+            Click to sync artist data
           </Button>
         </div>
       </div>
@@ -108,8 +135,8 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
   }
 
   return (
-    <div className="flex items-center gap-3">
-      <Avatar className="h-12 w-12 border-2 border-border shadow-md">
+    <div className="flex items-center gap-4">
+      <Avatar className="h-14 w-14 border-2 border-primary/20 shadow-lg">
         {artistData.image ? (
           <AvatarImage 
             src={artistData.image} 
@@ -121,22 +148,22 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
             }}
           />
         ) : null}
-        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-          <span className="text-lg">{artistData.name.charAt(0).toUpperCase()}</span>
+        <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-bold">
+          <span className="text-xl">{artistData.name.charAt(0).toUpperCase()}</span>
         </AvatarFallback>
       </Avatar>
-      <div>
-        <h1 className="text-xl font-bold text-foreground">{artistData.name}</h1>
-        <div className="flex items-center gap-2 text-sm text-muted-foreground">
+      <div className="flex-1">
+        <h1 className="text-2xl font-bold text-foreground">{artistData.name}</h1>
+        <div className="flex items-center gap-3 text-sm text-muted-foreground">
           {artistData.followers && (
             <div className="flex items-center gap-1">
-              <Users className="h-3.5 w-3.5" />
-              <span>{artistData.followers.toLocaleString()} followers</span>
+              <Users className="h-4 w-4" />
+              <span className="font-medium">{artistData.followers.toLocaleString()} followers</span>
             </div>
           )}
           {artistData.hasViberateData && (
             <Badge variant="default" className="bg-green-500/10 text-green-700 dark:text-green-400 text-xs">
-              <span className="h-2 w-2 rounded-full bg-green-500 mr-1"></span>
+              <span className="h-2 w-2 rounded-full bg-green-500 mr-1 inline-block animate-pulse"></span>
               Live Data
             </Badge>
           )}

@@ -35,7 +35,7 @@ export default async function DashboardLayout({
           currentAgency={currentAgency}
         />
         <SidebarInset>
-          <header className="flex h-20 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-40 flex h-20 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center justify-between w-full px-6">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="-ml-1" />
@@ -43,7 +43,9 @@ export default async function DashboardLayout({
                 {profile?.global_role === 'artist_manager' && currentAgency && (
                   <ArtistSwitcher userId={user.id} agencyId={currentAgency.id} />
                 )}
-                <EnhancedArtistHeader userId={user.id} />
+                <div className="flex-1">
+                  <EnhancedArtistHeader userId={user.id} />
+                </div>
               </div>
             </div>
           </header>

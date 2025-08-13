@@ -15,7 +15,6 @@ import {
   Globe,
   Calendar,
 } from "lucide-react"
-import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
   ChartContainer,
   ChartTooltip,
@@ -275,19 +274,6 @@ export function AnalyticsDashboard() {
           </p>
         </div>
         <div className="flex items-center gap-4">
-          <Avatar className="h-12 w-12 border-2 border-border shadow-md">
-            {profile?.avatar_url ? (
-              <AvatarImage 
-                src={profile.avatar_url} 
-                alt={`${profile.first_name || 'User'} ${profile.last_name || ''}`}
-                className="object-cover"
-              />
-            ) : null}
-            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
-              {profile?.first_name ? profile.first_name.charAt(0).toUpperCase() : 
-               profile?.email ? profile.email.charAt(0).toUpperCase() : 'U'}
-            </AvatarFallback>
-          </Avatar>
           <Button variant="outline" size="sm">
             <Calendar className="h-4 w-4 mr-2" />
             Last 30 days
