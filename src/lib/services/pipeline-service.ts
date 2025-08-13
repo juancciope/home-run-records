@@ -593,6 +593,7 @@ export class PipelineService {
         console.log(`Auto-detected CSV type: ${detectedType} (was ${type})`);
         type = detectedType;
       }
+      console.log(`Final processing type: ${type} for headers: ${headerLine}`);
       
       // Parse CSV properly handling quoted fields
       const parseCSVLine = (line: string): string[] => {
@@ -719,6 +720,7 @@ export class PipelineService {
           if (type === 'fan_engagement') {
             // Map record_type to correct engagement_level for CSV imports
             let mappedEngagementLevel = record.engagement_level;
+            console.log(`CSV Processing row ${i + 1}: record_type=${record.record_type}, original engagement_level=${record.engagement_level}`);
             if (!mappedEngagementLevel && record.record_type) {
               switch (record.record_type) {
                 case 'captured':
@@ -733,6 +735,7 @@ export class PipelineService {
                 default:
                   mappedEngagementLevel = 'captured';
               }
+              console.log(`Mapped record_type ${record.record_type} to engagement_level ${mappedEngagementLevel}`);
             }
 
             // Ensure we only pass valid fields for fan engagement
@@ -745,6 +748,7 @@ export class PipelineService {
               engagement_score: record.engagement_score || 0,
               metadata: record.metadata || {}
             };
+            console.log(`Final fanRecord for DB:`, fanRecord);
             
             // Only add last_interaction if it's a valid date
             if (record.last_interaction) {
