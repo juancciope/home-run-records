@@ -227,6 +227,212 @@ export class PipelineService {
     }
   }
 
+  // Extract and process Viberate historical data from artist_fanbase table
+  static async extractVibrateHistoricalData(userId: string): Promise<Array<{
+    date: string;
+    followers: number;
+    streams?: number;
+    platform: string;
+    metric_type: string;
+  }>> {
+    try {
+      const supabase = await createAuthenticatedClient();
+      
+      // Get stored Viberate data from artist_fanbase table
+      const { data: fanbaseData, error: fanbaseError } = await supabase
+        .from('artist_fanbase')
+        .select('data, total_fans, distribution')
+        .eq('user_id', userId)
+        .single();
+
+      if (fanbaseError || !fanbaseData) {
+        console.log('No fanbase data found for user:', userId);
+        return [];
+      }
+
+      const result = [];
+      const historicalData = fanbaseData.data?.historical;
+      
+      // If we have historical data, extract it
+      if (historicalData) {
+        if (Array.isArray(historicalData)) {
+          // Direct array of time-series data
+          historicalData.forEach(item => {
+            if (item.date) {
+              if (item.followers) {
+                result.push({
+                  date: item.date,
+                  followers: item.followers,
+                  platform: 'total',
+                  metric_type: 'followers'
+                });
+              }
+              if (item.streams) {
+                result.push({
+                  date: item.date,
+                  followers: 0,
+                  streams: item.streams,
+                  platform: 'spotify',
+                  metric_type: 'streams'
+                });
+              }
+            }
+          });
+        } else if (typeof historicalData === 'object') {
+          // Object with platform-specific data
+          Object.entries(historicalData).forEach(([platform, platformData]: [string, any]) => {
+            if (Array.isArray(platformData)) {
+              platformData.forEach(item => {
+                if (item.date) {
+                  if (item.followers) {
+                    result.push({
+                      date: item.date,
+                      followers: item.followers,
+                      platform: platform,
+                      metric_type: 'followers'
+                    });
+                  }
+                  if (item.streams) {
+                    result.push({
+                      date: item.date,
+                      followers: 0,
+                      streams: item.streams,
+                      platform: platform,
+                      metric_type: 'streams'
+                    });
+                  }
+                }
+              });
+            }
+          });
+        }
+      }
+
+      return result;
+    } catch (error) {
+      console.error('Error extracting Viberate historical data:', error);
+      return [];
+    }
+  }
+
+  // Sync and store Viberate historical data with original dates from artist_fanbase table
+  static async syncVibrateHistoricalData(userId: string, artistId: string, months: number = 6): Promise<void> {
+    try {
+      const supabase = await createAuthenticatedClient();
+      
+      // Extract historical data from artist_fanbase table
+      const historicalData = await this.extractVibrateHistoricalData(userId);
+      
+      if (historicalData.length === 0) {
+        console.log('No historical Viberate data found for user:', userId);
+        return;
+      }
+
+      // Convert to artist_metrics format
+      const metrics = historicalData.map(item => ({
+        user_id: userId,
+        metric_type: item.metric_type,
+        platform: item.platform,
+        value: item.streams || item.followers,
+        date: item.date
+      }));
+
+      // Store metrics with original dates (upsert to avoid duplicates)
+      if (metrics.length > 0) {
+        const { error } = await supabase
+          .from('artist_metrics')
+          .upsert(metrics, {
+            onConflict: 'user_id,metric_type,platform,date'
+          });
+
+        if (error) {
+          console.error('Error storing Viberate historical metrics:', error);
+        } else {
+          console.log(`Stored ${metrics.length} Viberate historical metrics for user ${userId}`);
+        }
+      }
+      
+    } catch (error) {
+      console.error('Error syncing Viberate historical data:', error);
+    }
+  }
+
+  // Get historical marketing data for charts
+  static async getMarketingHistoricalData(userId: string, months: number = 6): Promise<Array<{
+    month: string;
+    date: string;
+    reach: number;
+    engaged: number;
+    followers: number;
+  }>> {
+    try {
+      const supabase = await createAuthenticatedClient();
+      
+      // Get the start date (X months ago)
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - months);
+      const startDateStr = startDate.toISOString().split('T')[0];
+      
+      const { data: records, error } = await supabase
+        .from('marketing_records')
+        .select('record_type, reach_count, engagement_count, follower_count, date_recorded, created_at')
+        .eq('user_id', userId)
+        .gte('created_at', startDateStr)
+        .order('created_at', { ascending: true });
+
+      if (error) {
+        console.error('Error fetching historical marketing data:', error);
+        return [];
+      }
+
+      // Group by month
+      const monthlyData: Record<string, { reach: number; engaged: number; followers: number }> = {};
+      
+      // Initialize months
+      for (let i = months - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i, 1);
+        const monthKey = date.toISOString().slice(0, 7); // YYYY-MM
+        monthlyData[monthKey] = { reach: 0, engaged: 0, followers: 0 };
+      }
+
+      // Sum values by month and record type
+      records?.forEach(record => {
+        const recordDate = record.date_recorded || record.created_at;
+        const monthKey = recordDate.slice(0, 7); // YYYY-MM
+        if (monthlyData[monthKey]) {
+          switch (record.record_type) {
+            case 'reach':
+              monthlyData[monthKey].reach += record.reach_count || 0;
+              break;
+            case 'engaged':
+              monthlyData[monthKey].engaged += record.engagement_count || 0;
+              break;
+            case 'followers':
+              monthlyData[monthKey].followers += record.follower_count || 0;
+              break;
+          }
+        }
+      });
+
+      // Convert to array format for charts
+      return Object.entries(monthlyData).map(([monthKey, data]) => {
+        const date = new Date(monthKey + '-01');
+        return {
+          month: date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+          date: monthKey + '-01',
+          reach: data.reach,
+          engaged: data.engaged,
+          followers: data.followers,
+        };
+      });
+      
+    } catch (error) {
+      console.error('Error fetching marketing historical data:', error);
+      return [];
+    }
+  }
+
   // =================
   // FAN ENGAGEMENT
   // =================
@@ -319,6 +525,106 @@ export class PipelineService {
     } catch (error) {
       console.error('Error calculating fan engagement metrics:', error);
       return { capturedData: 0, fans: 0, superFans: 0 };
+    }
+  }
+
+  // Get historical fan engagement data for charts (combines Viberate + manual data)
+  static async getFanEngagementHistoricalData(userId: string, months: number = 6): Promise<Array<{
+    month: string;
+    date: string;
+    captured: number;
+    fans: number;
+    superFans: number;
+  }>> {
+    try {
+      const supabase = await createAuthenticatedClient();
+      
+      // Get the start date (X months ago)
+      const startDate = new Date();
+      startDate.setMonth(startDate.getMonth() - months);
+      const startDateStr = startDate.toISOString().split('T')[0];
+      
+      // Get both Viberate metrics and manual records in parallel
+      const [vibrateMetricsResult, manualRecordsResult] = await Promise.all([
+        // Viberate historical data from artist_metrics
+        supabase
+          .from('artist_metrics')
+          .select('metric_type, platform, value, date')
+          .eq('user_id', userId)
+          .in('metric_type', ['followers'])
+          .gte('date', startDateStr)
+          .order('date', { ascending: true }),
+        
+        // Manual/CSV data from fan_engagement_records
+        supabase
+          .from('fan_engagement_records')
+          .select('engagement_level, created_at')
+          .eq('user_id', userId)
+          .gte('created_at', startDateStr)
+          .order('created_at', { ascending: true })
+      ]);
+
+      if (vibrateMetricsResult.error) {
+        console.error('Error fetching Viberate metrics:', vibrateMetricsResult.error);
+      }
+      if (manualRecordsResult.error) {
+        console.error('Error fetching manual fan engagement data:', manualRecordsResult.error);
+      }
+
+      // Initialize monthly data structure
+      const monthlyData: Record<string, { captured: number; fans: number; superFans: number }> = {};
+      
+      for (let i = months - 1; i >= 0; i--) {
+        const date = new Date();
+        date.setMonth(date.getMonth() - i, 1);
+        const monthKey = date.toISOString().slice(0, 7); // YYYY-MM
+        monthlyData[monthKey] = { captured: 0, fans: 0, superFans: 0 };
+      }
+
+      // Process Viberate metrics (use total followers as baseline for fans)
+      vibrateMetricsResult.data?.forEach(metric => {
+        const monthKey = metric.date.slice(0, 7); // YYYY-MM
+        if (monthlyData[monthKey]) {
+          // Viberate followers data contributes to "fans" count
+          if (metric.metric_type === 'followers') {
+            monthlyData[monthKey].fans += metric.value || 0;
+          }
+        }
+      });
+
+      // Process manual records (count new additions by engagement level)
+      manualRecordsResult.data?.forEach(record => {
+        const monthKey = record.created_at.slice(0, 7); // YYYY-MM
+        if (monthlyData[monthKey]) {
+          switch (record.engagement_level) {
+            case 'captured':
+              monthlyData[monthKey].captured++;
+              break;
+            case 'active':
+              monthlyData[monthKey].fans++;
+              break;
+            case 'super':
+              monthlyData[monthKey].superFans++;
+              break;
+          }
+        }
+      });
+
+      // Convert to array format for charts
+      return Object.entries(monthlyData).map(([monthKey, data]) => {
+        const date = new Date(monthKey + '-01');
+        return {
+          month: date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+          date: monthKey + '-01',
+          captured: data.captured,
+          fans: data.fans,
+          superFans: data.superFans,
+        };
+      });
+      
+    } catch (error) {
+      console.error('Error fetching fan engagement historical data:', error);
+      return [];
     }
   }
 

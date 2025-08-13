@@ -366,7 +366,16 @@ export class VibrateService {
       // 3. Store initial metrics
       await this.storeMetrics(userId, artistData);
 
-      // 4. Sync additional data via API
+      // 4. Sync historical data with real Viberate dates
+      try {
+        const { PipelineService } = await import('./pipeline-service');
+        await PipelineService.syncVibrateHistoricalData(userId, artistUuid, 6); // 6 months of history
+        console.log('Successfully synced Viberate historical data for new user');
+      } catch (historyError) {
+        console.warn('Failed to sync historical data, but continuing:', historyError);
+      }
+
+      // 5. Sync additional data via API
       const syncResult = await this.syncArtistData(userId, artistUuid);
 
       return {

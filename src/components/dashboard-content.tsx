@@ -182,6 +182,20 @@ export function DashboardContent() {
     followers: 21200,
     isRealData: false,
   });
+  const [marketingHistoricalData, setMarketingHistoricalData] = React.useState<Array<{
+    month: string;
+    date: string;
+    reach: number;
+    engaged: number;
+    followers: number;
+  }>>([]);
+  const [fanEngagementHistoricalData, setFanEngagementHistoricalData] = React.useState<Array<{
+    month: string;
+    date: string;
+    captured: number;
+    fans: number;
+    superFans: number;
+  }>>([]);
   const [goals, setGoals] = React.useState<{
     production: { unfinished: any[]; finished: any[]; released: any[] };
     marketing: { reach: any[]; engaged: any[]; followers: any[] };
@@ -308,6 +322,31 @@ export function DashboardContent() {
           isRealData: false,
         });
       }
+
+      // Load historical data for charts  
+      try {
+        const { PipelineService } = await import('@/lib/services/pipeline-service');
+        const monthsToLoad = TIME_RANGES[marketingTimeRange as keyof typeof TIME_RANGES]?.months || 6;
+        
+        // Load marketing historical data
+        const marketingHistory = await PipelineService.getMarketingHistoricalData(user.id, monthsToLoad);
+        setMarketingHistoricalData(marketingHistory);
+        
+        // Load fan engagement historical data  
+        const fanEngagementHistory = await PipelineService.getFanEngagementHistoricalData(user.id, monthsToLoad);
+        setFanEngagementHistoricalData(fanEngagementHistory);
+        
+        // Sync Viberate historical data if connected
+        if (hasConnection && profile?.viberate_artist_id) {
+          await PipelineService.syncVibrateHistoricalData(user.id, profile.viberate_artist_id, monthsToLoad);
+          
+          // Reload fan engagement data after sync
+          const updatedFanEngagementHistory = await PipelineService.getFanEngagementHistoricalData(user.id, monthsToLoad);
+          setFanEngagementHistoricalData(updatedFanEngagementHistory);
+        }
+      } catch (error) {
+        console.warn('Error loading historical data:', error);
+      }
       
       if (!hasConnection && !profile?.onboarding_completed) {
         console.log('User needs onboarding - no Viberate connection');
@@ -403,19 +442,26 @@ export function DashboardContent() {
     },
   ];
 
-  const reachTrendData = marketingMonths.map((monthInfo, index) => ({
-    month: monthInfo.monthYear,
-    date: monthInfo.fullDate,
-    reach: Math.round(marketingData.totalReach * (0.54 + (index * (0.46 / (marketingMonths.length - 1))))), // Dynamic growth
-    engaged: Math.round(marketingData.engaged * (0.53 + (index * (0.47 / (marketingMonths.length - 1))))), // Dynamic growth
-  }));
+  // Use real historical data if available, otherwise fall back to calculated data
+  const reachTrendData = marketingHistoricalData.length > 0 
+    ? marketingHistoricalData 
+    : marketingMonths.map((monthInfo, index) => ({
+        month: monthInfo.monthYear,
+        date: monthInfo.fullDate,
+        reach: Math.round(marketingData.totalReach * (0.54 + (index * (0.46 / (marketingMonths.length - 1))))),
+        engaged: Math.round(marketingData.engaged * (0.53 + (index * (0.47 / (marketingMonths.length - 1))))),
+        followers: Math.round(marketingData.followers * (0.52 + (index * (0.48 / (marketingMonths.length - 1))))),
+      }));
 
-  const fanEngagementTrendData = fanEngagementMonths.map((monthInfo, index) => ({
-    month: monthInfo.monthYear,
-    date: monthInfo.fullDate,
-    fans: Math.round(fanEngagementData.fans * (0.87 + (index * (0.13 / (fanEngagementMonths.length - 1))))), // Dynamic growth
-    superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * (0.20 / (fanEngagementMonths.length - 1))))), // Dynamic growth
-  }));
+  const fanEngagementTrendData = fanEngagementHistoricalData.length > 0
+    ? fanEngagementHistoricalData
+    : fanEngagementMonths.map((monthInfo, index) => ({
+        month: monthInfo.monthYear,
+        date: monthInfo.fullDate,
+        captured: Math.round(fanEngagementData.capturedData * (0.65 + (index * (0.35 / (fanEngagementMonths.length - 1))))),
+        fans: Math.round(fanEngagementData.fans * (0.87 + (index * (0.13 / (fanEngagementMonths.length - 1))))),
+        superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * (0.20 / (fanEngagementMonths.length - 1))))),
+      }));
 
   const conversionFunnelData = [
     { stage: "Leads", value: conversionData.leads },
