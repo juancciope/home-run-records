@@ -1,4 +1,4 @@
-Cache bust for deployment: 2025-08-13-14:00:00
+Cache bust for deployment: 2025-08-13-14:10:00
 This file forces a fresh deployment to clear any cached client configurations.
-Build timestamp: 715dd68 (authentication debugging enabled)
-Status: Track saving works ✅ | Goal fetching needs authentication fix ❌
+Build timestamp: 9a2f43b (enhanced goal debugging - JWT context analysis)
+Status: Track saving works ✅ | Enhanced goal debugging for JWT issue ⚡

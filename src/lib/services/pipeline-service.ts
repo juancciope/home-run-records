@@ -442,9 +442,30 @@ export class PipelineService {
       console.log('🎯 Adding goal:', { goal, timestamp: new Date().toISOString() });
       const supabase = await createAuthenticatedClient();
       
-      // Check current user before insert
+      // Check current user and session details
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('👤 Current user for goal insert:', { userId: user?.id, email: user?.email });
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('👤 Auth context for goal insert:', { 
+        userId: user?.id, 
+        email: user?.email,
+        hasSession: !!session,
+        accessToken: session?.access_token ? 'present' : 'missing',
+        tokenType: session?.token_type,
+        hasJWT: session?.access_token ? session.access_token.substring(0, 20) + '...' : 'none'
+      });
+      
+      // Test a simple query first to verify auth context
+      console.log('🔍 Testing auth context with simple query...');
+      const { data: testData, error: testError } = await supabase
+        .from('goals')
+        .select('count')
+        .limit(1);
+      
+      if (testError) {
+        console.error('❌ Auth context test failed:', testError);
+      } else {
+        console.log('✅ Auth context test passed:', testData);
+      }
       
       const { data, error } = await supabase
         .from('goals')
@@ -455,6 +476,12 @@ export class PipelineService {
       if (error) {
         console.error('❌ Supabase error adding goal:', error);
         console.error('Goal data attempted:', goal);
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
@@ -471,9 +498,16 @@ export class PipelineService {
       console.log('📋 Fetching goals:', { userId, section, recordType, timestamp: new Date().toISOString() });
       const supabase = await createAuthenticatedClient();
       
-      // Check current user before query
+      // Check current user and session details
       const { data: { user } } = await supabase.auth.getUser();
-      console.log('👤 Current user for goal fetch:', { userId: user?.id, email: user?.email });
+      const { data: { session } } = await supabase.auth.getSession();
+      console.log('👤 Auth context for goal fetch:', { 
+        userId: user?.id, 
+        email: user?.email,
+        hasSession: !!session,
+        accessToken: session?.access_token ? 'present' : 'missing',
+        tokenType: session?.token_type
+      });
       
       let query = supabase
         .from('goals')
@@ -492,6 +526,12 @@ export class PipelineService {
       if (error) {
         console.error('❌ Supabase error fetching goals:', error);
         console.error('Query parameters:', { userId, section, recordType });
+        console.error('Error details:', {
+          code: error.code,
+          message: error.message,
+          details: error.details,
+          hint: error.hint
+        });
         throw error;
       }
       
