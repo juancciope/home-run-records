@@ -269,6 +269,7 @@ export class PipelineService {
       const { data, error } = await supabase
         .from('fan_engagement_records')
         .select('*')
+        .eq('user_id', userId)
         .order('last_interaction', { ascending: false });
 
       if (error) {
