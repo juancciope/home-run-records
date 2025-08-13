@@ -93,18 +93,22 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         ],
       },
       {
-        title: "Dashboard",
-        url: "/dashboard",
+        title: "DASHBOARDS",
+        url: "#",
         icon: BarChart3,
         isActive: true,
         items: [
           {
-            title: "Overview",
+            title: "OVERVIEW",
             url: "/dashboard",
           },
           {
-            title: "Analytics",
-            url: "/analytics",
+            title: "PRODUCTION",
+            url: "/dashboard/production",
+          },
+          {
+            title: "REACH",
+            url: "/dashboard/reach",
           },
         ],
       }
@@ -133,24 +137,36 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         ]
       });
     } else {
-      // Regular tools for non-superadmins
+      // Tools for non-superadmins
       baseItems.push({
-        title: "Tools",
+        title: "TOOLS",
         url: "#",
         icon: Wrench,
         isActive: false,
         items: [
           {
-            title: "Brand",
-            url: "#",
+            title: "CONTENT",
+            url: "/tools/content",
           },
           {
-            title: "Ads",
-            url: "#",
+            title: "BRAND",
+            url: "/tools/brand",
           },
           {
-            title: "Content Calendar",
-            url: "#",
+            title: "CATALOG",
+            url: "/tools/catalog",
+          },
+          {
+            title: "AGENTS",
+            url: "/tools/agents",
+          },
+          {
+            title: "PMS",
+            url: "/tools/pms",
+          },
+          {
+            title: "AI",
+            url: "/tools/ai",
           },
         ],
       });

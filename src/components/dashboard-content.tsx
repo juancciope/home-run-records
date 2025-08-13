@@ -459,7 +459,7 @@ export function DashboardContent() {
     <TooltipProvider>
       <div className="space-y-6">
       {/* Dashboard Header */}
-      <div className="flex items-center justify-between">
+      <div className="flex items-center justify-between pt-2">
         <div>
           <h1 className="text-3xl font-bold">Business Growth Dashboard</h1>
           <p className="text-muted-foreground">
