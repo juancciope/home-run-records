@@ -232,14 +232,28 @@ export class PipelineService {
   static async addFanEngagementRecord(record: Omit<FanEngagementRecord, 'id' | 'created_at' | 'updated_at'>): Promise<FanEngagementRecord | null> {
     try {
       const supabase = await createAuthenticatedClient();
+      
+      // Ensure record has required fields and valid values
+      const cleanRecord = {
+        user_id: record.user_id,
+        record_type: record.record_type || 'imported_fans',
+        contact_info: record.contact_info || {},
+        engagement_level: record.engagement_level || 'imported',
+        source: record.source || 'csv_import',
+        engagement_score: record.engagement_score || 0,
+        last_interaction: record.last_interaction,
+        metadata: record.metadata || {}
+      };
+      
       const { data, error } = await supabase
         .from('fan_engagement_records')
-        .insert(record)
+        .insert(cleanRecord)
         .select()
         .single();
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('Supabase error adding fan engagement record:', error);
+        console.error('Record that failed:', cleanRecord);
         throw error;
       }
       return data;
@@ -615,18 +629,23 @@ export class PipelineService {
           
           // Set default values for fan engagement records
           if (type === 'fan_engagement') {
-            if (!record.record_type) {
-              record.record_type = 'imported_fans';
+            // Ensure we only pass valid fields for fan engagement
+            const fanRecord: any = {
+              user_id: userId,
+              record_type: record.record_type || 'imported_fans',
+              engagement_level: record.engagement_level || 'imported',
+              source: record.source || 'csv_import',
+              contact_info: record.contact_info || {},
+              engagement_score: record.engagement_score || 0,
+              metadata: record.metadata || {}
+            };
+            
+            // Only add last_interaction if it's a valid date
+            if (record.last_interaction) {
+              fanRecord.last_interaction = record.last_interaction;
             }
-            if (!record.engagement_level) {
-              record.engagement_level = 'imported';
-            }
-            if (!record.source) {
-              record.source = 'csv_import';
-            }
-            if (!record.contact_info) {
-              record.contact_info = {};
-            }
+            
+            record = fanRecord;
           }
 
           // Add the record using the appropriate service method

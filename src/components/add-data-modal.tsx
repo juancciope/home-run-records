@@ -161,6 +161,9 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
         processedCsvData = csvHeader + '\n' + csvRows.join('\n')
       }
 
+      console.log('Importing CSV data for section:', section)
+      console.log('First 500 chars of data:', processedCsvData.substring(0, 500))
+      
       const results = await PipelineService.batchImportCSV(user.id, processedCsvData, section)
       setImportResults(results)
       
@@ -170,11 +173,12 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
       }
       
       if (results.errors.length > 0) {
-        toast.error(`${results.errors.length} records failed to import`)
+        console.error('Import errors:', results.errors)
+        toast.error(`${results.errors.length} records failed to import - check console for details`)
       }
     } catch (error) {
       console.error('Error importing CSV:', error)
-      toast.error('Error importing CSV data')
+      toast.error('Error importing CSV data - check console for details')
     } finally {
       setIsLoading(false)
     }
