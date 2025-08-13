@@ -302,6 +302,25 @@ export class ArtistService {
   }>) {
     try {
       const supabase = createClient();
+      
+      // Special handling for viberate_artist_id to avoid unique constraint violations
+      if (updates.viberate_artist_id) {
+        // Check if this viberate_artist_id is already assigned to another user
+        const { data: existingProfile } = await supabase
+          .from('artist_profiles')
+          .select('id')
+          .eq('viberate_artist_id', updates.viberate_artist_id)
+          .neq('id', userId)
+          .single();
+          
+        if (existingProfile) {
+          console.warn(`Viberate artist ID ${updates.viberate_artist_id} is already assigned to user ${existingProfile.id}`);
+          // Don't fail, just create a unique association by appending user ID
+          updates.viberate_artist_id = `${updates.viberate_artist_id}_${userId.slice(-8)}`;
+          console.log(`Using modified viberate_artist_id: ${updates.viberate_artist_id}`);
+        }
+      }
+      
       // Add updated_at timestamp
       const updateData = {
         ...updates,
@@ -317,6 +336,34 @@ export class ArtistService {
 
       if (error) {
         console.error('Error updating profile in database:', error);
+        
+        // Handle unique constraint violation
+        if (error.code === '23505' && error.message.includes('viberate_artist_id')) {
+          console.warn('Viberate artist ID constraint violation, trying with modified ID...');
+          if (updates.viberate_artist_id) {
+            // Create a unique ID by appending timestamp
+            const uniqueId = `${updates.viberate_artist_id}_${Date.now()}`;
+            const retryUpdateData = {
+              ...updateData,
+              viberate_artist_id: uniqueId
+            };
+            
+            const { data: retryData, error: retryError } = await supabase
+              .from('artist_profiles')
+              .update(retryUpdateData)
+              .eq('id', userId)
+              .select()
+              .single();
+              
+            if (retryError) {
+              console.error('Retry update with unique ID also failed:', retryError);
+              return null;
+            }
+            
+            console.log('Successfully updated profile with unique viberate_artist_id:', retryData);
+            return retryData;
+          }
+        }
         
         // If the profile doesn't exist, try to create it first
         if (error.code === 'PGRST116') {

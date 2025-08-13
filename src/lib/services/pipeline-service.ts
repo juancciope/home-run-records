@@ -501,9 +501,9 @@ export class PipelineService {
       ],
       fan_engagement: [
         'record_type,contact_name,contact_email,phone,city,state,country,engagement_level,source,joined_on,rsvp_frequency,presaved',
-        'imported_fans,John Doe,john@example.com,555-1234,Nashville,Tennessee,United States,imported,laylo,2024-11-01,0,FALSE',
-        'imported_fans,Jane Smith,jane@example.com,555-5678,Los Angeles,California,United States,imported,email_list,2024-10-15,2,TRUE',
-        'imported_fans,Bob Johnson,bob@example.com,,Austin,Texas,United States,imported,social_media,2024-09-20,1,FALSE'
+        'imported_fans,John Doe,john@example.com,555-1234,Nashville,Tennessee,United States,captured,laylo,2024-11-01,0,FALSE',
+        'imported_fans,Jane Smith,jane@example.com,555-5678,Los Angeles,California,United States,active,email_list,2024-10-15,2,TRUE',
+        'imported_fans,Bob Johnson,bob@example.com,,Austin,Texas,United States,captured,social_media,2024-09-20,1,FALSE'
       ],
       conversion: [
         'record_type,contact_name,contact_email,contact_phone,deal_value,probability,stage,source,notes,close_date',
@@ -696,6 +696,8 @@ export class PipelineService {
                 record.engagement_level = 'super';
               } else if (lowerValue.includes('active') || lowerValue.includes('engaged')) {
                 record.engagement_level = 'active';
+              } else if (lowerValue.includes('imported') || lowerValue.includes('captured')) {
+                record.engagement_level = 'captured'; // imported fans default to captured status
               } else {
                 record.engagement_level = 'captured'; // default
               }
@@ -718,15 +720,18 @@ export class PipelineService {
           
           // Set default values for fan engagement records
           if (type === 'fan_engagement') {
-            // Map record_type to correct engagement_level for CSV imports
+            // Determine engagement_level from multiple sources (CSV column or record_type)
             let mappedEngagementLevel = record.engagement_level;
             console.log(`CSV Processing row ${i + 1}: record_type=${record.record_type}, original engagement_level=${record.engagement_level}`);
+            
+            // If no engagement_level, try to map from record_type
             if (!mappedEngagementLevel && record.record_type) {
               switch (record.record_type) {
                 case 'captured':
                   mappedEngagementLevel = 'captured';
                   break;
                 case 'fans':
+                case 'imported_fans':
                   mappedEngagementLevel = 'active';
                   break;
                 case 'super_fans':
@@ -737,18 +742,30 @@ export class PipelineService {
               }
               console.log(`Mapped record_type ${record.record_type} to engagement_level ${mappedEngagementLevel}`);
             }
+            
+            // If still no engagement_level, default to 'captured'
+            if (!mappedEngagementLevel) {
+              mappedEngagementLevel = 'captured';
+              console.log(`No engagement_level found, defaulting to 'captured'`);
+            }
+
+            // For imported fans from external sources like Laylo, default record_type should be 'fans'
+            let finalRecordType = record.record_type;
+            if (record.record_type === 'imported_fans' || !record.record_type) {
+              finalRecordType = 'fans';
+            }
 
             // Ensure we only pass valid fields for fan engagement
             const fanRecord: any = {
               user_id: userId,
-              record_type: record.record_type || 'fans',
-              engagement_level: mappedEngagementLevel || 'captured',
+              record_type: finalRecordType,
+              engagement_level: mappedEngagementLevel,
               source: record.source || 'csv_import',
               contact_info: record.contact_info || {},
               engagement_score: record.engagement_score || 0,
               metadata: record.metadata || {}
             };
-            console.log(`Final fanRecord for DB:`, fanRecord);
+            console.log(`Final fanRecord for DB (record_type: ${finalRecordType}, engagement_level: ${mappedEngagementLevel}):`, fanRecord);
             
             // Only add last_interaction if it's a valid date
             if (record.last_interaction) {
