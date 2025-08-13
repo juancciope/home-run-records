@@ -48,13 +48,14 @@ const SECTION_CONFIGS = {
   },
   fan_engagement: {
     title: 'Add Fan Engagement Record',
-    description: 'Manage fan contacts and engagement levels',
+    description: 'Import fan data from Laylo, email lists, or any other source',
     recordTypes: {
       captured: 'Data Captured',
       fans: 'Active Fans',
-      super_fans: 'Super Fans'
+      super_fans: 'Super Fans',
+      imported_fans: 'Imported Fans'
     },
-    csvTemplate: 'record_type,contact_name,contact_email,engagement_level,source,engagement_score'
+    csvTemplate: 'record_type,contact_name,contact_email,phone,city,state,country,engagement_level,source,joined_on,rsvp_frequency,presaved'
   },
   conversion: {
     title: 'Add Conversion Record',
@@ -88,6 +89,7 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
   const setOpen = externalOnOpenChange || setInternalOpen
   const [csvData, setCsvData] = React.useState('')
   const [importResults, setImportResults] = React.useState<{ success: number; errors: string[] } | null>(null)
+  const fileInputRef = React.useRef<HTMLInputElement>(null)
   
   const config = SECTION_CONFIGS[section]
   const [formData, setFormData] = React.useState<Record<string, any>>({
@@ -178,17 +180,44 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
     }
   }
 
-  const downloadCSVTemplate = () => {
-    const csvContent = config.csvTemplate + '\n' // Just headers
-    const blob = new Blob([csvContent], { type: 'text/csv' })
-    const url = window.URL.createObjectURL(blob)
-    const a = document.createElement('a')
-    a.href = url
-    a.download = `${section}_template.csv`
-    document.body.appendChild(a)
-    a.click()
-    document.body.removeChild(a)
-    window.URL.revokeObjectURL(url)
+  const downloadCSVTemplate = async () => {
+    try {
+      const response = await fetch(`/api/import/template?type=${section}`)
+      if (response.ok) {
+        const csvContent = await response.text()
+        const blob = new Blob([csvContent], { type: 'text/csv' })
+        const url = window.URL.createObjectURL(blob)
+        const a = document.createElement('a')
+        a.href = url
+        a.download = `${section}_import_template.csv`
+        document.body.appendChild(a)
+        a.click()
+        document.body.removeChild(a)
+        window.URL.revokeObjectURL(url)
+        toast.success('Template downloaded successfully!')
+      } else {
+        toast.error('Failed to download template')
+      }
+    } catch (error) {
+      console.error('Error downloading template:', error)
+      toast.error('Error downloading template')
+    }
+  }
+
+  const handleFileUpload = (e: React.ChangeEvent<HTMLInputElement>) => {
+    const file = e.target.files?.[0]
+    if (file) {
+      const reader = new FileReader()
+      reader.onload = (event) => {
+        const content = event.target?.result as string
+        setCsvData(content)
+        toast.success('File loaded successfully!')
+      }
+      reader.onerror = () => {
+        toast.error('Failed to read file')
+      }
+      reader.readAsText(file)
+    }
   }
 
   const renderQuickForm = () => {
@@ -830,22 +859,41 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
             <div className="flex-1">
               <div className="flex items-center justify-between mb-3">
                 <Label className="text-sm font-medium">Bulk Import Data</Label>
-                <Button
-                  type="button"
-                  variant="outline"
-                  size="sm"
-                  onClick={downloadCSVTemplate}
-                  className="text-xs px-3 py-1"
-                >
-                  Download Template
-                </Button>
+                <div className="flex gap-2">
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={() => fileInputRef.current?.click()}
+                    className="text-xs px-3 py-1"
+                  >
+                    <Upload className="h-3 w-3 mr-1" />
+                    Upload CSV
+                  </Button>
+                  <Button
+                    type="button"
+                    variant="outline"
+                    size="sm"
+                    onClick={downloadCSVTemplate}
+                    className="text-xs px-3 py-1"
+                  >
+                    Download Template
+                  </Button>
+                </div>
               </div>
+              <input
+                ref={fileInputRef}
+                type="file"
+                accept=".csv,text/csv"
+                onChange={handleFileUpload}
+                className="hidden"
+              />
               <Textarea
                 value={csvData}
                 onChange={(e) => setCsvData(e.target.value)}
                 placeholder={section === 'production' 
-                  ? `CSV Format:\n${config.csvTemplate}\n\nOR Song List:\nJust paste a list of song names, one per line:\nSong Title 1\nSong Title 2\nSong Title 3`
-                  : `Paste your CSV data here. Expected format:\n${config.csvTemplate}`}
+                  ? `CSV Format:\n${config.csvTemplate}\n\nOR Song List:\nJust paste a list of song names, one per line:\nSong Title 1\nSong Title 2\nSong Title 3\n\nYou can also use the "Upload CSV" button above to select a file.`
+                  : `Paste your CSV data here or use the "Upload CSV" button above.\n\nExpected format:\n${config.csvTemplate}`}
                 rows={10}
                 className="font-mono text-sm resize-none"
               />

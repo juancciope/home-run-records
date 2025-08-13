@@ -449,6 +449,47 @@ export class PipelineService {
   }
 
   // =================
+  // CSV TEMPLATES
+  // =================
+
+  static getCSVTemplate(type: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent'): string {
+    const templates = {
+      production: [
+        'record_type,title,artist_name,description,completion_percentage,release_date,platforms',
+        'unfinished,My New Song,Artist Name,Work in progress track,75,2024-12-01,"spotify;apple_music;youtube"',
+        'finished,Completed Track,Artist Name,Ready for release,100,2024-11-15,"spotify;apple_music"',
+        'released,Live Song,Artist Name,Already published,100,2024-10-01,"spotify;apple_music;youtube;soundcloud"'
+      ],
+      marketing: [
+        'record_type,platform,campaign_name,reach_count,engagement_count,follower_count,date_recorded',
+        'reach,instagram,Summer Campaign,15000,0,0,2024-11-01',
+        'engaged,facebook,Holiday Promotion,0,2500,0,2024-11-05',
+        'followers,spotify,Monthly Growth,0,0,1200,2024-11-10'
+      ],
+      fan_engagement: [
+        'record_type,contact_name,contact_email,phone,city,state,country,engagement_level,source,joined_on,rsvp_frequency,presaved',
+        'imported_fans,John Doe,john@example.com,555-1234,Nashville,Tennessee,United States,imported,laylo,2024-11-01,0,FALSE',
+        'imported_fans,Jane Smith,jane@example.com,555-5678,Los Angeles,California,United States,imported,email_list,2024-10-15,2,TRUE',
+        'imported_fans,Bob Johnson,bob@example.com,,Austin,Texas,United States,imported,social_media,2024-09-20,1,FALSE'
+      ],
+      conversion: [
+        'record_type,contact_name,contact_email,contact_phone,deal_value,probability,stage,source,notes,close_date',
+        'leads,Mike Wilson,mike@example.com,555-9999,0,25,Initial Contact,website,Interested in booking,2024-12-01',
+        'opportunities,Sarah Davis,sarah@example.com,555-7777,5000,75,Negotiation,referral,Wedding gig discussion,2024-11-20',
+        'sales,Tom Brown,tom@example.com,555-4444,3000,100,Closed Won,social_media,Concert booking confirmed,2024-10-30'
+      ],
+      agent: [
+        'record_type,agent_name,agency_name,contact_email,contact_phone,specialization,meeting_date,commission_rate,contract_value,status,notes',
+        'potential,Alex Johnson,Music Agency Pro,alex@musicagency.com,555-1111,"booking;promotion",2024-12-05,15,0,Initial Contact,Interested in representation',
+        'meeting_booked,Maria Garcia,Star Talent,maria@startalent.com,555-2222,"booking;marketing;distribution",2024-11-25,20,0,Meeting Scheduled,Contract discussion planned',
+        'signed,David Lee,Elite Artists,david@eliteartists.com,555-3333,"full_service",2024-10-15,25,50000,Active,2-year contract signed'
+      ]
+    };
+
+    return templates[type].join('\n');
+  }
+
+  // =================
   // BATCH OPERATIONS
   // =================
 
@@ -463,12 +504,38 @@ export class PipelineService {
         return { success: 0, errors: ['CSV must contain headers and at least one data row'] };
       }
       
-      const headers = lines[0].split(',').map(h => h.trim());
+      // Parse CSV properly handling quoted fields
+      const parseCSVLine = (line: string): string[] => {
+        const result = [];
+        let current = '';
+        let inQuotes = false;
+        
+        for (let i = 0; i < line.length; i++) {
+          const char = line[i];
+          const nextChar = line[i + 1];
+          
+          if (char === '"' && inQuotes && nextChar === '"') {
+            current += '"';
+            i++; // Skip next quote
+          } else if (char === '"') {
+            inQuotes = !inQuotes;
+          } else if (char === ',' && !inQuotes) {
+            result.push(current.trim());
+            current = '';
+          } else {
+            current += char;
+          }
+        }
+        result.push(current.trim());
+        return result;
+      };
+      
+      const headers = parseCSVLine(lines[0]).map(h => h.toLowerCase().replace(/\s+/g, '_').replace(/[^\w_]/g, ''));
       const results = { success: 0, errors: [] as string[] };
       
       for (let i = 1; i < lines.length; i++) {
         try {
-          const values = lines[i].split(',').map(v => v.trim());
+          const values = parseCSVLine(lines[i]);
           const record: any = { user_id: userId };
           
           // Map CSV values to record fields
@@ -492,12 +559,43 @@ export class PipelineService {
                 record[header] = value ? value.split(';').map(p => p.trim()) : [];
               }
             }
-            // Handle contact_info for fan engagement
-            else if (header === 'contact_name' && type === 'fan_engagement') {
+            // Handle contact_info for fan engagement (flexible field mapping)
+            else if ((header === 'contact_name' || header === 'name') && type === 'fan_engagement') {
               record.contact_info = { ...(record.contact_info || {}), name: value };
             }
-            else if (header === 'contact_email' && type === 'fan_engagement') {
+            else if ((header === 'contact_email' || header === 'email') && type === 'fan_engagement') {
               record.contact_info = { ...(record.contact_info || {}), email: value };
+            }
+            else if ((header === 'phone' || header === 'contact_phone') && type === 'fan_engagement') {
+              record.contact_info = { ...(record.contact_info || {}), phone: value };
+            }
+            else if (header === 'city' && type === 'fan_engagement') {
+              record.contact_info = { ...(record.contact_info || {}), city: value };
+            }
+            else if (header === 'state' && type === 'fan_engagement') {
+              record.contact_info = { ...(record.contact_info || {}), state: value };
+            }
+            else if (header === 'country' && type === 'fan_engagement') {
+              record.contact_info = { ...(record.contact_info || {}), country: value };
+            }
+            else if (header === 'messenger' && type === 'fan_engagement') {
+              record.contact_info = { ...(record.contact_info || {}), messenger: value };
+            }
+            // Handle fan engagement specific fields
+            else if (header === 'joined_on' && type === 'fan_engagement') {
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                record.last_interaction = date.toISOString().split('T')[0];
+              }
+            }
+            else if (header === 'rsvp_frequency' && type === 'fan_engagement') {
+              record.engagement_score = value ? parseInt(value) : 0;
+            }
+            else if (header === 'presaved' && type === 'fan_engagement') {
+              record.metadata = { ...(record.metadata || {}), presaved: value.toLowerCase() === 'true' };
+            }
+            else if (header === 'source' && type === 'fan_engagement') {
+              record.source = value || 'imported';
             }
             // Handle date fields
             else if (header.includes('date') && value) {
@@ -515,6 +613,22 @@ export class PipelineService {
             }
           });
           
+          // Set default values for fan engagement records
+          if (type === 'fan_engagement') {
+            if (!record.record_type) {
+              record.record_type = 'imported_fans';
+            }
+            if (!record.engagement_level) {
+              record.engagement_level = 'imported';
+            }
+            if (!record.source) {
+              record.source = 'csv_import';
+            }
+            if (!record.contact_info) {
+              record.contact_info = {};
+            }
+          }
+
           // Add the record using the appropriate service method
           let result = null;
           switch (type) {
