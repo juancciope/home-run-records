@@ -233,13 +233,31 @@ export class PipelineService {
     try {
       const supabase = await createAuthenticatedClient();
       
+      // Map record_type to correct engagement_level
+      let mappedEngagementLevel = record.engagement_level;
+      if (!mappedEngagementLevel && record.record_type) {
+        switch (record.record_type) {
+          case 'captured':
+            mappedEngagementLevel = 'captured';
+            break;
+          case 'fans':
+            mappedEngagementLevel = 'active';
+            break;
+          case 'super_fans':
+            mappedEngagementLevel = 'super';
+            break;
+          default:
+            mappedEngagementLevel = 'captured';
+        }
+      }
+
       // Ensure record has required fields and valid values
       const cleanRecord = {
         user_id: record.user_id,
         record_type: record.record_type || 'fans',
         contact_info: record.contact_info || {},
-        engagement_level: record.engagement_level || 'captured',
-        source: record.source || 'csv_import',
+        engagement_level: mappedEngagementLevel || 'captured',
+        source: record.source || 'manual',
         engagement_score: record.engagement_score || 0,
         last_interaction: record.last_interaction,
         metadata: record.metadata || {}
@@ -699,11 +717,29 @@ export class PipelineService {
           
           // Set default values for fan engagement records
           if (type === 'fan_engagement') {
+            // Map record_type to correct engagement_level for CSV imports
+            let mappedEngagementLevel = record.engagement_level;
+            if (!mappedEngagementLevel && record.record_type) {
+              switch (record.record_type) {
+                case 'captured':
+                  mappedEngagementLevel = 'captured';
+                  break;
+                case 'fans':
+                  mappedEngagementLevel = 'active';
+                  break;
+                case 'super_fans':
+                  mappedEngagementLevel = 'super';
+                  break;
+                default:
+                  mappedEngagementLevel = 'captured';
+              }
+            }
+
             // Ensure we only pass valid fields for fan engagement
             const fanRecord: any = {
               user_id: userId,
               record_type: record.record_type || 'fans',
-              engagement_level: record.engagement_level || 'captured',
+              engagement_level: mappedEngagementLevel || 'captured',
               source: record.source || 'csv_import',
               contact_info: record.contact_info || {},
               engagement_score: record.engagement_score || 0,
