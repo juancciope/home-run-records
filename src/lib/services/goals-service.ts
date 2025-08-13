@@ -41,7 +41,9 @@ export class GoalsService {
       console.log('✅ [GOALS-SERVICE] Valid session found:', { 
         userId: session.user.id, 
         email: session.user.email,
-        expiresAt: session.expires_at
+        expiresAt: session.expires_at,
+        accessToken: session.access_token.substring(0, 50) + '...',
+        tokenType: session.token_type
       });
       
       // Verify the user_id matches the authenticated user
@@ -51,6 +53,15 @@ export class GoalsService {
           sessionUserId: session.user.id 
         });
         throw new Error('Cannot create goal for different user');
+      }
+      
+      // Test auth.uid() directly via SQL first
+      console.log('🔍 [GOALS-SERVICE] Testing auth.uid() directly...');
+      const { data: authTest, error: authError } = await supabase.rpc('check_auth_uid');
+      if (authError) {
+        console.error('❌ [GOALS-SERVICE] auth.uid() test failed:', authError);
+      } else {
+        console.log('✅ [GOALS-SERVICE] auth.uid() returned:', authTest);
       }
       
       // Direct insert without complex wrapper

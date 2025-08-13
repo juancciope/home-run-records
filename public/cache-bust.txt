@@ -1,4 +1,4 @@
-Cache bust for deployment: 2025-08-13-14:20:00
+Cache bust for deployment: 2025-08-13-14:25:00
 This file forces a fresh deployment to clear any cached client configurations.
-Build timestamp: 2f8a91c (COMPLETE GOALS REWRITE - new service + optimized RLS)
-Status: Track saving works ✅ | Goals completely rewritten from scratch 🔥
+Build timestamp: 1a9c7f2 (RLS DISABLED FOR TESTING - investigating JWT context)
+Status: Track saving works ✅ | Goals RLS temporarily disabled for debugging 🔧
