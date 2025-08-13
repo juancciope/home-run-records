@@ -317,7 +317,7 @@ export function DashboardContent() {
     sales: 45,
   };
 
-  const agentData = pipelineMetrics?.agent || {
+  const agentData = (pipelineMetrics as any)?.agent || {
     potentialAgents: 0,
     meetingsBooked: 0,
     agentsSigned: 0,
