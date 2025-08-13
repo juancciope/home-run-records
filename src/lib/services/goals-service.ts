@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/client';
+import { createAuthenticatedClient } from '@/utils/supabase/client';
 
 // Separate, simplified goals service
 export interface Goal {
@@ -20,51 +20,18 @@ export interface Goal {
 }
 
 export class GoalsService {
-  private static getSupabaseClient() {
-    // Use direct client without our wrapper for debugging
-    return createClient();
+  private static async getSupabaseClient() {
+    // Use the SAME authentication method as working track saving
+    return await createAuthenticatedClient();
   }
 
   static async addGoal(goal: Omit<Goal, 'id' | 'created_at' | 'updated_at'>): Promise<Goal | null> {
     try {
-      console.log('🎯 [GOALS-SERVICE] Adding goal:', { goal, timestamp: new Date().toISOString() });
+      console.log('🎯 [GOALS-SERVICE] Adding goal (USING SAME AUTH AS TRACKS):', { goal, timestamp: new Date().toISOString() });
       
-      const supabase = this.getSupabaseClient();
+      // Use EXACT same pattern as working addProductionRecord
+      const supabase = await this.getSupabaseClient();
       
-      // Get current session directly
-      const { data: { session }, error: sessionError } = await supabase.auth.getSession();
-      if (sessionError || !session) {
-        console.error('❌ [GOALS-SERVICE] No valid session:', sessionError);
-        throw new Error('User must be authenticated to add goals');
-      }
-      
-      console.log('✅ [GOALS-SERVICE] Valid session found:', { 
-        userId: session.user.id, 
-        email: session.user.email,
-        expiresAt: session.expires_at,
-        accessToken: session.access_token.substring(0, 50) + '...',
-        tokenType: session.token_type
-      });
-      
-      // Verify the user_id matches the authenticated user
-      if (goal.user_id !== session.user.id) {
-        console.error('❌ [GOALS-SERVICE] User ID mismatch:', { 
-          goalUserId: goal.user_id, 
-          sessionUserId: session.user.id 
-        });
-        throw new Error('Cannot create goal for different user');
-      }
-      
-      // Test auth.uid() directly via SQL first
-      console.log('🔍 [GOALS-SERVICE] Testing auth.uid() directly...');
-      const { data: authTest, error: authError } = await supabase.rpc('check_auth_uid');
-      if (authError) {
-        console.error('❌ [GOALS-SERVICE] auth.uid() test failed:', authError);
-      } else {
-        console.log('✅ [GOALS-SERVICE] auth.uid() returned:', authTest);
-      }
-      
-      // Direct insert without complex wrapper
       const { data, error } = await supabase
         .from('goals')
         .insert(goal)
@@ -72,13 +39,7 @@ export class GoalsService {
         .single();
 
       if (error) {
-        console.error('❌ [GOALS-SERVICE] Supabase error:', {
-          code: error.code,
-          message: error.message,
-          details: error.details,
-          hint: error.hint,
-          goalData: goal
-        });
+        console.error('❌ [GOALS-SERVICE] Supabase error:', error);
         throw error;
       }
       
@@ -94,7 +55,7 @@ export class GoalsService {
     try {
       console.log('📋 [GOALS-SERVICE] Fetching goals:', { userId, section, recordType });
       
-      const supabase = this.getSupabaseClient();
+      const supabase = await this.getSupabaseClient();
       
       // Get current session directly
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
@@ -148,7 +109,7 @@ export class GoalsService {
 
   static async updateGoal(goalId: string, updates: Partial<Goal>): Promise<Goal | null> {
     try {
-      const supabase = this.getSupabaseClient();
+      const supabase = await this.getSupabaseClient();
       
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
@@ -176,7 +137,7 @@ export class GoalsService {
 
   static async deleteGoal(goalId: string): Promise<boolean> {
     try {
-      const supabase = this.getSupabaseClient();
+      const supabase = await this.getSupabaseClient();
       
       const { data: { session }, error: sessionError } = await supabase.auth.getSession();
       if (sessionError || !session) {
