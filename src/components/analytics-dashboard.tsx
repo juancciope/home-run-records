@@ -271,22 +271,7 @@ export function AnalyticsDashboard() {
     .filter(p => p.followers > 0)
 
   return (
-    <div className="space-y-4">
-      {/* Header */}
-      <div className="flex items-center justify-between">
-        <div>
-          <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
-          <p className="text-muted-foreground">
-            Your complete audience reach and engagement across all platforms
-          </p>
-        </div>
-        <div className="flex items-center gap-4">
-          <Button variant="outline" size="sm">
-            <Calendar className="h-4 w-4 mr-2" />
-            Last 30 days
-          </Button>
-        </div>
-      </div>
+    <div className="space-y-6">
 
       {/* Key Metrics */}
       <div className="grid gap-4 md:grid-cols-2 lg:grid-cols-4">
