@@ -123,22 +123,8 @@ export function AnalyticsDashboard() {
           .eq('uuid', targetUUID)
           .single()
         
-        if (artistData) {
-          setArtistInfo({
-            name: artistData.name || 'Artist',
-            image: artistData.image || null
-          })
-        } else {
-          // Fallback to user profile name if available
-          const displayName = profile?.first_name && profile?.last_name 
-            ? `${profile.first_name} ${profile.last_name}`
-            : user?.email?.split('@')[0] || 'Artist'
-          
-          setArtistInfo({
-            name: displayName,
-            image: profile?.avatar_url || null
-          })
-        }
+        // Artist data is loaded but we don't need to store it separately
+        // as we're using the profile data for the avatar display
         
         const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(targetUUID)}`)
         
