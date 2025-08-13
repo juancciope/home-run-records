@@ -1,4 +1,4 @@
-import { createClient } from '@/utils/supabase/client';
+import { createClient, createAuthenticatedClient } from '@/utils/supabase/client';
 
 // Production Pipeline Types
 export interface ProductionRecord {
@@ -118,7 +118,7 @@ export class PipelineService {
 
   static async addProductionRecord(record: Omit<ProductionRecord, 'id' | 'created_at' | 'updated_at'>): Promise<ProductionRecord | null> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('production_records')
         .insert(record)
@@ -138,11 +138,10 @@ export class PipelineService {
 
   static async getProductionRecords(userId: string): Promise<ProductionRecord[]> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('production_records')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -181,7 +180,7 @@ export class PipelineService {
 
   static async addMarketingRecord(record: Omit<MarketingRecord, 'id' | 'created_at' | 'updated_at'>): Promise<MarketingRecord | null> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('marketing_records')
         .insert(record)
@@ -201,11 +200,10 @@ export class PipelineService {
 
   static async getMarketingRecords(userId: string): Promise<MarketingRecord[]> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('marketing_records')
         .select('*')
-        .eq('user_id', userId)
         .order('date_recorded', { ascending: false });
 
       if (error) {
@@ -250,7 +248,7 @@ export class PipelineService {
 
   static async addFanEngagementRecord(record: Omit<FanEngagementRecord, 'id' | 'created_at' | 'updated_at'>): Promise<FanEngagementRecord | null> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('fan_engagement_records')
         .insert(record)
@@ -270,11 +268,10 @@ export class PipelineService {
 
   static async getFanEngagementRecords(userId: string): Promise<FanEngagementRecord[]> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('fan_engagement_records')
         .select('*')
-        .eq('user_id', userId)
         .order('last_interaction', { ascending: false });
 
       if (error) {
@@ -313,7 +310,7 @@ export class PipelineService {
 
   static async addConversionRecord(record: Omit<ConversionRecord, 'id' | 'created_at' | 'updated_at'>): Promise<ConversionRecord | null> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('conversion_records')
         .insert(record)
@@ -333,11 +330,10 @@ export class PipelineService {
 
   static async getConversionRecords(userId: string): Promise<ConversionRecord[]> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('conversion_records')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -380,7 +376,7 @@ export class PipelineService {
 
   static async addAgentRecord(record: Omit<AgentRecord, 'id' | 'created_at' | 'updated_at'>): Promise<AgentRecord | null> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('agent_records')
         .insert(record)
@@ -400,11 +396,10 @@ export class PipelineService {
 
   static async getAgentRecords(userId: string): Promise<AgentRecord[]> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('agent_records')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -505,7 +500,7 @@ export class PipelineService {
 
   static async addGoal(goal: Omit<Goal, 'id' | 'created_at' | 'updated_at'>): Promise<Goal | null> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('goals')
         .insert(goal)
@@ -525,11 +520,10 @@ export class PipelineService {
 
   static async getGoals(userId: string, section?: string, recordType?: string): Promise<Goal[]> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       let query = supabase
         .from('goals')
         .select('*')
-        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (section) {
@@ -554,7 +548,7 @@ export class PipelineService {
 
   static async updateGoal(goalId: string, updates: Partial<Goal>): Promise<Goal | null> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { data, error } = await supabase
         .from('goals')
         .update({ ...updates, updated_at: new Date().toISOString() })
@@ -575,7 +569,7 @@ export class PipelineService {
 
   static async deleteGoal(goalId: string): Promise<boolean> {
     try {
-      const supabase = createClient();
+      const supabase = await createAuthenticatedClient();
       const { error } = await supabase
         .from('goals')
         .delete()
@@ -626,6 +620,110 @@ export class PipelineService {
     } catch (error) {
       console.error('Error fetching all pipeline metrics:', error);
       return null;
+    }
+  }
+
+  // =================
+  // BATCH OPERATIONS
+  // =================
+
+  static async batchImportCSV(
+    userId: string,
+    csvData: string,
+    type: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent'
+  ): Promise<{ success: number; errors: string[] }> {
+    try {
+      const lines = csvData.split('\n').filter(line => line.trim());
+      if (lines.length < 2) {
+        return { success: 0, errors: ['CSV must contain headers and at least one data row'] };
+      }
+      
+      const headers = lines[0].split(',').map(h => h.trim());
+      const results = { success: 0, errors: [] as string[] };
+      
+      for (let i = 1; i < lines.length; i++) {
+        try {
+          const values = lines[i].split(',').map(v => v.trim());
+          const record: any = { user_id: userId };
+          
+          // Map CSV values to record fields
+          headers.forEach((header, index) => {
+            const value = values[index] || '';
+            
+            // Handle numeric fields
+            if (['completion_percentage', 'reach_count', 'engagement_count', 'follower_count', 
+                 'engagement_score', 'deal_value', 'probability', 'commission_rate', 'contract_value'].includes(header)) {
+              record[header] = value ? parseFloat(value) : 0;
+            }
+            // Handle array fields
+            else if (header === 'specialization') {
+              record[header] = value ? value.split(';').map(s => s.trim()) : [];
+            }
+            // Handle JSON fields
+            else if (header === 'platforms') {
+              try {
+                record[header] = value ? JSON.parse(value) : [];
+              } catch {
+                record[header] = value ? value.split(';').map(p => p.trim()) : [];
+              }
+            }
+            // Handle contact_info for fan engagement
+            else if (header === 'contact_name' && type === 'fan_engagement') {
+              record.contact_info = { ...(record.contact_info || {}), name: value };
+            }
+            else if (header === 'contact_email' && type === 'fan_engagement') {
+              record.contact_info = { ...(record.contact_info || {}), email: value };
+            }
+            // Handle date fields
+            else if (header.includes('date') && value) {
+              // Try to parse date
+              const date = new Date(value);
+              if (!isNaN(date.getTime())) {
+                record[header] = header === 'meeting_date' ? date.toISOString() : value;
+              } else {
+                record[header] = value;
+              }
+            }
+            // Default string handling
+            else {
+              record[header] = value;
+            }
+          });
+          
+          // Add the record using the appropriate service method
+          let result = null;
+          switch (type) {
+            case 'production':
+              result = await this.addProductionRecord(record);
+              break;
+            case 'marketing':
+              result = await this.addMarketingRecord(record);
+              break;
+            case 'fan_engagement':
+              result = await this.addFanEngagementRecord(record);
+              break;
+            case 'conversion':
+              result = await this.addConversionRecord(record);
+              break;
+            case 'agent':
+              result = await this.addAgentRecord(record);
+              break;
+          }
+          
+          if (result) {
+            results.success++;
+          } else {
+            results.errors.push(`Row ${i + 1}: Failed to insert record`);
+          }
+        } catch (error) {
+          results.errors.push(`Row ${i + 1}: ${error instanceof Error ? error.message : 'Unknown error'}`);
+        }
+      }
+      
+      return results;
+    } catch (error) {
+      console.error('Error in batch CSV import:', error);
+      return { success: 0, errors: [error instanceof Error ? error.message : 'Unknown error'] };
     }
   }
 }

@@ -13,8 +13,29 @@ export function createClient(): SupabaseClient {
   // Create new instance following official Supabase SSR patterns
   supabaseInstance = createBrowserClient(
     process.env.NEXT_PUBLIC_SUPABASE_URL!,
-    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!
+    process.env.NEXT_PUBLIC_SUPABASE_ANON_KEY!,
+    {
+      auth: {
+        persistSession: true,
+        autoRefreshToken: true,
+        detectSessionInUrl: true
+      }
+    }
   )
   
   return supabaseInstance
+}
+
+// Helper function to ensure auth context is available
+export async function createAuthenticatedClient(): Promise<SupabaseClient> {
+  const supabase = createClient()
+  
+  // Wait for session to be available
+  const { data: { session } } = await supabase.auth.getSession()
+  
+  if (!session) {
+    throw new Error('User must be authenticated to perform this action')
+  }
+  
+  return supabase
 }
