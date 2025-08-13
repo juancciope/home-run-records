@@ -336,19 +336,8 @@ export function DashboardContent() {
         }
 
         setMarketingData(marketingDataToSet);
-      } catch (error) {
-        console.error('Error loading marketing metrics:', error);
-        // Fallback to dummy data only if there's an error
-        setMarketingData({
-          totalReach: 0,
-          engaged: 0,
-          followers: 0,
-          isRealData: false,
-        });
-      }
 
-      // Load historical data for charts  
-      try {
+        // Load historical data for charts while PipelineService is in scope
         const monthsToLoad = TIME_RANGES[marketingTimeRange as keyof typeof TIME_RANGES]?.months || 6;
         
         // Load marketing historical data
@@ -369,7 +358,14 @@ export function DashboardContent() {
           setFanEngagementHistoricalData(updatedFanEngagementHistory);
         }
       } catch (error) {
-        console.warn('Error loading historical data:', error);
+        console.error('Error loading marketing metrics and historical data:', error);
+        // Fallback to dummy data only if there's an error
+        setMarketingData({
+          totalReach: 0,
+          engaged: 0,
+          followers: 0,
+          isRealData: false,
+        });
       }
       
       if (!hasConnection && !profile?.onboarding_completed) {
