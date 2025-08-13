@@ -3,6 +3,7 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
+import { PersistentArtistHeader } from "@/components/persistent-artist-header";
 import { useAuth } from "@/contexts/auth-provider";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
@@ -49,9 +50,14 @@ export default function AnalyticsLayout({
       <SidebarProvider>
         <AppSidebar />
         <SidebarInset>
-          <header className="flex h-16 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
-            <div className="flex items-center w-full px-6">
-              <SidebarTrigger className="-ml-1" />
+          <header className="sticky top-0 z-40 flex h-24 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+            <div className="flex items-center justify-between w-full px-6">
+              <div className="flex items-center gap-4">
+                <SidebarTrigger className="-ml-1" />
+                <div className="flex-1">
+                  <PersistentArtistHeader />
+                </div>
+              </div>
             </div>
           </header>
           <div className="flex flex-1 flex-col gap-4 p-6 pt-2">
