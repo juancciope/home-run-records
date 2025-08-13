@@ -5,7 +5,7 @@ import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/com
 import { Button } from "@/components/ui/button"
 import { Badge } from "@/components/ui/badge"
 import { Progress } from "@/components/ui/progress"
-import { Tabs, TabsContent, TabsList, TabsTrigger } from "@/components/ui/tabs"
+import { Tabs, TabsList, TabsTrigger } from "@/components/ui/tabs"
 // import { Select, SelectContent, SelectItem, SelectTrigger, SelectValue } from "@/components/ui/select"
 import {
   TrendingUp,
@@ -13,41 +13,24 @@ import {
   Heart,
   Activity,
   Globe,
-  Music,
-  Video,
-  MessageCircle,
   Calendar,
-  ChevronRight,
-  ArrowUpRight,
-  ArrowDownRight,
-  User,
 } from "lucide-react"
 import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
   ChartContainer,
-  ChartConfig,
   ChartTooltip,
   ChartTooltipContent,
 } from "@/components/ui/chart"
 import {
   Area,
   AreaChart,
-  Bar,
-  BarChart,
   CartesianGrid,
   Cell,
-  Line,
-  LineChart,
   PieChart,
   Pie,
   ResponsiveContainer,
   XAxis,
   YAxis,
-  RadialBarChart,
-  RadialBar,
-  PolarGrid,
-  PolarAngleAxis,
-  PolarRadiusAxis,
 } from "recharts"
 import { useAuth } from "@/contexts/auth-provider"
 
@@ -72,13 +55,8 @@ const PLATFORM_COLORS = {
 
 export function AnalyticsDashboard() {
   const { user, profile, isLoading: isAuthLoading } = useAuth()
-  const [timeRange, setTimeRange] = React.useState("30d")
   const [isLoading, setIsLoading] = React.useState(true)
   const [analyticsData, setAnalyticsData] = React.useState<any>(null)
-  const [artistInfo, setArtistInfo] = React.useState<{
-    name: string
-    image: string | null
-  } | null>(null)
 
   React.useEffect(() => {
     const loadAnalytics = async () => {
@@ -309,16 +287,27 @@ export function AnalyticsDashboard() {
   return (
     <div className="space-y-4">
       {/* Header */}
-      <div className="flex flex-col sm:flex-row sm:items-center sm:justify-between gap-4">
-        <div className="min-w-0 flex-1">
-          <h2 className="text-2xl sm:text-3xl font-bold tracking-tight">
-            Analytics Dashboard
-          </h2>
+      <div className="flex items-center justify-between">
+        <div>
+          <h2 className="text-3xl font-bold">Analytics Dashboard</h2>
           <p className="text-muted-foreground">
             Your complete audience reach and engagement across all platforms
           </p>
         </div>
-        <div className="flex items-center space-x-2 shrink-0">
+        <div className="flex items-center gap-4">
+          <Avatar className="h-12 w-12 border-2 border-border shadow-md">
+            {profile?.avatar_url ? (
+              <AvatarImage 
+                src={profile.avatar_url} 
+                alt={`${profile.first_name || 'User'} ${profile.last_name || ''}`}
+                className="object-cover"
+              />
+            ) : null}
+            <AvatarFallback className="bg-gradient-to-br from-blue-500 to-purple-600 text-white font-semibold">
+              {profile?.first_name ? profile.first_name.charAt(0).toUpperCase() : 
+               profile?.email ? profile.email.charAt(0).toUpperCase() : 'U'}
+            </AvatarFallback>
+          </Avatar>
           <Button variant="outline" size="sm">
             <Calendar className="h-4 w-4 mr-2" />
             Last 30 days
