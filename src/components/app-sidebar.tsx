@@ -93,21 +93,21 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         ],
       },
       {
-        title: "DASHBOARDS",
+        title: "Dashboards",
         url: "#",
         icon: BarChart3,
         isActive: true,
         items: [
           {
-            title: "OVERVIEW",
+            title: "Overview",
             url: "/dashboard",
           },
           {
-            title: "PRODUCTION",
+            title: "Production",
             url: "/dashboard/production",
           },
           {
-            title: "REACH",
+            title: "Reach",
             url: "/dashboard/reach",
           },
         ],
@@ -139,25 +139,25 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
     } else {
       // Tools for non-superadmins
       baseItems.push({
-        title: "TOOLS",
+        title: "Tools",
         url: "#",
         icon: Wrench,
         isActive: false,
         items: [
           {
-            title: "CONTENT",
+            title: "Content",
             url: "/tools/content",
           },
           {
-            title: "BRAND",
+            title: "Brand",
             url: "/tools/brand",
           },
           {
-            title: "CATALOG",
+            title: "Catalog",
             url: "/tools/catalog",
           },
           {
-            title: "AGENTS",
+            title: "Agents",
             url: "/tools/agents",
           },
           {
