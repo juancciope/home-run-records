@@ -59,6 +59,23 @@ import { ArtistOnboarding } from "./artist-onboarding"
 import { AddDataModal } from "./add-data-modal"
 import { AddGoalModal } from "./add-goal-modal"
 
+// Helper function to generate recent months with real dates
+function generateRecentMonths(count: number = 6) {
+  const months = [];
+  const now = new Date();
+  
+  for (let i = count - 1; i >= 0; i--) {
+    const date = new Date(now.getFullYear(), now.getMonth() - i, 1);
+    months.push({
+      month: date.toLocaleDateString('en-US', { month: 'short' }),
+      fullDate: date.toISOString().split('T')[0],
+      monthYear: date.toLocaleDateString('en-US', { month: 'short', year: '2-digit' })
+    });
+  }
+  
+  return months;
+}
+
 // Action Button Component for pipeline cards
 function ActionButton({ 
   icon: Icon, 
@@ -323,6 +340,9 @@ export function DashboardContent() {
     agentsSigned: 0,
   };
 
+  // Generate real dates for charts
+  const recentMonths = generateRecentMonths(6);
+
   // Chart configurations
   const productionChartConfig = {
     value: {
@@ -369,23 +389,19 @@ export function DashboardContent() {
     },
   ];
 
-  const reachTrendData = [
-    { month: "Jan", reach: 186000, engaged: 24000 },
-    { month: "Feb", reach: 205000, engaged: 26000 },
-    { month: "Mar", reach: 237000, engaged: 30800 },
-    { month: "Apr", reach: 273000, engaged: 35500 },
-    { month: "May", reach: 309000, engaged: 40200 },
-    { month: "Jun", reach: marketingData.totalReach, engaged: marketingData.engaged },
-  ];
+  const reachTrendData = recentMonths.map((monthInfo, index) => ({
+    month: monthInfo.monthYear,
+    date: monthInfo.fullDate,
+    reach: Math.round(marketingData.totalReach * (0.54 + (index * 0.077))), // Growth trend
+    engaged: Math.round(marketingData.engaged * (0.53 + (index * 0.078))), // Proportional growth
+  }));
 
-  const fanEngagementTrendData = [
-    { month: "Jan", fans: 2800, superFans: 120 },
-    { month: "Feb", fans: 2900, superFans: 125 },
-    { month: "Mar", fans: 3000, superFans: 130 },
-    { month: "Apr", fans: 3050, superFans: 135 },
-    { month: "May", fans: 3100, superFans: 142 },
-    { month: "Jun", fans: fanEngagementData.fans, superFans: fanEngagementData.superFans },
-  ];
+  const fanEngagementTrendData = recentMonths.map((monthInfo, index) => ({
+    month: monthInfo.monthYear,
+    date: monthInfo.fullDate,
+    fans: Math.round(fanEngagementData.fans * (0.87 + (index * 0.022))), // Steady growth
+    superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * 0.033))), // Faster growth
+  }));
 
   const conversionFunnelData = [
     { stage: "Leads", value: conversionData.leads },
@@ -837,14 +853,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   followers: { label: "Followers", color: "hsl(var(--chart-1))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={[
-                    { month: "Jan", followers: Math.round(marketingData.followers * 0.70) }, // 14.8K
-                    { month: "Feb", followers: Math.round(marketingData.followers * 0.76) }, // 16.1K
-                    { month: "Mar", followers: Math.round(marketingData.followers * 0.82) }, // 17.4K
-                    { month: "Apr", followers: Math.round(marketingData.followers * 0.88) }, // 18.7K
-                    { month: "May", followers: Math.round(marketingData.followers * 0.94) }, // 19.9K
-                    { month: "Jun", followers: marketingData.followers } // 21.2K
-                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                    month: monthInfo.month,
+                    date: monthInfo.fullDate,
+                    followers: Math.round(marketingData.followers * (0.70 + (index * 0.05)))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
                     <defs>
                       <linearGradient id="fillFollowersMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />
@@ -990,14 +1003,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   captured: { label: "Captured", color: "hsl(var(--chart-5))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={[
-                    { month: "Jan", captured: Math.round(fanEngagementData.capturedData * 0.65) }, // 5.5K
-                    { month: "Feb", captured: Math.round(fanEngagementData.capturedData * 0.72) }, // 6.1K
-                    { month: "Mar", captured: Math.round(fanEngagementData.capturedData * 0.78) }, // 6.6K
-                    { month: "Apr", captured: Math.round(fanEngagementData.capturedData * 0.85) }, // 7.2K
-                    { month: "May", captured: Math.round(fanEngagementData.capturedData * 0.92) }, // 7.8K
-                    { month: "Jun", captured: fanEngagementData.capturedData } // 8.5K
-                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                    month: monthInfo.month,
+                    date: monthInfo.fullDate,
+                    captured: Math.round(fanEngagementData.capturedData * (0.65 + (index * 0.058)))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
                     <defs>
                       <linearGradient id="fillCapturedMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-5))" stopOpacity={0.8} />
@@ -1109,14 +1119,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   superFans: { label: "Super Fans", color: "hsl(var(--chart-3))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={[
-                    { month: "Jan", superFans: Math.round(fanEngagementData.superFans * 0.80) }, // 120
-                    { month: "Feb", superFans: Math.round(fanEngagementData.superFans * 0.83) }, // 125
-                    { month: "Mar", superFans: Math.round(fanEngagementData.superFans * 0.87) }, // 130
-                    { month: "Apr", superFans: Math.round(fanEngagementData.superFans * 0.90) }, // 135
-                    { month: "May", superFans: Math.round(fanEngagementData.superFans * 0.95) }, // 142
-                    { month: "Jun", superFans: fanEngagementData.superFans } // 150
-                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                    month: monthInfo.month,
+                    date: monthInfo.fullDate,
+                    superFans: Math.round(fanEngagementData.superFans * (0.80 + (index * 0.033)))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
                     <defs>
                       <linearGradient id="fillSuperFansMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-3))" stopOpacity={0.8} />
@@ -1205,14 +1212,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   prospects: { label: "Prospects", color: "hsl(var(--chart-4))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={[
-                    { month: "Jan", prospects: Math.round(agentData.potentialAgents * 0.60) }, // 17
-                    { month: "Feb", prospects: Math.round(agentData.potentialAgents * 0.68) }, // 19
-                    { month: "Mar", prospects: Math.round(agentData.potentialAgents * 0.75) }, // 21
-                    { month: "Apr", prospects: Math.round(agentData.potentialAgents * 0.82) }, // 23
-                    { month: "May", prospects: Math.round(agentData.potentialAgents * 0.90) }, // 25
-                    { month: "Jun", prospects: agentData.potentialAgents } // 28
-                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                    month: monthInfo.month,
+                    date: monthInfo.fullDate,
+                    prospects: Math.round(agentData.potentialAgents * (0.60 + (index * 0.067)))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
                     <defs>
                       <linearGradient id="fillProspectsMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-4))" stopOpacity={0.8} />
@@ -1269,14 +1273,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   meetings: { label: "Meetings", color: "hsl(var(--chart-2))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={[
-                    { month: "Jan", meetings: Math.round(agentData.meetingsBooked * 0.50) }, // 6
-                    { month: "Feb", meetings: Math.round(agentData.meetingsBooked * 0.58) }, // 7
-                    { month: "Mar", meetings: Math.round(agentData.meetingsBooked * 0.67) }, // 8
-                    { month: "Apr", meetings: Math.round(agentData.meetingsBooked * 0.75) }, // 9
-                    { month: "May", meetings: Math.round(agentData.meetingsBooked * 0.83) }, // 10
-                    { month: "Jun", meetings: agentData.meetingsBooked } // 12
-                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                    month: monthInfo.month,
+                    date: monthInfo.fullDate,
+                    meetings: Math.round(agentData.meetingsBooked * (0.50 + (index * 0.083)))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
                     <defs>
                       <linearGradient id="fillMeetingsMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-2))" stopOpacity={0.8} />
@@ -1333,14 +1334,11 @@ export function DashboardContent() {
                 <ChartContainer config={{
                   signed: { label: "Signed", color: "hsl(var(--chart-1))" }
                 }} className="h-16 w-full">
-                  <AreaChart data={[
-                    { month: "Jan", signed: Math.round(agentData.agentsSigned * 0.33) }, // 1
-                    { month: "Feb", signed: Math.round(agentData.agentsSigned * 0.33) }, // 1
-                    { month: "Mar", signed: Math.round(agentData.agentsSigned * 0.67) }, // 2
-                    { month: "Apr", signed: Math.round(agentData.agentsSigned * 0.67) }, // 2
-                    { month: "May", signed: Math.round(agentData.agentsSigned * 0.67) }, // 2
-                    { month: "Jun", signed: agentData.agentsSigned } // 3
-                  ]} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
+                  <AreaChart data={recentMonths.map((monthInfo, index) => ({
+                    month: monthInfo.month,
+                    date: monthInfo.fullDate,
+                    signed: Math.max(0, Math.round(agentData.agentsSigned * (0.20 + (index * 0.133))))
+                  }))} margin={{ left: 0, right: 0, top: 2, bottom: 2 }}>
                     <defs>
                       <linearGradient id="fillSignedMini" x1="0" y1="0" x2="0" y2="1">
                         <stop offset="5%" stopColor="hsl(var(--chart-1))" stopOpacity={0.8} />

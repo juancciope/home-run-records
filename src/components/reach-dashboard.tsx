@@ -140,10 +140,11 @@ const generateDateRange = (months: number) => {
 
 // Time range options
 const TIME_RANGES = {
+  "4w": { label: "4 Weeks", months: 1 },
   "3m": { label: "3 Months", months: 3 },
   "6m": { label: "6 Months", months: 6 },
-  "12m": { label: "12 Months", months: 12 },
-  "24m": { label: "2 Years", months: 24 },
+  "1y": { label: "1 Year", months: 12 },
+  "all": { label: "All Time", months: 36 }, // 3 years max for performance
 };
 
 
