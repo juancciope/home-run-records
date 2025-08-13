@@ -1,7 +1,7 @@
 import { ThemeProvider } from "@/components/theme-provider";
 import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/sidebar";
 import { AppSidebar } from "@/components/app-sidebar";
-import { EnhancedArtistHeader } from "@/components/enhanced-artist-header";
+import { PersistentArtistHeader } from "@/components/persistent-artist-header";
 import { ArtistSwitcher } from "@/components/artist-switcher";
 import { requireAuth, getUserWithFullData } from "@/lib/auth/server-auth";
 
@@ -35,7 +35,7 @@ export default async function DashboardLayout({
           currentAgency={currentAgency}
         />
         <SidebarInset>
-          <header className="sticky top-0 z-40 flex h-20 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-16 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
+          <header className="sticky top-0 z-40 flex h-24 shrink-0 items-center gap-2 transition-[width,height] ease-linear group-has-[[data-collapsible=icon]]/sidebar-wrapper:h-20 border-b bg-background/95 backdrop-blur supports-[backdrop-filter]:bg-background/60">
             <div className="flex items-center justify-between w-full px-6">
               <div className="flex items-center gap-4">
                 <SidebarTrigger className="-ml-1" />
@@ -44,7 +44,7 @@ export default async function DashboardLayout({
                   <ArtistSwitcher userId={user.id} agencyId={currentAgency.id} />
                 )}
                 <div className="flex-1">
-                  <EnhancedArtistHeader userId={user.id} />
+                  <PersistentArtistHeader />
                 </div>
               </div>
             </div>
