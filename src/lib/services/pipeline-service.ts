@@ -507,6 +507,55 @@ export class PipelineService {
   // BATCH OPERATIONS
   // =================
 
+  // Auto-detect CSV data type based on headers
+  private static detectCSVType(headerLine: string): 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent' | null {
+    // Fan engagement indicators
+    if (headerLine.includes('contact_name') || 
+        headerLine.includes('contact_email') ||
+        headerLine.includes('engagement_level') ||
+        headerLine.includes('city') ||
+        headerLine.includes('state') ||
+        headerLine.includes('country') ||
+        headerLine.includes('phone') ||
+        headerLine.includes('presaved') ||
+        headerLine.includes('rsvp_frequency')) {
+      return 'fan_engagement';
+    }
+    
+    // Production indicators
+    if (headerLine.includes('title') && 
+        (headerLine.includes('completion_percentage') || 
+         headerLine.includes('artist_name') ||
+         headerLine.includes('release_date'))) {
+      return 'production';
+    }
+    
+    // Marketing indicators  
+    if (headerLine.includes('platform') &&
+        (headerLine.includes('reach_count') ||
+         headerLine.includes('engagement_count') ||
+         headerLine.includes('follower_count'))) {
+      return 'marketing';
+    }
+    
+    // Conversion indicators
+    if (headerLine.includes('deal_value') ||
+        headerLine.includes('probability') ||
+        headerLine.includes('close_date')) {
+      return 'conversion';
+    }
+    
+    // Agent indicators
+    if (headerLine.includes('agent_name') ||
+        headerLine.includes('agency_name') ||
+        headerLine.includes('commission_rate') ||
+        headerLine.includes('contract_terms')) {
+      return 'agent';
+    }
+    
+    return null;
+  }
+
   static async batchImportCSV(
     userId: string,
     csvData: string,
@@ -516,6 +565,14 @@ export class PipelineService {
       const lines = csvData.split('\n').filter(line => line.trim());
       if (lines.length < 2) {
         return { success: 0, errors: ['CSV must contain headers and at least one data row'] };
+      }
+      
+      // Auto-detect data type based on CSV headers
+      const headerLine = lines[0].toLowerCase();
+      const detectedType = this.detectCSVType(headerLine);
+      if (detectedType && detectedType !== type) {
+        console.log(`Auto-detected CSV type: ${detectedType} (was ${type})`);
+        type = detectedType;
       }
       
       // Parse CSV properly handling quoted fields
