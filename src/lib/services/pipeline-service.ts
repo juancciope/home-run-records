@@ -439,7 +439,13 @@ export class PipelineService {
 
   static async addGoal(goal: Omit<Goal, 'id' | 'created_at' | 'updated_at'>): Promise<Goal | null> {
     try {
+      console.log('🎯 Adding goal:', { goal, timestamp: new Date().toISOString() });
       const supabase = await createAuthenticatedClient();
+      
+      // Check current user before insert
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Current user for goal insert:', { userId: user?.id, email: user?.email });
+      
       const { data, error } = await supabase
         .from('goals')
         .insert(goal)
@@ -447,19 +453,28 @@ export class PipelineService {
         .single();
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('❌ Supabase error adding goal:', error);
+        console.error('Goal data attempted:', goal);
         throw error;
       }
+      
+      console.log('✅ Goal added successfully:', data);
       return data;
     } catch (error) {
-      console.error('Error adding goal:', error);
+      console.error('❌ Error adding goal:', error);
       return null;
     }
   }
 
   static async getGoals(userId: string, section?: string, recordType?: string): Promise<Goal[]> {
     try {
+      console.log('📋 Fetching goals:', { userId, section, recordType, timestamp: new Date().toISOString() });
       const supabase = await createAuthenticatedClient();
+      
+      // Check current user before query
+      const { data: { user } } = await supabase.auth.getUser();
+      console.log('👤 Current user for goal fetch:', { userId: user?.id, email: user?.email });
+      
       let query = supabase
         .from('goals')
         .select('*')
@@ -475,12 +490,15 @@ export class PipelineService {
       const { data, error } = await query;
 
       if (error) {
-        console.error('Supabase error:', error);
+        console.error('❌ Supabase error fetching goals:', error);
+        console.error('Query parameters:', { userId, section, recordType });
         throw error;
       }
+      
+      console.log('✅ Goals fetched successfully:', { count: data?.length || 0, data: data?.slice(0, 3) });
       return data || [];
     } catch (error) {
-      console.error('Error fetching goals:', error);
+      console.error('❌ Error fetching goals:', error);
       return [];
     }
   }

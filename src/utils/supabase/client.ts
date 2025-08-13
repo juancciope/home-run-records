@@ -30,12 +30,51 @@ export function createClient(): SupabaseClient {
 export async function createAuthenticatedClient(): Promise<SupabaseClient> {
   const supabase = createClient()
   
-  // Wait for session to be available
-  const { data: { session } } = await supabase.auth.getSession()
+  // Try multiple methods to get session
+  let session = null
+  
+  // Method 1: Get current session
+  const { data: { session: currentSession } } = await supabase.auth.getSession()
+  session = currentSession
+  
+  // Method 2: If no session, try to refresh
+  if (!session) {
+    const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
+    session = refreshedSession
+  }
+  
+  // Method 3: Wait for session state change (for async auth)
+  if (!session) {
+    await new Promise((resolve) => {
+      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
+        if (session) {
+          subscription.unsubscribe()
+          resolve(session)
+        }
+      })
+      
+      // Timeout after 5 seconds
+      setTimeout(() => {
+        subscription.unsubscribe()
+        resolve(null)
+      }, 5000)
+    })
+    
+    // Try one more time after state change
+    const { data: { session: finalSession } } = await supabase.auth.getSession()
+    session = finalSession
+  }
   
   if (!session) {
-    throw new Error('User must be authenticated to perform this action')
+    console.error('Authentication failed: No session found after multiple attempts')
+    throw new Error('User must be authenticated to perform this action. Please sign in again.')
   }
+  
+  console.log('✅ Authenticated session found:', { 
+    userId: session.user?.id, 
+    email: session.user?.email,
+    expiresAt: session.expires_at 
+  })
   
   return supabase
 }
