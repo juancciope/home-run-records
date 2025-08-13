@@ -162,9 +162,10 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
       }
 
       console.log('Importing CSV data for section:', section)
+      console.log('Record type from card context:', recordType)
       console.log('First 500 chars of data:', processedCsvData.substring(0, 500))
       
-      const results = await PipelineService.batchImportCSV(user.id, processedCsvData, section)
+      const results = await PipelineService.batchImportCSV(user.id, processedCsvData, section, recordType)
       setImportResults(results)
       
       if (results.success > 0) {

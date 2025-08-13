@@ -125,6 +125,7 @@ export class PipelineService {
       const { data, error } = await supabase
         .from('production_records')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -187,6 +188,7 @@ export class PipelineService {
       const { data, error } = await supabase
         .from('marketing_records')
         .select('*')
+        .eq('user_id', userId)
         .order('date_recorded', { ascending: false });
 
       if (error) {
@@ -350,6 +352,7 @@ export class PipelineService {
       const { data, error } = await supabase
         .from('conversion_records')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -416,6 +419,7 @@ export class PipelineService {
       const { data, error } = await supabase
         .from('agent_records')
         .select('*')
+        .eq('user_id', userId)
         .order('created_at', { ascending: false });
 
       if (error) {
@@ -578,7 +582,8 @@ export class PipelineService {
   static async batchImportCSV(
     userId: string,
     csvData: string,
-    type: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent'
+    type: 'production' | 'marketing' | 'fan_engagement' | 'conversion' | 'agent',
+    cardRecordType?: string
   ): Promise<{ success: number; errors: string[] }> {
     try {
       const lines = csvData.split('\n').filter(line => line.trim());
@@ -720,13 +725,23 @@ export class PipelineService {
           
           // Set default values for fan engagement records
           if (type === 'fan_engagement') {
-            // Determine engagement_level from multiple sources (CSV column or record_type)
-            let mappedEngagementLevel = record.engagement_level;
-            console.log(`CSV Processing row ${i + 1}: record_type=${record.record_type}, original engagement_level=${record.engagement_level}`);
+            console.log(`CSV Processing row ${i + 1}: record_type=${record.record_type}, original engagement_level=${record.engagement_level}, cardRecordType=${cardRecordType}`);
             
-            // If no engagement_level, try to map from record_type
-            if (!mappedEngagementLevel && record.record_type) {
-              switch (record.record_type) {
+            // Override record_type with card context if provided
+            let finalRecordType = record.record_type;
+            if (cardRecordType) {
+              finalRecordType = cardRecordType;
+              console.log(`Overriding CSV record_type ${record.record_type} with card context ${cardRecordType}`);
+            } else if (record.record_type === 'imported_fans' || !record.record_type) {
+              finalRecordType = 'fans';
+            }
+            
+            // Determine engagement_level from multiple sources (CSV column, record_type, or card context)
+            let mappedEngagementLevel = record.engagement_level;
+            
+            // If no engagement_level from CSV, map from final record_type (which includes card context)
+            if (!mappedEngagementLevel) {
+              switch (finalRecordType) {
                 case 'captured':
                   mappedEngagementLevel = 'captured';
                   break;
@@ -740,19 +755,13 @@ export class PipelineService {
                 default:
                   mappedEngagementLevel = 'captured';
               }
-              console.log(`Mapped record_type ${record.record_type} to engagement_level ${mappedEngagementLevel}`);
+              console.log(`Mapped final record_type ${finalRecordType} to engagement_level ${mappedEngagementLevel}`);
             }
             
             // If still no engagement_level, default to 'captured'
             if (!mappedEngagementLevel) {
               mappedEngagementLevel = 'captured';
               console.log(`No engagement_level found, defaulting to 'captured'`);
-            }
-
-            // For imported fans from external sources like Laylo, default record_type should be 'fans'
-            let finalRecordType = record.record_type;
-            if (record.record_type === 'imported_fans' || !record.record_type) {
-              finalRecordType = 'fans';
             }
 
             // Ensure we only pass valid fields for fan engagement
