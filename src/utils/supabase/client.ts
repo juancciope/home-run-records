@@ -70,10 +70,11 @@ export async function createAuthenticatedClient(): Promise<SupabaseClient> {
     throw new Error('User must be authenticated to perform this action. Please sign in again.')
   }
   
-  console.log('✅ Authenticated session found:', { 
+  console.log('✅ [DEPLOYMENT-TEST-2025-08-13-14:05] Authenticated session found:', { 
     userId: session.user?.id, 
     email: session.user?.email,
-    expiresAt: session.expires_at 
+    expiresAt: session.expires_at,
+    deploymentCheck: 'Latest fixes active'
   })
   
   return supabase
