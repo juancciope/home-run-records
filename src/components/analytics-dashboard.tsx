@@ -117,14 +117,8 @@ export function AnalyticsDashboard() {
         const { createClient } = await import('@/utils/supabase/client')
         const supabase = createClient()
         
-        const { data: artistData } = await supabase
-          .from('artists')
-          .select('name, image')
-          .eq('uuid', targetUUID)
-          .single()
-        
-        // Artist data is loaded but we don't need to store it separately
-        // as we're using the profile data for the avatar display
+        // We could load artist data here if needed, but currently
+        // we're using the profile data for the avatar display
         
         const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(targetUUID)}`)
         

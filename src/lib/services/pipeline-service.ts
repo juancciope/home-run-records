@@ -550,7 +550,7 @@ export class PipelineService {
       for (let i = 1; i < lines.length; i++) {
         try {
           const values = parseCSVLine(lines[i]);
-          const record: any = { user_id: userId };
+          let record: any = { user_id: userId };
           
           // Map CSV values to record fields
           headers.forEach((header, index) => {
