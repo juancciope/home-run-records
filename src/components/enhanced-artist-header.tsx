@@ -80,10 +80,10 @@ export function EnhancedArtistHeader({ userId }: { userId: string }) {
 
   if (loading) {
     return (
-      <div className="flex items-center gap-3">
-        <div className="h-12 w-12 rounded-full bg-muted animate-pulse" />
+      <div className="flex items-center gap-4">
+        <div className="h-14 w-14 rounded-full bg-muted animate-pulse" />
         <div className="space-y-2">
-          <div className="h-5 w-32 bg-muted animate-pulse rounded" />
+          <div className="h-6 w-32 bg-muted animate-pulse rounded" />
           <div className="h-4 w-24 bg-muted animate-pulse rounded" />
         </div>
       </div>

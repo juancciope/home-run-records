@@ -14,7 +14,9 @@ import {
   Activity,
   Globe,
   Calendar,
+  Music,
 } from "lucide-react"
+import { Avatar, AvatarImage, AvatarFallback } from "@/components/ui/avatar"
 import {
   ChartContainer,
   ChartTooltip,
@@ -56,6 +58,11 @@ export function AnalyticsDashboard() {
   const { user, profile, isLoading: isAuthLoading } = useAuth()
   const [isLoading, setIsLoading] = React.useState(true)
   const [analyticsData, setAnalyticsData] = React.useState<any>(null)
+  const [artistData, setArtistData] = React.useState<{
+    name: string
+    image: string | null
+    followers: number | null
+  } | null>(null)
 
   React.useEffect(() => {
     const loadAnalytics = async () => {

@@ -54,13 +54,39 @@ export async function GET() {
       return NextResponse.json(artistData)
     }
 
+    // Try user profile as final fallback
+    const { data: userProfile, error: userProfileError } = await supabase
+      .from('profiles')
+      .select('first_name, last_name, avatar_url, email')
+      .eq('id', user.id)
+      .single()
+
+    console.log('User profile query result:', { userProfile, userProfileError })
+
+    if (userProfile && !userProfileError) {
+      const displayName = userProfile.first_name && userProfile.last_name
+        ? `${userProfile.first_name} ${userProfile.last_name}`
+        : userProfile.first_name || user.email?.split('@')[0] || 'Artist'
+      
+      const artistData = {
+        name: displayName,
+        image: userProfile.avatar_url || null,
+        followers: null,
+        hasViberateData: false,
+        isUserProfile: true
+      }
+      console.log('Returning user profile data as fallback:', artistData)
+      return NextResponse.json(artistData)
+    }
+
     console.log('No artist data found')
     return NextResponse.json({ 
       error: 'No artist profile found',
       debug: {
         userId: user.id,
         profileError: profileError?.message,
-        artistError: artistError?.message
+        artistError: artistError?.message,
+        userProfileError: userProfileError?.message
       }
     }, { status: 404 })
 
