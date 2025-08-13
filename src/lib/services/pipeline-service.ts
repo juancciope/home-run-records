@@ -250,7 +250,13 @@ export class PipelineService {
         return [];
       }
 
-      const result = [];
+      const result: Array<{
+        date: string;
+        followers: number;
+        streams?: number;
+        platform: string;
+        metric_type: string;
+      }> = [];
       const historicalData = fanbaseData.data?.historical;
       
       // If we have historical data, extract it
