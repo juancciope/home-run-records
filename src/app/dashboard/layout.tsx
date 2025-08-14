@@ -3,7 +3,7 @@ import { SidebarProvider, SidebarInset, SidebarTrigger } from "@/components/ui/s
 import { AppSidebar } from "@/components/app-sidebar";
 import { PersistentArtistHeader } from "@/components/persistent-artist-header";
 import { ArtistSwitcher } from "@/components/artist-switcher";
-import { requireAuth, getUserWithFullData } from "@/lib/auth/server-auth";
+import { requireAuth, getUserProfile, getUserAgencies } from "@/lib/auth/server-auth";
 
 export const dynamic = 'force-dynamic'
 
@@ -12,13 +12,13 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Get full user data including agencies
-  const userData = await getUserWithFullData();
-  if (!userData) {
-    throw new Error("Authentication required");
-  }
-
-  const { user, profile, agencies, currentAgency } = userData;
+  // Require authentication (will redirect to login if not authenticated)
+  const user = await requireAuth();
+  
+  // Get user profile and agencies
+  const profile = await getUserProfile(user.id);
+  const agencies = await getUserAgencies(user.id);
+  const currentAgency = agencies.find(a => a.is_primary)?.agency || agencies[0]?.agency || null;
 
   return (
     <ThemeProvider
