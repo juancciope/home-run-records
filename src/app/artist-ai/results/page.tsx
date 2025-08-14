@@ -27,7 +27,11 @@ import {
   MessageSquare,
   Heart,
   Eye,
-  Loader2
+  Loader2,
+  Music,
+  Globe,
+  Award,
+  Headphones
 } from "lucide-react"
 import { motion } from "framer-motion"
 import { useSearchParams, useRouter } from "next/navigation"
@@ -65,6 +69,47 @@ interface AnalysisData {
       sixtyDays: number;
       ninetyDays: number;
     };
+  };
+  platforms?: {
+    viberate?: {
+      totalFollowers: number;
+      totalReach: number;
+      engagedAudience: number;
+      platforms: {
+        spotify: { followers: number; streams: number };
+        youtube: { subscribers: number; views: number };
+        instagram: { followers: number; engagement: number };
+        tiktok: { followers: number; views: number };
+        [key: string]: any;
+      };
+    };
+    instagram?: boolean;
+    tiktok?: boolean;
+  };
+  scraped_posts?: {
+    instagram: Array<{
+      platform: 'instagram';
+      type: string;
+      caption: string;
+      likes: number;
+      comments: number;
+      views?: number;
+      timestamp: string;
+      hashtags: string[];
+      mediaUrl?: string;
+    }>;
+    tiktok: Array<{
+      platform: 'tiktok';
+      type: 'video';
+      caption: string;
+      likes: number;
+      comments: number;
+      shares: number;
+      views: number;
+      timestamp: string;
+      hashtags: string[];
+      mediaUrl?: string;
+    }>;
   };
   created_at: string;
 }
@@ -233,6 +278,120 @@ export default function AnalysisResultsPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Data Sources Section */}
+        {analysisData.platforms && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.15 }}
+            className="mb-8"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Globe className="h-5 w-5 text-blue-500" />
+                  Your Digital Presence
+                </CardTitle>
+                <CardDescription>
+                  Comprehensive data from your music and social platforms
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="grid md:grid-cols-2 lg:grid-cols-3 gap-6">
+                  {/* Music Platform Data */}
+                  {analysisData.platforms.viberate && (
+                    <div className="space-y-4">
+                      <div className="flex items-center gap-2 mb-3">
+                        <Music className="h-4 w-4 text-green-500" />
+                        <span className="font-medium">Music Platforms</span>
+                      </div>
+                      <div className="space-y-3">
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total Followers</span>
+                          <span className="font-semibold">{analysisData.platforms.viberate.totalFollowers.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Total Reach</span>
+                          <span className="font-semibold">{analysisData.platforms.viberate.totalReach.toLocaleString()}</span>
+                        </div>
+                        <div className="flex items-center justify-between text-sm">
+                          <span className="text-muted-foreground">Engaged Audience</span>
+                          <span className="font-semibold">{analysisData.platforms.viberate.engagedAudience.toLocaleString()}</span>
+                        </div>
+                      </div>
+                      
+                      {/* Platform Breakdown */}
+                      <div className="pt-3 border-t">
+                        <div className="grid grid-cols-2 gap-2 text-xs">
+                          {Object.entries(analysisData.platforms.viberate.platforms).map(([platform, data]) => {
+                            if (!data || typeof data !== 'object') return null;
+                            const followerCount = (data as any).followers || (data as any).subscribers || (data as any).fans || 0;
+                            if (followerCount === 0) return null;
+                            return (
+                              <div key={platform} className="flex items-center justify-between p-2 bg-muted/50 rounded">
+                                <span className="capitalize">{platform}</span>
+                                <span className="font-medium">{followerCount.toLocaleString()}</span>
+                              </div>
+                            );
+                          })}
+                        </div>
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* Social Media Data */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Users className="h-4 w-4 text-purple-500" />
+                      <span className="font-medium">Social Platforms</span>
+                    </div>
+                    <div className="space-y-2">
+                      {analysisData.platforms.instagram && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <Instagram className="h-3 w-3" />
+                          <span>Instagram - {analysisData.instagram_username}</span>
+                          <Badge variant="secondary" className="text-xs">Connected</Badge>
+                        </div>
+                      )}
+                      {analysisData.platforms.tiktok && (
+                        <div className="flex items-center gap-2 text-sm">
+                          <TikTokIcon />
+                          <span>TikTok - {analysisData.tiktok_username}</span>
+                          <Badge variant="secondary" className="text-xs">Connected</Badge>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+                  
+                  {/* Analysis Summary */}
+                  <div className="space-y-4">
+                    <div className="flex items-center gap-2 mb-3">
+                      <Brain className="h-4 w-4 text-orange-500" />
+                      <span className="font-medium">Analysis Summary</span>
+                    </div>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Posts Analyzed</span>
+                        <span className="font-semibold">{analysisData.posts_analyzed}</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Overall Score</span>
+                        <span className="font-semibold">{analysis.overallScore}/10</span>
+                      </div>
+                      <div className="flex items-center justify-between">
+                        <span className="text-muted-foreground">Data Sources</span>
+                        <span className="font-semibold">
+                          {[analysisData.platforms?.viberate && 'Music', analysisData.platforms?.instagram && 'IG', analysisData.platforms?.tiktok && 'TT'].filter(Boolean).join(', ')}
+                        </span>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         {/* Key Insights */}
         <motion.div
@@ -435,11 +594,150 @@ export default function AnalysisResultsPage() {
           </Card>
         </motion.div>
 
+        {/* Scraped Posts Preview */}
+        {analysisData.scraped_posts && (analysisData.scraped_posts.instagram?.length > 0 || analysisData.scraped_posts.tiktok?.length > 0) && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.6 }}
+            className="mb-8"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <Eye className="h-5 w-5 text-blue-500" />
+                  Content Data Preview
+                </CardTitle>
+                <CardDescription>
+                  Sample of your posts analyzed by our AI (showing top performing content)
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-6">
+                  {/* Instagram Posts */}
+                  {analysisData.scraped_posts.instagram?.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <Instagram className="h-4 w-4" />
+                        <span className="font-medium">Instagram Posts</span>
+                        <Badge variant="outline" className="text-xs">
+                          {analysisData.scraped_posts.instagram.length} posts
+                        </Badge>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {analysisData.scraped_posts.instagram.slice(0, 4).map((post, index) => (
+                          <div key={index} className="p-3 bg-muted/30 rounded-lg border">
+                            <div className="flex items-start justify-between mb-2">
+                              <Badge variant="secondary" className="text-xs capitalize">
+                                {post.type}
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(post.timestamp).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm mb-3 line-clamp-2">{post.caption || 'No caption'}</p>
+                            <div className="flex items-center gap-4 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" />
+                                <span>{post.likes.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" />
+                                <span>{post.comments.toLocaleString()}</span>
+                              </div>
+                              {post.views && (
+                                <div className="flex items-center gap-1">
+                                  <Eye className="h-3 w-3" />
+                                  <span>{post.views.toLocaleString()}</span>
+                                </div>
+                              )}
+                            </div>
+                            {post.hashtags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {post.hashtags.slice(0, 3).map((tag, tagIndex) => (
+                                  <span key={tagIndex} className="text-xs text-blue-600 bg-blue-50 px-1 rounded">
+                                    {tag}
+                                  </span>
+                                ))}
+                                {post.hashtags.length > 3 && (
+                                  <span className="text-xs text-muted-foreground">+{post.hashtags.length - 3}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                  
+                  {/* TikTok Posts */}
+                  {analysisData.scraped_posts.tiktok?.length > 0 && (
+                    <div>
+                      <div className="flex items-center gap-2 mb-4">
+                        <TikTokIcon />
+                        <span className="font-medium">TikTok Posts</span>
+                        <Badge variant="outline" className="text-xs">
+                          {analysisData.scraped_posts.tiktok.length} posts
+                        </Badge>
+                      </div>
+                      <div className="grid md:grid-cols-2 gap-4">
+                        {analysisData.scraped_posts.tiktok.slice(0, 4).map((post, index) => (
+                          <div key={index} className="p-3 bg-muted/30 rounded-lg border">
+                            <div className="flex items-start justify-between mb-2">
+                              <Badge variant="secondary" className="text-xs">
+                                Video
+                              </Badge>
+                              <span className="text-xs text-muted-foreground">
+                                {new Date(post.timestamp).toLocaleDateString()}
+                              </span>
+                            </div>
+                            <p className="text-sm mb-3 line-clamp-2">{post.caption || 'No caption'}</p>
+                            <div className="flex items-center gap-3 text-xs text-muted-foreground">
+                              <div className="flex items-center gap-1">
+                                <Heart className="h-3 w-3" />
+                                <span>{post.likes.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <MessageSquare className="h-3 w-3" />
+                                <span>{post.comments.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Share2 className="h-3 w-3" />
+                                <span>{post.shares.toLocaleString()}</span>
+                              </div>
+                              <div className="flex items-center gap-1">
+                                <Eye className="h-3 w-3" />
+                                <span>{post.views.toLocaleString()}</span>
+                              </div>
+                            </div>
+                            {post.hashtags.length > 0 && (
+                              <div className="flex flex-wrap gap-1 mt-2">
+                                {post.hashtags.slice(0, 3).map((tag, tagIndex) => (
+                                  <span key={tagIndex} className="text-xs text-purple-600 bg-purple-50 px-1 rounded">
+                                    {tag}
+                                  </span>
+                                ))}
+                                {post.hashtags.length > 3 && (
+                                  <span className="text-xs text-muted-foreground">+{post.hashtags.length - 3}</span>
+                                )}
+                              </div>
+                            )}
+                          </div>
+                        ))}
+                      </div>
+                    </div>
+                  )}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* CTA Section */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
-          transition={{ delay: 0.6 }}
+          transition={{ delay: 0.7 }}
         >
           <Card className="bg-gradient-to-r from-purple-50 to-blue-50 dark:from-purple-950/20 dark:to-blue-950/20 border-purple-200 dark:border-purple-800">
             <CardContent className="p-8 text-center">

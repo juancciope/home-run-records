@@ -113,6 +113,12 @@ export default function ArtistAIOnboardingPage() {
 
       const result = await response.json()
       
+      // Store complete analysis data in localStorage for results page
+      if (result.complete_analysis_data) {
+        localStorage.setItem(`analysis_${result.analysisId}`, JSON.stringify(result.complete_analysis_data))
+        console.log('✅ Analysis data stored for results page')
+      }
+      
       // For testing phase, pass analysis data directly via localStorage
       // TODO: Remove this when implementing proper user accounts and database storage
       if (result.analysis) {

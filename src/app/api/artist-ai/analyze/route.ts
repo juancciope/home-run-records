@@ -65,9 +65,9 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     const actorId = INSTAGRAM_ACTOR_ID;
     console.log(`Using Instagram actor: ${actorId}`);
     
-    // Correct input format for apify/instagram-scraper
+    // Correct input format for apify/instagram-scraper according to documentation
     const runInput = {
-      usernames: [username],
+      directUrls: [`https://www.instagram.com/${username}/`],
       resultsLimit: 30,
       resultsType: "posts"
     };
@@ -574,7 +574,8 @@ export async function POST(request: NextRequest) {
       overallScore: analysis.overallScore
     });
 
-    return NextResponse.json({
+    // Prepare comprehensive response data for results page
+    const responseData = {
       success: true,
       analysisId: mockAnalysisId,
       postsAnalyzed: allPosts.length,
@@ -582,10 +583,33 @@ export async function POST(request: NextRequest) {
       platforms: {
         instagram: instagramPosts.length > 0,
         tiktok: tiktokPosts.length > 0,
-        viberate: !!vibrateData,
+        viberate: vibrateData ? {
+          totalFollowers: vibrateData.totalFollowers || 0,
+          totalReach: vibrateData.totalReach || 0,
+          engagedAudience: vibrateData.engagedAudience || 0,
+          platforms: vibrateData.platforms || {}
+        } : null,
+      },
+      scraped_posts: {
+        instagram: instagramPosts.slice(0, 10), // Include top 10 posts for display
+        tiktok: tiktokPosts.slice(0, 10)
       },
       note: 'This is a free analysis for testing. Sign up for full features and history.'
-    });
+    };
+
+    // Add complete analysis data structure to response for client-side storage
+    responseData.complete_analysis_data = {
+      id: mockAnalysisId,
+      instagram_username: instagramUsername,
+      tiktok_username: tiktokUsername,
+      posts_analyzed: allPosts.length,
+      analysis_result: analysis,
+      platforms: responseData.platforms,
+      scraped_posts: responseData.scraped_posts,
+      created_at: new Date().toISOString()
+    };
+
+    return NextResponse.json(responseData);
   } catch (error) {
     console.error('Error in AI analysis:', error);
     return NextResponse.json(
