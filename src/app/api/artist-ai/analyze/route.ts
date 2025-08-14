@@ -299,7 +299,7 @@ export async function POST(request: NextRequest) {
       return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
     }
 
-    const { instagramUsername, tiktokUsername } = await request.json();
+    const { artistId, instagramUsername, tiktokUsername } = await request.json();
 
     if (!instagramUsername && !tiktokUsername) {
       return NextResponse.json(
@@ -348,7 +348,7 @@ export async function POST(request: NextRequest) {
     const analysis = await analyzeWithOpenAI(allPosts, vibrateData);
 
     // Store analysis in database
-    const { error: insertError } = await supabase
+    const { data: analysisRecord, error: insertError } = await supabase
       .from('ai_analyses')
       .insert({
         user_id: user.id,
@@ -356,15 +356,18 @@ export async function POST(request: NextRequest) {
         tiktok_username: tiktokUsername,
         posts_analyzed: allPosts.length,
         analysis_result: analysis,
-        created_at: new Date().toISOString(),
-      });
+      })
+      .select('id')
+      .single();
 
     if (insertError) {
       console.error('Error storing analysis:', insertError);
+      return NextResponse.json({ error: 'Failed to save analysis' }, { status: 500 });
     }
 
     return NextResponse.json({
       success: true,
+      analysisId: analysisRecord.id,
       postsAnalyzed: allPosts.length,
       analysis,
       platforms: {

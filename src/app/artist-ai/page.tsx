@@ -42,8 +42,8 @@ export default function ArtistAIFunnelPage() {
 
   const handleGetStarted = () => {
     setIsLoading(true)
-    // Redirect to signup with a special parameter to track funnel conversion
-    router.push('/signup?source=artist-ai&product=ai-analysis')
+    // Redirect to AI analysis onboarding flow
+    router.push('/artist-ai/onboarding')
   }
 
   const features = [
@@ -77,11 +77,11 @@ export default function ArtistAIFunnelPage() {
   ]
 
   const benefits = [
-    "Comprehensive social media audit across all platforms",
+    "Extract reach and engagement data from all music platforms",
     "AI analysis of your last 30 Instagram posts",
     "TikTok content performance breakdown",
+    "Cross-platform audience insights",
     "Personalized growth strategy recommendations",
-    "Competitor analysis and benchmarking",
     "Optimal posting time suggestions",
     "Content type performance analysis",
     "Engagement rate optimization tips"
@@ -102,7 +102,7 @@ export default function ArtistAIFunnelPage() {
               className="inline-flex items-center gap-2 rounded-full bg-primary/10 px-4 py-2"
             >
               <Shield className="h-4 w-4 text-primary" />
-              <span className="text-sm font-medium">Powered by Viberate's Industry Data</span>
+              <span className="text-sm font-medium">Industry-Grade Analytics & AI Technology</span>
             </motion.div>
 
             {/* Main Headline */}
@@ -120,8 +120,8 @@ export default function ArtistAIFunnelPage() {
                 <span>for Music Artists</span>
               </h1>
               <p className="mx-auto max-w-2xl text-xl text-muted-foreground">
-                Get instant AI insights on your social media performance. 
-                Scan all your accounts, analyze your content, and receive actionable growth strategies.
+                We extract your reach and engagement data across all music platforms, 
+                analyze your latest Instagram and TikTok posts, and deliver AI-powered growth strategies.
               </p>
             </motion.div>
 
@@ -400,8 +400,8 @@ export default function ArtistAIFunnelPage() {
               <CardContent className="p-6">
                 <h3 className="font-semibold mb-2">How does the AI analysis work?</h3>
                 <p className="text-sm text-muted-foreground">
-                  Our AI connects to your social accounts via Viberate's API, analyzes your content performance, 
-                  engagement patterns, and audience behavior to generate personalized insights and recommendations.
+                  We extract your music platform data (Spotify, Apple Music, etc.) and analyze your Instagram/TikTok posts 
+                  using advanced AI to identify engagement patterns and provide personalized growth recommendations.
                 </p>
               </CardContent>
             </Card>
