@@ -121,7 +121,6 @@ export async function GET(request: NextRequest) {
   }
 
   if (!VIBERATE_API_KEY) {
-    // Return mock data when API key is not configured with realistic UUIDs
     console.warn('Viberate API key not configured, returning mock data with proper UUID format');
     return NextResponse.json([
       {
@@ -136,139 +135,100 @@ export async function GET(request: NextRequest) {
         country: { name: 'United States', code: 'US' },
         genre: { name: 'Pop' },
         subgenres: [{ name: 'Pop Rock' }]
-      },
-      {
-        id: 'd803da56-c6bd-4c61-addb-f1063544b3b3',
-        uuid: 'd803da56-c6bd-4c61-addb-f1063544b3b3', 
-        name: `${query} (Alternative)`,
-        image: 'https://via.placeholder.com/150x150?text=Alt',
-        slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
-        spotify_id: '3TVXtAsR1Inumwj472S9r4',
-        rank: 2,
-        verified: true,
-        country: { name: 'Canada', code: 'CA' },
-        genre: { name: 'Rock' },
-        subgenres: [{ name: 'Alternative Rock' }]
       }
     ]);
   }
 
   try {
-    // Always use name search since instant match endpoints are not available
     const searchUrl = `${VIBERATE_BASE_URL}/artist/search?q=${encodeURIComponent(query)}&limit=${limit}`;
-    console.log('Searching for artist:', query);
-    console.log('Search URL:', searchUrl);
-    console.log('API Key available:', !!VIBERATE_API_KEY);
+    console.log('🔍 Viberate API Search:', { query, searchUrl, hasKey: !!VIBERATE_API_KEY });
     
     const response = await fetch(searchUrl, {
       headers: {
         'Access-Key': VIBERATE_API_KEY,
         'Accept': 'application/json',
       },
-      signal: AbortSignal.timeout(10000) // 10 second timeout
+      signal: AbortSignal.timeout(10000)
     });
     
-    console.log('Response status:', response.status);
-    console.log('Response headers:', Object.fromEntries(response.headers.entries()));
+    console.log('✅ Viberate API Response:', { 
+      status: response.status, 
+      ok: response.ok,
+      headers: Object.fromEntries(response.headers.entries())
+    });
 
     if (!response.ok) {
-      console.warn(`Viberate API returned ${response.status}. Using fallback data.`);
-      // Don't throw error, just log and use fallback
+      const errorText = await response.text();
+      console.warn(`❌ Viberate API Error: ${response.status} - ${errorText}`);
+      
+      // Return fallback data on API error
       return NextResponse.json([
         {
-          id: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
-          uuid: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
+          id: 'fallback-' + Date.now(),
+          uuid: 'fallback-' + Date.now(),
           name: query,
           image: 'https://via.placeholder.com/150x150?text=Artist',
           slug: query.toLowerCase().replace(/\s+/g, '-'),
-          spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
+          spotify_id: null,
           rank: 1,
           verified: false,
           country: { name: 'United States', code: 'US' },
           genre: { name: 'Pop' },
           subgenres: [{ name: 'Pop Rock' }]
-        },
-        {
-          id: 'd803da56-c6bd-4c61-addb-f1063544b3b3',
-          uuid: 'd803da56-c6bd-4c61-addb-f1063544b3b3', 
-          name: `${query} (Alternative)`,
-          image: 'https://via.placeholder.com/150x150?text=Alt',
-          slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
-          spotify_id: '3TVXtAsR1Inumwj472S9r4',
-          rank: 2,
-          verified: true,
-          country: { name: 'Canada', code: 'CA' },
-          genre: { name: 'Rock' },
-          subgenres: [{ name: 'Alternative Rock' }]
         }
       ]);
     }
 
     const data = await response.json();
-    console.log('Raw Viberate search response:', JSON.stringify(data, null, 2));
+    console.log('📊 Viberate API Data:', { 
+      artists: data.data?.length || 0, 
+      total: data.pagination?.total || 0,
+      api_version: data.api_version 
+    });
     
-    // Transform the response to include the image and proper fields
-    const artists = data.data?.map((artist: {
+    // Transform the response to match expected format
+    const artists = (data.data || []).map((artist: {
       uuid: string;
       name: string;
       image: string;
       slug: string;
-      spotify_id?: string;
       rank: number;
       verified: boolean;
-      country: object;
-      genre: object;
-      subgenres: object[];
+      country: { alpha2: string; name: string };
+      genre: { id: number; name: string };
+      subgenres: { id: number; name: string }[];
     }) => ({
       id: artist.uuid,
       uuid: artist.uuid,
       name: artist.name,
-      image: artist.image,
+      image: artist.image || 'https://via.placeholder.com/150x150?text=Artist',
       slug: artist.slug,
-      spotify_id: artist.spotify_id || null,
       rank: artist.rank,
       verified: artist.verified,
-      country: artist.country,
-      genre: artist.genre,
-      subgenres: artist.subgenres
-    })) || [];
+      country: { name: artist.country?.name || 'Unknown', code: artist.country?.alpha2 || '' },
+      genre: { name: artist.genre?.name || 'Unknown' },
+      subgenres: artist.subgenres?.map(sg => ({ name: sg.name })) || []
+    }));
     
+    console.log('🎵 Transformed Artists:', artists.length);
     return NextResponse.json(artists);
+
   } catch (error) {
-    // Log but don't re-throw - graceful degradation
-    if (error instanceof Error) {
-      console.warn('Viberate API unavailable:', error.message, '- Using fallback data');
-    } else {
-      console.warn('Viberate API request failed - Using fallback data');
-    }
+    console.error('❌ Viberate API Network Error:', error);
     
-    // Return mock data as fallback without breaking the flow
+    // Return fallback data on network error
     return NextResponse.json([
       {
-        id: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
-        uuid: 'c803da56-c6bd-4c61-addb-f1063544a1a2',
+        id: 'network-error-' + Date.now(),
+        uuid: 'network-error-' + Date.now(),
         name: query,
         image: 'https://via.placeholder.com/150x150?text=Artist',
         slug: query.toLowerCase().replace(/\s+/g, '-'),
-        spotify_id: '5tP5qKnhTbTa2uEL3CLHh9',
         rank: 1,
         verified: false,
         country: { name: 'United States', code: 'US' },
         genre: { name: 'Pop' },
         subgenres: [{ name: 'Pop Rock' }]
-      },
-      {
-        id: 'd803da56-c6bd-4c61-addb-f1063544b3b3',
-        uuid: 'd803da56-c6bd-4c61-addb-f1063544b3b3', 
-        name: `${query} (Alternative)`,
-        image: 'https://via.placeholder.com/150x150?text=Alt',
-        slug: `${query}-alt`.toLowerCase().replace(/\s+/g, '-'),
-        spotify_id: '3TVXtAsR1Inumwj472S9r4',
-        rank: 2,
-        verified: true,
-        country: { name: 'Canada', code: 'CA' },
-        genre: { name: 'Rock' },
-        subgenres: [{ name: 'Alternative Rock' }]
       }
     ]);
   }
