@@ -86,12 +86,13 @@ The app uses **configurable actor IDs** with sensible defaults:
 
 #### **Default Actors Used:**
 
-1. **Instagram Scraper** (`apify/instagram-profile-scraper`)
-   - **Official Apify Actor**: Maintained by Apify team
+1. **Instagram Scraper** (`apify/instagram-scraper`)
+   - **Official Apify Actor**: Maintained by Apify team  
    - **Proven Reliability**: Battle-tested and well-documented
    - **Features**: Extracts up to 30 recent posts per user
    - **Data**: Likes, comments, views, hashtags, timestamps
    - **Rate Limits**: Respects Instagram's API limits
+   - **Input Format**: `{ "usernames": ["username"], "resultsLimit": 30, "resultsType": "posts" }`
 
 2. **TikTok Scraper** (`clockworks/free-tiktok-scraper`)
    - **Community Actor**: Created by Clockworks team
@@ -99,6 +100,7 @@ The app uses **configurable actor IDs** with sensible defaults:
    - **Features**: Scrapes up to 30 recent videos per profile
    - **Data**: Views, likes, comments, shares, video metadata
    - **Reliability**: Uses proxy rotation for stability
+   - **Input Format**: `{ "profiles": ["@username"], "resultsPerPage": 30, "proxyCountryCode": "US" }`
 
 #### **Alternative Actors You Can Use:**
 
@@ -125,8 +127,55 @@ The app uses **configurable actor IDs** with sensible defaults:
 #### **Actor Selection Logic:**
 ```typescript
 // Default actors with environment override capability
-const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'apify/instagram-profile-scraper';
+const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'apify/instagram-scraper';
 const TIKTOK_ACTOR_ID = process.env.TIKTOK_ACTOR_ID || 'clockworks/free-tiktok-scraper';
+```
+
+#### **CRITICAL: Authentication & API Endpoints**
+
+**✅ CORRECT IMPLEMENTATION:**
+```typescript
+// Use Bearer token authentication (NOT query parameters)
+const runResponse = await fetch(
+  `${APIFY_BASE_URL}/acts/${actorId}/runs`,
+  {
+    method: 'POST',
+    headers: { 
+      'Content-Type': 'application/json',
+      'Authorization': `Bearer ${APIFY_TOKEN}`  // ✅ CORRECT
+    },
+    body: JSON.stringify(runInput),
+  }
+);
+
+// Check status using correct endpoint
+const statusResponse = await fetch(
+  `${APIFY_BASE_URL}/actor-runs/${runId}`,  // ✅ CORRECT
+  {
+    headers: {
+      'Authorization': `Bearer ${APIFY_TOKEN}`
+    }
+  }
+);
+
+// Get results using correct endpoint
+const resultsResponse = await fetch(
+  `${APIFY_BASE_URL}/datasets/${datasetId}/items`,  // ✅ CORRECT
+  {
+    headers: {
+      'Authorization': `Bearer ${APIFY_TOKEN}`
+    }
+  }
+);
+```
+
+**❌ WRONG IMPLEMENTATION (Previous Code):**
+```typescript
+// Wrong: Using query parameters instead of headers
+fetch(`${APIFY_BASE_URL}/acts/${actorId}/runs?token=${APIFY_TOKEN}`)
+
+// Wrong: Using old endpoint format
+fetch(`${APIFY_BASE_URL}/acts/${actorId}/runs/${runId}?token=${APIFY_TOKEN}`)
 ```
 
 ### **Data Flow**

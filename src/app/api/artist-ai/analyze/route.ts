@@ -11,9 +11,9 @@ const openai = new OpenAI({
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
 const APIFY_BASE_URL = 'https://api.apify.com/v2';
 
-// Apify Actor IDs - using user-specified actors
-const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'apify/instagram-post-scraper';
-const TIKTOK_ACTOR_ID = process.env.TIKTOK_ACTOR_ID || 'clockworks/tiktok-scraper';
+// Apify Actor IDs - using internal IDs that work with the API
+const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'shu8hvrXbJbY3Eb9W'; // apify/instagram-scraper
+const TIKTOK_ACTOR_ID = process.env.TIKTOK_ACTOR_ID || 'OtzYfK1ndEGdwWFKQ'; // clockworks/free-tiktok-scraper
 
 interface SocialMediaPost {
   platform: 'instagram' | 'tiktok';
@@ -64,18 +64,24 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     // Use the configured Instagram Actor
     const actorId = INSTAGRAM_ACTOR_ID;
     console.log(`Using Instagram actor: ${actorId}`);
+    
+    // Correct input format for apify/instagram-scraper
     const runInput = {
-      username: [username],
+      usernames: [username],
       resultsLimit: 30,
+      resultsType: "posts"
     };
 
     console.log('Apify run input:', runInput);
 
     const runResponse = await fetch(
-      `${APIFY_BASE_URL}/acts/${actorId}/runs?token=${APIFY_TOKEN}`,
+      `${APIFY_BASE_URL}/acts/${actorId}/runs`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${APIFY_TOKEN}`
+        },
         body: JSON.stringify(runInput),
       }
     );
@@ -96,12 +102,17 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     const maxAttempts = 60; // 2 minutes max wait
 
     while ((status === 'RUNNING' || status === 'READY') && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
       attempts++;
       
       try {
         const statusResponse = await fetch(
-          `${APIFY_BASE_URL}/acts/${actorId}/runs/${runId}?token=${APIFY_TOKEN}`
+          `${APIFY_BASE_URL}/actor-runs/${runId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${APIFY_TOKEN}`
+            }
+          }
         );
         
         if (!statusResponse.ok) {
@@ -111,10 +122,11 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
         
         const statusData = await statusResponse.json();
         status = statusData.data.status;
-        console.log(`Instagram scraper status: ${status} (attempt ${attempts})`);
+        console.log(`Instagram scraper status: ${status} (attempt ${attempts}/${maxAttempts})`);
         
-        if (status === 'FAILED' || status === 'ABORTED') {
+        if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
           console.error('Instagram scraper failed with status:', status);
+          console.error('Status message:', statusData.data.statusMessage);
           return generateMockInstagramPosts(username);
         }
       } catch (error) {
@@ -131,7 +143,12 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     // Get the results
     try {
       const resultsResponse = await fetch(
-        `${APIFY_BASE_URL}/datasets/${run.data.defaultDatasetId}/items?token=${APIFY_TOKEN}`
+        `${APIFY_BASE_URL}/datasets/${run.data.defaultDatasetId}/items`,
+        {
+          headers: {
+            'Authorization': `Bearer ${APIFY_TOKEN}`
+          }
+        }
       );
 
       if (!resultsResponse.ok) {
@@ -150,7 +167,7 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
       // Transform Apify data to our format
       return results.map((post: any) => ({
         platform: 'instagram' as const,
-        type: post.type || (post.isVideo ? 'video' : 'photo'),
+        type: post.type || (post.videoUrl ? 'video' : 'photo'),
         caption: post.caption || '',
         likes: post.likesCount || post.likes || 0,
         comments: post.commentsCount || post.comments || 0,
@@ -209,20 +226,26 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
     // Use the configured TikTok Actor
     const actorId = TIKTOK_ACTOR_ID;
     console.log(`Using TikTok actor: ${actorId}`);
+    
+    // Correct input format for clockworks/free-tiktok-scraper
     const runInput = {
       profiles: [`https://www.tiktok.com/@${username}`],
       resultsPerPage: 30,
-      shouldDownloadVideos: false,
       shouldDownloadCovers: false,
+      shouldDownloadVideos: false,
+      shouldDownloadSubtitles: false
     };
 
     console.log('TikTok Apify run input:', runInput);
 
     const runResponse = await fetch(
-      `${APIFY_BASE_URL}/acts/${actorId}/runs?token=${APIFY_TOKEN}`,
+      `${APIFY_BASE_URL}/acts/${actorId}/runs`,
       {
         method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
+        headers: { 
+          'Content-Type': 'application/json',
+          'Authorization': `Bearer ${APIFY_TOKEN}`
+        },
         body: JSON.stringify(runInput),
       }
     );
@@ -243,12 +266,17 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
     const maxAttempts = 60; // 2 minutes max wait
 
     while ((status === 'RUNNING' || status === 'READY') && attempts < maxAttempts) {
-      await new Promise(resolve => setTimeout(resolve, 2000));
+      await new Promise(resolve => setTimeout(resolve, 3000));
       attempts++;
       
       try {
         const statusResponse = await fetch(
-          `${APIFY_BASE_URL}/acts/${actorId}/runs/${runId}?token=${APIFY_TOKEN}`
+          `${APIFY_BASE_URL}/actor-runs/${runId}`,
+          {
+            headers: {
+              'Authorization': `Bearer ${APIFY_TOKEN}`
+            }
+          }
         );
         
         if (!statusResponse.ok) {
@@ -258,10 +286,11 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
         
         const statusData = await statusResponse.json();
         status = statusData.data.status;
-        console.log(`TikTok scraper status: ${status} (attempt ${attempts})`);
+        console.log(`TikTok scraper status: ${status} (attempt ${attempts}/${maxAttempts})`);
         
-        if (status === 'FAILED' || status === 'ABORTED') {
+        if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
           console.error('TikTok scraper failed with status:', status);
+          console.error('Status message:', statusData.data.statusMessage);
           return generateMockTikTokPosts(username);
         }
       } catch (error) {
@@ -278,7 +307,12 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
     // Get the results
     try {
       const resultsResponse = await fetch(
-        `${APIFY_BASE_URL}/datasets/${run.data.defaultDatasetId}/items?token=${APIFY_TOKEN}`
+        `${APIFY_BASE_URL}/datasets/${run.data.defaultDatasetId}/items`,
+        {
+          headers: {
+            'Authorization': `Bearer ${APIFY_TOKEN}`
+          }
+        }
       );
 
       if (!resultsResponse.ok) {
@@ -494,8 +528,9 @@ export async function POST(request: NextRequest) {
     if (artistId) {
       try {
         console.log('Fetching Viberate data for artist ID:', artistId);
+        const baseUrl = process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000';
         const vibrateResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL}/api/viberate/artist/${artistId}`
+          `${baseUrl}/api/viberate/artist/${artistId}`
         );
         if (vibrateResponse.ok) {
           vibrateData = await vibrateResponse.json();
