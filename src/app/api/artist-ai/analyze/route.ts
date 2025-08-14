@@ -575,7 +575,7 @@ export async function POST(request: NextRequest) {
     });
 
     // Prepare comprehensive response data for results page
-    const responseData = {
+    const responseData: any = {
       success: true,
       analysisId: mockAnalysisId,
       postsAnalyzed: allPosts.length,
