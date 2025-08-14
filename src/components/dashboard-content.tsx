@@ -309,29 +309,15 @@ export function DashboardContent() {
         
         console.log('Loaded real marketing data from database:', realMarketingData);
         
-        // Use real marketing data if available, otherwise use dummy data
+        // PipelineService.getMarketingMetrics() already includes Viberate data
         let marketingDataToSet = {
           totalReach: realMarketingData.totalReach || 0,
           engaged: realMarketingData.engagedAudience || 0,
           followers: realMarketingData.totalFollowers || 0,
           isRealData: true,
         };
-
-        // If Viberate is connected, add Viberate follower data to the real database data
-        if (hasConnection && profile?.viberate_artist_id) {
-          try {
-            const response = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
-            const vibrateData = await response.json();
-            
-            if (vibrateData && !vibrateData.error) {
-              console.log('Adding Viberate follower data to real marketing data:', vibrateData.totalFollowers);
-              // Add Viberate followers to the database followers count
-              marketingDataToSet.followers += vibrateData.totalFollowers || 0;
-            }
-          } catch (error) {
-            console.warn('Error loading Viberate analytics:', error);
-          }
-        }
+        
+        console.log('📊 Marketing data from PipelineService (includes Viberate):', marketingDataToSet);
 
         // Only use dummy data if no real data exists at all
         if (marketingDataToSet.totalReach === 0 && marketingDataToSet.engaged === 0 && marketingDataToSet.followers === 0) {
