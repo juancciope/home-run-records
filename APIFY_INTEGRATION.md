@@ -63,7 +63,10 @@ This document explains how the AI funnel uses Apify to scrape Instagram and TikT
 ```bash
 # Apify Configuration
 APIFY_TOKEN=your_apify_token_here
-APIFY_BASE_URL=https://api.apify.com/v2
+
+# Apify Actor Selection (Optional - defaults provided)
+INSTAGRAM_ACTOR_ID=apify/instagram-profile-scraper
+TIKTOK_ACTOR_ID=clockworks/free-tiktok-scraper
 
 # OpenAI for Analysis
 OPENAI_API_KEY=your_openai_key_here
@@ -72,19 +75,59 @@ OPENAI_API_KEY=your_openai_key_here
 VIBERATE_API_KEY=your_viberate_key_here
 ```
 
-### **Apify Actors Used**
+### **Apify Actor Selection Strategy**
+
+The app uses **configurable actor IDs** with sensible defaults:
+
+#### **How Actors Are Selected:**
+1. **Environment Variable Check**: Looks for `INSTAGRAM_ACTOR_ID` and `TIKTOK_ACTOR_ID`
+2. **Default Fallback**: Uses proven actors if no custom ones specified
+3. **Runtime Logging**: Logs which actor is being used for debugging
+
+#### **Default Actors Used:**
 
 1. **Instagram Scraper** (`apify/instagram-profile-scraper`)
-   - Extracts up to 30 recent posts per user
-   - Handles both public and business accounts
-   - Respects Instagram's rate limits
-   - Returns structured JSON data
+   - **Official Apify Actor**: Maintained by Apify team
+   - **Proven Reliability**: Battle-tested and well-documented
+   - **Features**: Extracts up to 30 recent posts per user
+   - **Data**: Likes, comments, views, hashtags, timestamps
+   - **Rate Limits**: Respects Instagram's API limits
 
 2. **TikTok Scraper** (`clockworks/free-tiktok-scraper`)
-   - Scrapes up to 30 recent videos per profile
-   - Extracts engagement metrics and video metadata
-   - Uses proxy rotation for reliability
-   - Returns comprehensive video analytics
+   - **Community Actor**: Created by Clockworks team
+   - **Free Tier Available**: Basic usage included
+   - **Features**: Scrapes up to 30 recent videos per profile
+   - **Data**: Views, likes, comments, shares, video metadata
+   - **Reliability**: Uses proxy rotation for stability
+
+#### **Alternative Actors You Can Use:**
+
+**Instagram Options:**
+- `apify/instagram-scraper` - More comprehensive but paid
+- `drobnikj/crawler-google-places` - For location-based content
+
+**TikTok Options:**
+- `clockworks/tiktok-scraper` - Premium version with more features
+- `useful-tools/tiktok-scraper` - Alternative community option
+
+#### **How to Change Actors:**
+
+1. **Find Alternative Actor**: Browse [Apify Store](https://apify.com/store) for social media scrapers
+2. **Check Compatibility**: Ensure output format matches expected data structure  
+3. **Update Environment**: Add actor ID to your `.env.local`:
+   ```bash
+   INSTAGRAM_ACTOR_ID=your/chosen-instagram-actor
+   TIKTOK_ACTOR_ID=your/chosen-tiktok-actor
+   ```
+4. **Test Data Format**: Verify the actor returns compatible JSON structure
+5. **Update Data Mapping**: Modify data transformation if needed
+
+#### **Actor Selection Logic:**
+```typescript
+// Default actors with environment override capability
+const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'apify/instagram-profile-scraper';
+const TIKTOK_ACTOR_ID = process.env.TIKTOK_ACTOR_ID || 'clockworks/free-tiktok-scraper';
+```
 
 ### **Data Flow**
 ```mermaid

@@ -11,6 +11,10 @@ const openai = new OpenAI({
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
 const APIFY_BASE_URL = 'https://api.apify.com/v2';
 
+// Apify Actor IDs - configurable via environment variables
+const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'apify/instagram-profile-scraper';
+const TIKTOK_ACTOR_ID = process.env.TIKTOK_ACTOR_ID || 'clockworks/free-tiktok-scraper';
+
 interface SocialMediaPost {
   platform: 'instagram' | 'tiktok';
   type: string;
@@ -55,8 +59,9 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
   try {
     console.log(`Starting Instagram scraping for @${username}`);
     
-    // Use the Apify Instagram Profile Scraper
-    const actorId = 'apify/instagram-profile-scraper';
+    // Use the configured Instagram Actor
+    const actorId = INSTAGRAM_ACTOR_ID;
+    console.log(`Using Instagram actor: ${actorId}`);
     const runInput = {
       usernames: [username],
       resultsLimit: 30,
@@ -201,8 +206,9 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
   try {
     console.log(`Starting TikTok scraping for @${username}`);
     
-    // Use the Apify TikTok Scraper
-    const actorId = 'clockworks/free-tiktok-scraper';
+    // Use the configured TikTok Actor
+    const actorId = TIKTOK_ACTOR_ID;
+    console.log(`Using TikTok actor: ${actorId}`);
     const runInput = {
       profiles: [`@${username}`],
       postCount: 30,
