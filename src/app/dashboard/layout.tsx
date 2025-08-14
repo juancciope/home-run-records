@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { PersistentArtistHeader } from "@/components/persistent-artist-header";
 import { ArtistSwitcher } from "@/components/artist-switcher";
 import { requireAuth, getUserWithFullData } from "@/lib/auth/server-auth";
+import { AuthProvider } from "@/contexts/auth-provider";
 
 export const dynamic = 'force-dynamic'
 
@@ -21,13 +22,14 @@ export default async function DashboardLayout({
   const { user, profile, agencies, currentAgency } = userData;
 
   return (
-    <ThemeProvider
-      attribute="class"
-      defaultTheme="dark"
-      enableSystem
-      disableTransitionOnChange
-    >
-      <SidebarProvider>
+    <AuthProvider initialUser={user} initialProfile={profile}>
+      <ThemeProvider
+        attribute="class"
+        defaultTheme="dark"
+        enableSystem
+        disableTransitionOnChange
+      >
+        <SidebarProvider>
         <AppSidebar 
           user={user}
           profile={profile} 
@@ -53,7 +55,8 @@ export default async function DashboardLayout({
             {children}
           </div>
         </SidebarInset>
-      </SidebarProvider>
-    </ThemeProvider>
+        </SidebarProvider>
+      </ThemeProvider>
+    </AuthProvider>
   );
 }
