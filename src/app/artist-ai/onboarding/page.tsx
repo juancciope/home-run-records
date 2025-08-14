@@ -113,6 +113,20 @@ export default function ArtistAIOnboardingPage() {
 
       const result = await response.json()
       
+      // For testing phase, pass analysis data directly via localStorage
+      // TODO: Remove this when implementing proper user accounts and database storage
+      if (result.analysis) {
+        const analysisData = {
+          id: result.analysisId,
+          instagram_username: instagramHandle.replace('@', ''),
+          tiktok_username: tiktokHandle.replace('@', ''),
+          posts_analyzed: result.postsAnalyzed,
+          analysis_result: result.analysis,
+          created_at: new Date().toISOString()
+        };
+        localStorage.setItem(`analysis_${result.analysisId}`, JSON.stringify(analysisData));
+      }
+      
       // Redirect to results page with analysis ID
       router.push(`/artist-ai/results?analysis=${result.analysisId}`)
     } catch (error) {

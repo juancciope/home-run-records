@@ -52,9 +52,11 @@ interface AnalysisResult {
 
 async function extractInstagramPosts(username: string): Promise<SocialMediaPost[]> {
   if (!APIFY_TOKEN) {
-    console.log('Apify token not configured, using mock Instagram data');
+    console.log('📱 Apify token not configured, using mock Instagram data');
     return generateMockInstagramPosts(username);
   }
+
+  console.log('🚀 APIFY_TOKEN found, starting real Instagram scraping...');
 
   try {
     console.log(`Starting Instagram scraping for @${username}`);
@@ -199,9 +201,11 @@ function generateMockInstagramPosts(username: string): SocialMediaPost[] {
 
 async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> {
   if (!APIFY_TOKEN) {
-    console.log('Apify token not configured, using mock TikTok data');
+    console.log('📱 Apify token not configured, using mock TikTok data');
     return generateMockTikTokPosts(username);
   }
+
+  console.log('🚀 APIFY_TOKEN found, starting real TikTok scraping...');
 
   try {
     console.log(`Starting TikTok scraping for @${username}`);
@@ -480,14 +484,6 @@ async function analyzeWithOpenAI(
 
 export async function POST(request: NextRequest) {
   try {
-    const supabase = await createAuthenticatedClient();
-    
-    // Get current user
-    const { data: { user }, error: userError } = await supabase.auth.getUser();
-    if (userError || !user) {
-      return NextResponse.json({ error: 'Not authenticated' }, { status: 401 });
-    }
-
     const { artistId, instagramUsername, tiktokUsername } = await request.json();
 
     if (!instagramUsername && !tiktokUsername) {
@@ -497,21 +493,22 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Get Viberate data if connected
-    const { data: profile } = await supabase
-      .from('artist_profiles')
-      .select('viberate_artist_id')
-      .eq('id', user.id)
-      .single();
+    console.log('🚀 Starting AI analysis for:', { instagramUsername, tiktokUsername, artistId });
 
+    // For now, skip user authentication and profile lookup to allow free testing
+    // TODO: Re-enable authentication when implementing paywall
     let vibrateData = null;
-    if (profile?.viberate_artist_id) {
+    if (artistId) {
       try {
+        console.log('Fetching Viberate data for artist ID:', artistId);
         const vibrateResponse = await fetch(
-          `${process.env.NEXT_PUBLIC_APP_URL}/api/viberate/artist/${profile.viberate_artist_id}`
+          `${process.env.NEXT_PUBLIC_APP_URL}/api/viberate/artist/${artistId}`
         );
         if (vibrateResponse.ok) {
           vibrateData = await vibrateResponse.json();
+          console.log('✅ Viberate data retrieved successfully');
+        } else {
+          console.log('⚠️ Viberate data not available, continuing without it');
         }
       } catch (error) {
         console.error('Error fetching Viberate data:', error);
@@ -534,36 +531,32 @@ export async function POST(request: NextRequest) {
     }
 
     // Analyze with OpenAI
+    console.log('🧠 Starting AI analysis with OpenAI');
     const analysis = await analyzeWithOpenAI(allPosts, vibrateData);
+    console.log('✅ AI analysis completed');
 
-    // Store analysis in database
-    const { data: analysisRecord, error: insertError } = await supabase
-      .from('ai_analyses')
-      .insert({
-        user_id: user.id,
-        instagram_username: instagramUsername,
-        tiktok_username: tiktokUsername,
-        posts_analyzed: allPosts.length,
-        analysis_result: analysis,
-      })
-      .select('id')
-      .single();
-
-    if (insertError) {
-      console.error('Error storing analysis:', insertError);
-      return NextResponse.json({ error: 'Failed to save analysis' }, { status: 500 });
-    }
+    // For free testing, skip database storage and return analysis directly
+    // TODO: Re-enable database storage when implementing paywall
+    const mockAnalysisId = `free-analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    console.log('📊 Analysis complete:', {
+      instagramPosts: instagramPosts.length,
+      tiktokPosts: tiktokPosts.length,
+      hasVibrateData: !!vibrateData,
+      overallScore: analysis.overallScore
+    });
 
     return NextResponse.json({
       success: true,
-      analysisId: analysisRecord.id,
+      analysisId: mockAnalysisId,
       postsAnalyzed: allPosts.length,
       analysis,
       platforms: {
         instagram: instagramPosts.length > 0,
         tiktok: tiktokPosts.length > 0,
         viberate: !!vibrateData,
-      }
+      },
+      note: 'This is a free analysis for testing. Sign up for full features and history.'
     });
   } catch (error) {
     console.error('Error in AI analysis:', error);

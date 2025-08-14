@@ -90,6 +90,19 @@ export default function AnalysisResultsPage() {
 
   const fetchAnalysisData = async () => {
     try {
+      // For testing phase, try localStorage first (free analyses)
+      // TODO: Remove localStorage fallback when implementing proper user accounts
+      const localData = localStorage.getItem(`analysis_${analysisId}`);
+      if (localData) {
+        console.log('📱 Loading analysis from localStorage (free testing mode)');
+        const analysisData = JSON.parse(localData);
+        setAnalysisData(analysisData);
+        setLoading(false);
+        return;
+      }
+
+      // Try database if localStorage doesn't have the analysis
+      console.log('🔍 Trying to fetch from database...');
       const supabase = await createAuthenticatedClient()
       
       const { data, error } = await supabase
@@ -100,7 +113,7 @@ export default function AnalysisResultsPage() {
 
       if (error) {
         console.error('Error fetching analysis:', error)
-        setError('Analysis not found')
+        setError('Analysis not found. This may be a free analysis that has expired.')
         return
       }
 
