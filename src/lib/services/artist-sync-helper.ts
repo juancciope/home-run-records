@@ -36,7 +36,7 @@ export class ArtistSyncHelper {
   /**
    * Sync artist data to both artist_profiles and artists tables for consistency
    */
-  static async syncArtistDataToAllTables(userId: string, userEmail: string, artistData: ArtistSyncData): Promise<boolean> {
+  static async syncArtistDataToAllTables(userId: string, userEmail: string, artistData: ArtistSyncData): Promise<{ success: boolean; error?: string }> {
     try {
       const supabase = createClient();
       
@@ -48,10 +48,13 @@ export class ArtistSyncHelper {
       
       console.log('Sync results:', { profileSuccess, artistSuccess });
       
-      return profileSuccess; // Primary table success is most important
+      return { success: profileSuccess }; // Primary table success is most important
     } catch (error) {
       console.error('Error in syncArtistDataToAllTables:', error);
-      return false;
+      return { 
+        success: false, 
+        error: error instanceof Error ? error.message : 'Unknown sync error' 
+      };
     }
   }
 
@@ -60,20 +63,32 @@ export class ArtistSyncHelper {
    */
   private static async syncToArtistProfiles(supabase: any, userId: string, userEmail: string, artistData: ArtistSyncData): Promise<boolean> {
     try {
-      // First check if this Viberate artist is already connected to another user
-      const { data: existingConnection } = await supabase
+      console.log(`🔄 Syncing artist ${artistData.name} (${artistData.uuid}) to user ${userEmail}`);
+
+      // First, get the current user's profile
+      const { data: currentProfile } = await supabase
         .from('artist_profiles')
-        .select('id, email, artist_name')
-        .eq('viberate_artist_id', artistData.uuid)
-        .neq('id', userId) // Exclude current user
+        .select('*')
+        .eq('id', userId)
         .single();
 
-      if (existingConnection) {
-        console.error(`Artist ${artistData.name} (${artistData.uuid}) is already connected to user ${existingConnection.email}`);
-        throw new Error(`This artist is already connected to another account (${existingConnection.email}). Each artist can only be connected to one account.`);
+      // Check if this Viberate artist is connected to a different user
+      const { data: existingConnections } = await supabase
+        .from('artist_profiles')
+        .select('id, email, artist_name, viberate_artist_id')
+        .eq('viberate_artist_id', artistData.uuid);
+
+      const otherUserConnection = existingConnections?.find(conn => conn.id !== userId);
+      const currentUserConnection = existingConnections?.find(conn => conn.id === userId);
+      
+      if (otherUserConnection) {
+        console.error(`❌ Artist ${artistData.name} is already connected to ${otherUserConnection.email}`);
+        throw new Error(`This artist is already connected to another account (${otherUserConnection.email}). Each artist can only be connected to one account.`);
       }
+
+      // Prepare the profile update
       const profileUpdate = {
-        id: userId, // User ID as primary key
+        // Don't update the ID - it's the primary key
         email: userEmail,
         viberate_artist_id: artistData.uuid,
         viberate_uuid: artistData.uuid,
@@ -84,10 +99,10 @@ export class ArtistSyncHelper {
         
         // Artist name and image
         artist_name: artistData.name,
-        stage_name: artistData.name, // Use name as stage_name for consistency
+        stage_name: artistData.name,
         profile_image_url: artistData.image,
         
-        // Social media URLs
+        // Social media URLs (extract from Viberate data)
         instagram_url: this.extractSocialUrl(artistData.social_links, 'instagram'),
         tiktok_url: this.extractSocialUrl(artistData.social_links, 'tiktok'),
         facebook_url: this.extractSocialUrl(artistData.social_links, 'facebook'),
@@ -99,7 +114,7 @@ export class ArtistSyncHelper {
         soundcloud_url: this.extractSocialUrl(artistData.social_links, 'soundcloud'),
         spotify_id: artistData.spotify_id,
         
-        // Metrics
+        // Metrics from Viberate
         instagram_followers: artistData.metrics?.instagram_followers || 0,
         tiktok_followers: artistData.metrics?.tiktok_followers || 0,
         facebook_followers: artistData.metrics?.facebook_followers || 0,
@@ -117,26 +132,55 @@ export class ArtistSyncHelper {
         
         // Mark onboarding as completed
         onboarding_completed: true,
-        
         updated_at: new Date().toISOString()
       };
 
-      const { error } = await supabase
-        .from('artist_profiles')
-        .upsert(profileUpdate, { 
-          onConflict: 'id'
-        });
-
-      if (error) {
-        console.error('Error updating artist_profiles:', error);
-        return false;
+      let result;
+      
+      if (currentUserConnection) {
+        // User is reconnecting the same artist - just UPDATE
+        console.log(`🔄 User reconnecting same artist ${artistData.name}`);
+        result = await supabase
+          .from('artist_profiles')
+          .update(profileUpdate)
+          .eq('id', userId);
+      } else {
+        // New artist connection - first clear any existing viberate_artist_id for this user
+        console.log(`🆕 New artist connection for user`);
+        
+        // Clear existing viberate connection if any
+        await supabase
+          .from('artist_profiles')
+          .update({ 
+            viberate_artist_id: null,
+            viberate_uuid: null,
+            viberate_last_sync: null 
+          })
+          .eq('id', userId);
+        
+        // Now set the new artist connection
+        result = await supabase
+          .from('artist_profiles')
+          .update(profileUpdate)
+          .eq('id', userId);
       }
 
-      console.log('Successfully synced to artist_profiles table');
+      if (result.error) {
+        console.error('❌ Error updating artist_profiles:', result.error);
+        
+        // If it's a unique constraint violation for viberate_artist_id, provide better error
+        if (result.error.code === '23505' && result.error.message.includes('viberate_artist_id')) {
+          throw new Error(`Database constraint error: This artist connection already exists. Please try again.`);
+        }
+        
+        throw new Error(`Database error: ${result.error.message}`);
+      }
+
+      console.log('✅ Successfully synced to artist_profiles table');
       return true;
     } catch (error) {
-      console.error('Error in syncToArtistProfiles:', error);
-      return false;
+      console.error('❌ Error in syncToArtistProfiles:', error);
+      throw error; // Re-throw to bubble up the specific error message
     }
   }
 
