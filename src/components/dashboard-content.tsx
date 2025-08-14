@@ -173,6 +173,16 @@ export function DashboardContent() {
   
   // Note: Superadmin redirect now handled server-side in dashboard page
   const user = authUser; // Use authenticated user directly
+  
+  // Debug logging
+  React.useEffect(() => {
+    console.log('🎯 Dashboard Debug:', {
+      user: user?.id ? 'Present' : 'Missing',
+      userId: user?.id,
+      isLoading,
+      profile: profile?.id ? 'Present' : 'Missing',
+    });
+  }, [user?.id, isLoading, profile]);
   const [pipelineMetrics, setPipelineMetrics] = React.useState<{
     production: { unfinished: number; finished: number; released: number };
     marketing: { totalReach: number; engagedAudience: number; totalFollowers: number; youtubeSubscribers: number };
@@ -216,7 +226,10 @@ export function DashboardContent() {
 
   // Function to refresh pipeline data
   const refreshPipelineData = React.useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.warn('Cannot refresh pipeline data: user.id is not available');
+      return;
+    }
     
     try {
       // Re-run the loadPipelineMetrics function
@@ -229,7 +242,10 @@ export function DashboardContent() {
 
   // Function to load goals
   const loadGoals = React.useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      console.warn('Cannot load goals: user.id is not available');
+      return;
+    }
     
     try {
       const { PipelineService } = await import('@/lib/services/pipeline-service');
@@ -287,7 +303,10 @@ export function DashboardContent() {
   // Follower Conversion: followers/engaged = 21.2K/45.6K = 46.5%
 
   const loadPipelineMetrics = React.useCallback(async () => {
-    if (!user?.id) return;
+    if (!user?.id) {
+      setIsLoadingMetrics(false);
+      return;
+    }
     
     try {
       setIsLoadingMetrics(true);
