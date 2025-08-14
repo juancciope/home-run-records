@@ -90,7 +90,7 @@ export default function AnalysisResultsPage() {
 
   const fetchAnalysisData = async () => {
     try {
-      const supabase = createAuthenticatedClient()
+      const supabase = await createAuthenticatedClient()
       
       const { data, error } = await supabase
         .from('ai_analyses')
