@@ -210,7 +210,8 @@ export class PipelineService {
     try {
       const records = await this.getMarketingRecords(userId);
       
-      return {
+      // Get manually entered data
+      const manualMetrics = {
         totalReach: records
           .filter(r => r.record_type === 'reach')
           .reduce((sum, r) => sum + (r.reach_count || 0), 0),
@@ -221,6 +222,36 @@ export class PipelineService {
           .filter(r => r.record_type === 'followers')
           .reduce((sum, r) => sum + (r.follower_count || 0), 0),
       };
+
+      // Check if user has Viberate connection and add those metrics
+      try {
+        const { ArtistService } = await import('./artist-service');
+        const profile = await ArtistService.getArtistProfile(userId, '');
+        
+        if (profile?.viberate_artist_id) {
+          // Get Viberate analytics data
+          const response = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
+          
+          if (response.ok) {
+            const vibrateData = await response.json();
+            console.log('Including Viberate data in marketing metrics:', {
+              vibrateReach: vibrateData.totalReach,
+              vibrateEngaged: vibrateData.engagedAudience,
+              vibrateFollowers: vibrateData.totalFollowers
+            });
+            
+            // Add Viberate data to manual data
+            manualMetrics.totalReach += vibrateData.totalReach || 0;
+            manualMetrics.engagedAudience += vibrateData.engagedAudience || 0;
+            manualMetrics.totalFollowers += vibrateData.totalFollowers || 0;
+          }
+        }
+      } catch (vibrateError) {
+        console.warn('Could not fetch Viberate data for marketing metrics:', vibrateError);
+        // Continue with manual data only
+      }
+      
+      return manualMetrics;
     } catch (error) {
       console.error('Error calculating marketing metrics:', error);
       return { totalReach: 0, engagedAudience: 0, totalFollowers: 0 };
