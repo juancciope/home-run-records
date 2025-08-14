@@ -78,8 +78,8 @@ export class ArtistSyncHelper {
         .select('id, email, artist_name, viberate_artist_id')
         .eq('viberate_artist_id', artistData.uuid);
 
-      const otherUserConnection = existingConnections?.find(conn => conn.id !== userId);
-      const currentUserConnection = existingConnections?.find(conn => conn.id === userId);
+      const otherUserConnection = existingConnections?.find((conn: { id: string; email: string; artist_name: string; viberate_artist_id: string }) => conn.id !== userId);
+      const currentUserConnection = existingConnections?.find((conn: { id: string; email: string; artist_name: string; viberate_artist_id: string }) => conn.id === userId);
       
       if (otherUserConnection) {
         console.error(`❌ Artist ${artistData.name} is already connected to ${otherUserConnection.email}`);
