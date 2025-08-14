@@ -11,9 +11,9 @@ const openai = new OpenAI({
 const APIFY_TOKEN = process.env.APIFY_TOKEN;
 const APIFY_BASE_URL = 'https://api.apify.com/v2';
 
-// Apify Actor IDs - configurable via environment variables
-const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'apify/instagram-profile-scraper';
-const TIKTOK_ACTOR_ID = process.env.TIKTOK_ACTOR_ID || 'clockworks/free-tiktok-scraper';
+// Apify Actor IDs - using user-specified actors
+const INSTAGRAM_ACTOR_ID = process.env.INSTAGRAM_ACTOR_ID || 'apify/instagram-post-scraper';
+const TIKTOK_ACTOR_ID = process.env.TIKTOK_ACTOR_ID || 'clockworks/tiktok-scraper';
 
 interface SocialMediaPost {
   platform: 'instagram' | 'tiktok';
@@ -65,12 +65,8 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     const actorId = INSTAGRAM_ACTOR_ID;
     console.log(`Using Instagram actor: ${actorId}`);
     const runInput = {
-      usernames: [username],
+      username: [username],
       resultsLimit: 30,
-      resultsType: 'posts',
-      searchType: 'user',
-      searchLimit: 1,
-      addParentData: false,
     };
 
     console.log('Apify run input:', runInput);
@@ -214,13 +210,10 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
     const actorId = TIKTOK_ACTOR_ID;
     console.log(`Using TikTok actor: ${actorId}`);
     const runInput = {
-      profiles: [`@${username}`],
-      postCount: 30,
+      profiles: [`https://www.tiktok.com/@${username}`],
+      resultsPerPage: 30,
       shouldDownloadVideos: false,
       shouldDownloadCovers: false,
-      proxyConfiguration: {
-        useApifyProxy: true
-      }
     };
 
     console.log('TikTok Apify run input:', runInput);
