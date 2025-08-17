@@ -291,11 +291,24 @@ export function DashboardContent() {
     
     try {
       setIsLoadingMetrics(true);
-      const { ArtistService } = await import('@/lib/services/artist-service');
-      const metrics = await ArtistService.getPipelineMetrics(user.id);
+      
+      // Race condition with timeout to prevent hanging
+      const loadWithTimeout = Promise.race([
+        (async () => {
+          const { ArtistService } = await import('@/lib/services/artist-service');
+          const metrics = await ArtistService.getPipelineMetrics(user.id);
+          return metrics;
+        })(),
+        new Promise((_, reject) => 
+          setTimeout(() => reject(new Error('Pipeline metrics timeout')), 5000)
+        )
+      ]);
+      
+      const metrics = await loadWithTimeout as any;
       setPipelineMetrics(metrics);
       
       // Check if user has connected their data
+      const { ArtistService } = await import('@/lib/services/artist-service');
       const profile = await ArtistService.getArtistProfile(user.id, authUser?.email || '');
       console.log('Dashboard loaded profile:', profile);
       
@@ -390,8 +403,34 @@ export function DashboardContent() {
     if (user?.id) {
       loadPipelineMetrics();
       loadGoals();
+    } else {
+      // If no user ID, stop loading immediately and show empty dashboard
+      setIsLoadingMetrics(false);
     }
   }, [user?.id, loadPipelineMetrics, loadGoals]);
+
+  // Safety timeout to prevent infinite loading
+  React.useEffect(() => {
+    const timeout = setTimeout(() => {
+      console.warn('Dashboard loading timeout reached, forcing load completion');
+      setIsLoadingMetrics(false);
+      // Set fallback data
+      setPipelineMetrics({
+        production: { unfinished: 0, finished: 0, released: 0 },
+        marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, youtubeSubscribers: 0 },
+        fanEngagement: { capturedData: 0, fans: 0, superFans: 0 },
+        conversion: { leads: 0, opportunities: 0, sales: 0, revenue: 0 }
+      });
+      setMarketingData({
+        totalReach: 0,
+        engaged: 0,
+        followers: 0,
+        isRealData: false,
+      });
+    }, 10000); // 10 second timeout
+
+    return () => clearTimeout(timeout);
+  }, []);
 
   // Use real data if available, otherwise fall back to mock data
   const productionData = pipelineMetrics?.production || {
