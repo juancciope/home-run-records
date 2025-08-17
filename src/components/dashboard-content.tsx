@@ -368,6 +368,19 @@ export function DashboardContent() {
       }
     } catch (error) {
       console.error('Error loading pipeline metrics:', error);
+      // Set fallback data to ensure dashboard still renders
+      setPipelineMetrics({
+        production: { unfinished: 0, finished: 0, released: 0 },
+        marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, youtubeSubscribers: 0 },
+        fanEngagement: { capturedData: 0, fans: 0, superFans: 0 },
+        conversion: { leads: 0, opportunities: 0, sales: 0, revenue: 0 }
+      });
+      setMarketingData({
+        totalReach: 0,
+        engaged: 0,
+        followers: 0,
+        isRealData: false,
+      });
     } finally {
       setIsLoadingMetrics(false);
     }

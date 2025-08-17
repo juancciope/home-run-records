@@ -30,52 +30,26 @@ export function createClient(): SupabaseClient {
 export async function createAuthenticatedClient(): Promise<SupabaseClient> {
   const supabase = createClient()
   
-  // Try multiple methods to get session
-  let session = null
-  
-  // Method 1: Get current session
-  const { data: { session: currentSession } } = await supabase.auth.getSession()
-  session = currentSession
-  
-  // Method 2: If no session, try to refresh
-  if (!session) {
-    const { data: { session: refreshedSession } } = await supabase.auth.refreshSession()
-    session = refreshedSession
-  }
-  
-  // Method 3: Wait for session state change (for async auth)
-  if (!session) {
-    await new Promise((resolve) => {
-      const { data: { subscription } } = supabase.auth.onAuthStateChange((event, session) => {
-        if (session) {
-          subscription.unsubscribe()
-          resolve(session)
-        }
-      })
-      
-      // Timeout after 5 seconds
-      setTimeout(() => {
-        subscription.unsubscribe()
-        resolve(null)
-      }, 5000)
-    })
+  try {
+    // Try to get current session
+    const { data: { session } } = await supabase.auth.getSession()
     
-    // Try one more time after state change
-    const { data: { session: finalSession } } = await supabase.auth.getSession()
-    session = finalSession
+    if (session) {
+      console.log('✅ Authenticated session found:', { 
+        userId: session.user?.id, 
+        email: session.user?.email,
+        expiresAt: session.expires_at
+      })
+      return supabase
+    }
+    
+    // No session found - return basic client for graceful degradation
+    console.warn('No authenticated session found, using basic client')
+    return supabase
+    
+  } catch (error) {
+    console.error('Error checking authentication:', error)
+    // Return basic client for graceful degradation
+    return supabase
   }
-  
-  if (!session) {
-    console.error('Authentication failed: No session found after multiple attempts')
-    throw new Error('User must be authenticated to perform this action. Please sign in again.')
-  }
-  
-  console.log('✅ [DEPLOYMENT-TEST-2025-08-13-14:05] Authenticated session found:', { 
-    userId: session.user?.id, 
-    email: session.user?.email,
-    expiresAt: session.expires_at,
-    deploymentCheck: 'Latest fixes active'
-  })
-  
-  return supabase
 }
