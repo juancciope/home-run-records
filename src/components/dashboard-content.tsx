@@ -291,38 +291,69 @@ export function DashboardContent() {
     
     try {
       setIsLoadingMetrics(true);
+      console.log('🔄 Loading dashboard metrics for user:', user.id);
       
-      // Simple, direct API calls like reach dashboard
+      // Try new API endpoint first
       const response = await fetch(`/api/dashboard/metrics?userId=${user.id}`);
-      const data = await response.json();
+      console.log('📡 API Response status:', response.status);
       
-      if (data.success) {
-        setPipelineMetrics(data.metrics);
-        setMarketingData({
-          totalReach: data.marketing?.totalReach || 0,
-          engaged: data.marketing?.engagedAudience || 0, 
-          followers: data.marketing?.totalFollowers || 0,
-          isRealData: true,
-        });
-        setHasVibrateConnection(data.hasVibrateConnection || false);
-      } else {
-        // Fallback to 0 values if API fails
-        setPipelineMetrics({
-          production: { unfinished: 0, finished: 0, released: 0 },
-          marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, youtubeSubscribers: 0 },
-          fanEngagement: { capturedData: 0, fans: 0, superFans: 0 },
-          conversion: { leads: 0, opportunities: 0, sales: 0, revenue: 0 }
-        });
-        setMarketingData({
-          totalReach: 0,
-          engaged: 0,
-          followers: 0,
-          isRealData: false,
-        });
+      if (response.ok) {
+        const data = await response.json();
+        console.log('📊 API Response data:', data);
+        
+        if (data.success) {
+          console.log('✅ Setting metrics from new API');
+          setPipelineMetrics(data.metrics);
+          setMarketingData({
+            totalReach: data.marketing?.totalReach || 0,
+            engaged: data.marketing?.engagedAudience || 0, 
+            followers: data.marketing?.totalFollowers || 0,
+            isRealData: true,
+          });
+          setHasVibrateConnection(data.hasVibrateConnection || false);
+          return;
+        }
       }
+      
+      // Fallback to original method if new API fails
+      console.log('⚠️ New API failed, falling back to original method');
+      const { PipelineService } = await import('@/lib/services/pipeline-service');
+      const { ArtistService } = await import('@/lib/services/artist-service');
+      
+      const [productionMetrics, marketingMetrics, fanEngagementMetrics, conversionMetrics, profile] = await Promise.all([
+        PipelineService.getProductionMetrics(user.id),
+        PipelineService.getMarketingMetrics(user.id),
+        PipelineService.getFanEngagementMetrics(user.id),
+        PipelineService.getConversionMetrics(user.id),
+        ArtistService.getArtistProfile(user.id, authUser?.email || '')
+      ]);
+      
+      console.log('📊 Fallback data loaded:', { productionMetrics, marketingMetrics, fanEngagementMetrics, conversionMetrics });
+      
+      setPipelineMetrics({
+        production: productionMetrics,
+        marketing: {
+          totalReach: marketingMetrics.totalReach,
+          engagedAudience: marketingMetrics.engagedAudience,
+          totalFollowers: marketingMetrics.totalFollowers,
+          youtubeSubscribers: 0
+        },
+        fanEngagement: fanEngagementMetrics,
+        conversion: conversionMetrics
+      });
+      
+      setMarketingData({
+        totalReach: marketingMetrics.totalReach || 0,
+        engaged: marketingMetrics.engagedAudience || 0,
+        followers: marketingMetrics.totalFollowers || 0,
+        isRealData: true,
+      });
+      
+      setHasVibrateConnection(!!profile?.viberate_artist_id);
+      
     } catch (error) {
-      console.error('Error loading dashboard metrics:', error);
-      // Fallback to 0 values on error
+      console.error('❌ Error loading dashboard metrics:', error);
+      // Final fallback to 0 values
       setPipelineMetrics({
         production: { unfinished: 0, finished: 0, released: 0 },
         marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, youtubeSubscribers: 0 },
@@ -338,7 +369,7 @@ export function DashboardContent() {
     } finally {
       setIsLoadingMetrics(false);
     }
-  }, [user?.id]);
+  }, [user?.id, authUser?.email]);
 
   React.useEffect(() => {
     if (user?.id) {
