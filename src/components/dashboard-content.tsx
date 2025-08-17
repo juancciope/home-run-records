@@ -320,36 +320,63 @@ export function DashboardContent() {
       const { PipelineService } = await import('@/lib/services/pipeline-service');
       const { ArtistService } = await import('@/lib/services/artist-service');
       
-      const [productionMetrics, marketingMetrics, fanEngagementMetrics, conversionMetrics, profile] = await Promise.all([
+      // Get profile first to check for Viberate connection
+      const profile = await ArtistService.getArtistProfile(user.id, authUser?.email || '');
+      const hasConnection = !!profile?.viberate_artist_id;
+      console.log('👤 Profile loaded, Viberate connection:', hasConnection ? 'Yes' : 'No');
+      
+      // Load pipeline metrics in parallel  
+      const [productionMetrics, fanEngagementMetrics, conversionMetrics] = await Promise.all([
         PipelineService.getProductionMetrics(user.id),
-        PipelineService.getMarketingMetrics(user.id),
         PipelineService.getFanEngagementMetrics(user.id),
-        PipelineService.getConversionMetrics(user.id),
-        ArtistService.getArtistProfile(user.id, authUser?.email || '')
+        PipelineService.getConversionMetrics(user.id)
       ]);
       
-      console.log('📊 Fallback data loaded:', { productionMetrics, marketingMetrics, fanEngagementMetrics, conversionMetrics });
+      // Load Viberate marketing data like reach dashboard does
+      let marketingData = { totalReach: 0, engaged: 0, followers: 0, isRealData: false };
+      
+      if (hasConnection && profile?.viberate_artist_id) {
+        try {
+          console.log('🔄 Fetching Viberate analytics for artist:', profile.viberate_artist_id);
+          const vibrateResponse = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
+          const vibrateData = await vibrateResponse.json();
+          
+          console.log('📊 Viberate analytics response:', vibrateData);
+          
+          if (vibrateData && !vibrateData.error && vibrateResponse.ok) {
+            console.log('✅ Using Viberate data for marketing metrics');
+            marketingData = {
+              totalReach: vibrateData.totalReach || 0,
+              engaged: vibrateData.engagedAudience || 0,
+              followers: vibrateData.totalFollowers || 0,
+              isRealData: true,
+            };
+          } else {
+            console.log('⚠️ Viberate API returned error or no data:', vibrateData?.error);
+          }
+        } catch (vibrateError) {
+          console.error('❌ Error fetching Viberate analytics:', vibrateError);
+        }
+      } else {
+        console.log('⚠️ No Viberate connection found, using fallback marketing data');
+      }
+      
+      console.log('📊 Final marketing data:', marketingData);
       
       setPipelineMetrics({
         production: productionMetrics,
         marketing: {
-          totalReach: marketingMetrics.totalReach,
-          engagedAudience: marketingMetrics.engagedAudience,
-          totalFollowers: marketingMetrics.totalFollowers,
+          totalReach: marketingData.totalReach,
+          engagedAudience: marketingData.engaged,
+          totalFollowers: marketingData.followers,
           youtubeSubscribers: 0
         },
         fanEngagement: fanEngagementMetrics,
         conversion: conversionMetrics
       });
       
-      setMarketingData({
-        totalReach: marketingMetrics.totalReach || 0,
-        engaged: marketingMetrics.engagedAudience || 0,
-        followers: marketingMetrics.totalFollowers || 0,
-        isRealData: true,
-      });
-      
-      setHasVibrateConnection(!!profile?.viberate_artist_id);
+      setMarketingData(marketingData);
+      setHasVibrateConnection(hasConnection);
       
     } catch (error) {
       console.error('❌ Error loading dashboard metrics:', error);
