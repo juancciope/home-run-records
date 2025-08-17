@@ -4,6 +4,7 @@ import { AppSidebar } from "@/components/app-sidebar";
 import { PersistentArtistHeader } from "@/components/persistent-artist-header";
 import { ArtistSwitcher } from "@/components/artist-switcher";
 import { requireAuth, getUserProfile, getUserAgencies } from "@/lib/auth/server-auth";
+import { redirect } from 'next/navigation';
 
 export const dynamic = 'force-dynamic'
 
@@ -12,11 +13,17 @@ export default async function DashboardLayout({
 }: {
   children: React.ReactNode;
 }) {
-  // Require authentication (will redirect to login if not authenticated)
+  // Require authentication - will redirect to login if not authenticated
   const user = await requireAuth();
   
-  // Get user profile and agencies
+  // Get user profile - create if doesn't exist
   const profile = await getUserProfile(user.id);
+  if (!profile) {
+    // If profile doesn't exist, redirect to onboarding
+    redirect('/onboarding');
+  }
+  
+  // Get user agencies
   const agencies = await getUserAgencies(user.id);
   const currentAgency = agencies.find(a => a.is_primary)?.agency || agencies[0]?.agency || null;
 
