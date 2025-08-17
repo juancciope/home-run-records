@@ -292,81 +292,27 @@ export function DashboardContent() {
     try {
       setIsLoadingMetrics(true);
       
-      // Race condition with timeout to prevent hanging
-      const loadWithTimeout = Promise.race([
-        (async () => {
-          const { ArtistService } = await import('@/lib/services/artist-service');
-          const metrics = await ArtistService.getPipelineMetrics(user.id);
-          return metrics;
-        })(),
-        new Promise((_, reject) => 
-          setTimeout(() => reject(new Error('Pipeline metrics timeout')), 5000)
-        )
-      ]);
+      // Simple, direct API calls like reach dashboard
+      const response = await fetch(`/api/dashboard/metrics?userId=${user.id}`);
+      const data = await response.json();
       
-      const metrics = await loadWithTimeout as any;
-      setPipelineMetrics(metrics);
-      
-      // Check if user has connected their data
-      const { ArtistService } = await import('@/lib/services/artist-service');
-      const profile = await ArtistService.getArtistProfile(user.id, authUser?.email || '');
-      console.log('Dashboard loaded profile:', profile);
-      
-      const hasConnection = !!profile?.viberate_artist_id;
-      setHasVibrateConnection(hasConnection);
-      
-      // Load real marketing data from database
-      try {
-        const { PipelineService } = await import('@/lib/services/pipeline-service');
-        const realMarketingData = await PipelineService.getMarketingMetrics(user.id);
-        
-        console.log('Loaded real marketing data from database:', realMarketingData);
-        
-        // PipelineService.getMarketingMetrics() already includes Viberate data
-        let marketingDataToSet = {
-          totalReach: realMarketingData.totalReach || 0,
-          engaged: realMarketingData.engagedAudience || 0,
-          followers: realMarketingData.totalFollowers || 0,
+      if (data.success) {
+        setPipelineMetrics(data.metrics);
+        setMarketingData({
+          totalReach: data.marketing?.totalReach || 0,
+          engaged: data.marketing?.engagedAudience || 0, 
+          followers: data.marketing?.totalFollowers || 0,
           isRealData: true,
-        };
-        
-        console.log('📊 Marketing data from PipelineService (includes Viberate):', marketingDataToSet);
-
-        // Only use dummy data if no real data exists at all
-        if (marketingDataToSet.totalReach === 0 && marketingDataToSet.engaged === 0 && marketingDataToSet.followers === 0) {
-          marketingDataToSet = {
-            totalReach: 0,
-            engaged: 0,
-            followers: 0,
-            isRealData: false,
-          };
-        }
-
-        setMarketingData(marketingDataToSet);
-
-        // Load historical data for charts while PipelineService is in scope
-        const monthsToLoad = TIME_RANGES[marketingTimeRange as keyof typeof TIME_RANGES]?.months || 6;
-        
-        // Load marketing historical data
-        const marketingHistory = await PipelineService.getMarketingHistoricalData(user.id, monthsToLoad);
-        console.log('Loaded marketing historical data:', marketingHistory);
-        setMarketingHistoricalData(marketingHistory);
-        
-        // Load fan engagement historical data  
-        const fanEngagementHistory = await PipelineService.getFanEngagementHistoricalData(user.id, monthsToLoad);
-        setFanEngagementHistoricalData(fanEngagementHistory);
-        
-        // Sync Viberate historical data if connected
-        if (hasConnection && profile?.viberate_artist_id) {
-          await PipelineService.syncVibrateHistoricalData(user.id, profile.viberate_artist_id, monthsToLoad);
-          
-          // Reload fan engagement data after sync
-          const updatedFanEngagementHistory = await PipelineService.getFanEngagementHistoricalData(user.id, monthsToLoad);
-          setFanEngagementHistoricalData(updatedFanEngagementHistory);
-        }
-      } catch (error) {
-        console.error('Error loading marketing metrics and historical data:', error);
-        // Fallback to dummy data only if there's an error
+        });
+        setHasVibrateConnection(data.hasVibrateConnection || false);
+      } else {
+        // Fallback to 0 values if API fails
+        setPipelineMetrics({
+          production: { unfinished: 0, finished: 0, released: 0 },
+          marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, youtubeSubscribers: 0 },
+          fanEngagement: { capturedData: 0, fans: 0, superFans: 0 },
+          conversion: { leads: 0, opportunities: 0, sales: 0, revenue: 0 }
+        });
         setMarketingData({
           totalReach: 0,
           engaged: 0,
@@ -374,14 +320,9 @@ export function DashboardContent() {
           isRealData: false,
         });
       }
-      
-      if (!hasConnection && !profile?.onboarding_completed) {
-        console.log('User needs onboarding - no Viberate connection');
-        setNeedsOnboarding(true);
-      }
     } catch (error) {
-      console.error('Error loading pipeline metrics:', error);
-      // Set fallback data to ensure dashboard still renders
+      console.error('Error loading dashboard metrics:', error);
+      // Fallback to 0 values on error
       setPipelineMetrics({
         production: { unfinished: 0, finished: 0, released: 0 },
         marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, youtubeSubscribers: 0 },
@@ -397,7 +338,7 @@ export function DashboardContent() {
     } finally {
       setIsLoadingMetrics(false);
     }
-  }, [user?.id, authUser?.email]);
+  }, [user?.id]);
 
   React.useEffect(() => {
     if (user?.id) {
@@ -408,29 +349,6 @@ export function DashboardContent() {
       setIsLoadingMetrics(false);
     }
   }, [user?.id, loadPipelineMetrics, loadGoals]);
-
-  // Safety timeout to prevent infinite loading
-  React.useEffect(() => {
-    const timeout = setTimeout(() => {
-      console.warn('Dashboard loading timeout reached, forcing load completion');
-      setIsLoadingMetrics(false);
-      // Set fallback data
-      setPipelineMetrics({
-        production: { unfinished: 0, finished: 0, released: 0 },
-        marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, youtubeSubscribers: 0 },
-        fanEngagement: { capturedData: 0, fans: 0, superFans: 0 },
-        conversion: { leads: 0, opportunities: 0, sales: 0, revenue: 0 }
-      });
-      setMarketingData({
-        totalReach: 0,
-        engaged: 0,
-        followers: 0,
-        isRealData: false,
-      });
-    }, 10000); // 10 second timeout
-
-    return () => clearTimeout(timeout);
-  }, []);
 
   // Use real data if available, otherwise fall back to mock data
   const productionData = pipelineMetrics?.production || {
