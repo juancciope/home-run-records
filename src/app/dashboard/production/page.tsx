@@ -56,7 +56,6 @@ import {
   Calendar, 
   Clock, 
   CheckCircle2,
-  PlayCircle,
   Loader2,
   Plus,
   MoreVertical,
@@ -68,10 +67,7 @@ import {
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
 import {
-  Tooltip,
-  TooltipContent,
   TooltipProvider,
-  TooltipTrigger,
 } from '@/components/ui/tooltip'
 import { ProductionPipelineCards } from '@/components/production-pipeline-cards'
 
@@ -255,7 +251,6 @@ function KanbanColumn({
   status, 
   records, 
   icon: Icon,
-  color,
   onEdit,
   onDelete
 }: { 
@@ -263,7 +258,6 @@ function KanbanColumn({
   status: string
   records: ProductionRecord[]
   icon: any
-  color: string
   onEdit: (record: ProductionRecord) => void
   onDelete: (recordId: string) => void
 }) {
@@ -658,7 +652,11 @@ export default function ProductionPage() {
 
       {/* Stats Cards - Using shared component */}
       <ProductionPipelineCards 
-        production={records} 
+        production={{
+          unfinished: records.unfinished?.length || 0,
+          finished: records.finished?.length || 0,
+          released: records.released?.length || 0
+        }} 
         onRecordAdded={fetchRecords}
       />
       
@@ -677,7 +675,6 @@ export default function ProductionPage() {
             status="unfinished"
             records={records.unfinished}
             icon={Clock}
-            color="bg-orange-500"
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
@@ -687,7 +684,6 @@ export default function ProductionPage() {
             status="finished"
             records={records.finished}
             icon={CheckCircle2}
-            color="bg-blue-500"
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
@@ -697,7 +693,6 @@ export default function ProductionPage() {
             status="released"
             records={records.released}
             icon={Radio}
-            color="bg-green-500"
             onEdit={handleEdit}
             onDelete={handleDelete}
           />
