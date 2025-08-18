@@ -441,7 +441,7 @@ export function DashboardContentUnified() {
         </div>
         
         <ProductionPipelineCards 
-          production={production} 
+          production={production || { unfinished: 0, finished: 0, released: 0 }} 
           onRecordAdded={refreshPipelineData}
         />
       </div>
