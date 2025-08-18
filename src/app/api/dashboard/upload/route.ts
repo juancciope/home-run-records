@@ -100,7 +100,7 @@ export async function POST(request: NextRequest) {
       message: `Successfully ${operation === 'add' ? 'added' : 'set'} ${count} to ${type}`,
       data: {
         type,
-        previousValue: operation === 'add' ? (existing?.[column] || 0) : null,
+        previousValue: operation === 'add' ? ((existing as any)?.[column] || 0) : null,
         newValue: updatedMetrics[column],
         operation,
         timestamp: updatedMetrics.updated_at
