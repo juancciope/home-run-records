@@ -64,7 +64,7 @@ export async function POST(request: NextRequest) {
       console.log(`✅ Created new metrics record with ${type}: ${count}`);
     } else {
       // Update existing record
-      const currentValue = existing[column] || 0;
+      const currentValue = (existing as any)[column] || 0;
       const newValue = operation === 'add' ? currentValue + count : count;
 
       const { error: updateError } = await supabase
