@@ -39,7 +39,7 @@ interface DashboardData {
 }
 
 export function DashboardContentUnified() {
-  const { user, authUser } = useAuth();
+  const { user } = useAuth();
   const [data, setData] = React.useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
