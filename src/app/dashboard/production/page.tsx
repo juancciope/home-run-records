@@ -318,6 +318,7 @@ export default function ProductionPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [deletingRecord, setDeletingRecord] = useState<ProductionRecord | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
+  const [refreshKey, setRefreshKey] = useState(0)
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -539,6 +540,7 @@ export default function ProductionPage() {
       setIsEditModalOpen(false)
       setEditingRecord(null)
       await fetchRecords() // Refresh the data
+      setRefreshKey(prev => prev + 1) // Force re-render
     } catch (error) {
       console.error('Error updating record:', error)
       toast.error('Failed to update record')
@@ -567,14 +569,26 @@ export default function ProductionPage() {
         throw new Error('Failed to delete')
       }
 
+      // First close the dialog and clear state
+      setIsDeleteDialogOpen(false)
+      setDeletingRecord(null)
+      
       toast.success('Record deleted successfully')
-      await fetchRecords() // Refresh the data
+      
+      // Then refresh the data
+      await fetchRecords()
+      setRefreshKey(prev => prev + 1) // Force re-render
+      
+      // Force a small delay to ensure state is properly updated
+      setTimeout(() => {
+        // This ensures React has time to properly reconcile the component tree
+      }, 100)
+      
     } catch (error) {
       console.error('Error deleting record:', error)
       toast.error('Failed to delete record')
-    } finally {
-      setDeletingRecord(null)
       setIsDeleteDialogOpen(false)
+      setDeletingRecord(null)
     }
   }
 
@@ -664,8 +678,9 @@ export default function ProductionPage() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4">
+        <div className="flex gap-4 overflow-x-auto pb-4" key={refreshKey}>
           <KanbanColumn 
+            key={`unfinished-${refreshKey}`}
             title="In-progress"
             status="unfinished"
             records={records.unfinished}
@@ -675,6 +690,7 @@ export default function ProductionPage() {
             onDelete={handleDelete}
           />
           <KanbanColumn 
+            key={`finished-${refreshKey}`}
             title="Ready to Release"
             status="finished"
             records={records.finished}
@@ -684,6 +700,7 @@ export default function ProductionPage() {
             onDelete={handleDelete}
           />
           <KanbanColumn 
+            key={`released-${refreshKey}`}
             title="Live Catalog"
             status="released"
             records={records.released}
