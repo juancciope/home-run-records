@@ -447,13 +447,14 @@ export default function ProductionPage() {
 
     // Only update database if status actually changed
     if (activeRecord.record_type !== targetStatus) {
+      console.log('🎯 Starting database update:', {
+        recordId: activeRecord.id,
+        newStatus: targetStatus,
+        from: activeRecord.record_type,
+        to: targetStatus
+      })
+      
       try {
-        console.log('Updating record:', {
-          recordId: activeRecord.id,
-          newStatus: targetStatus,
-          from: activeRecord.record_type,
-          to: targetStatus
-        })
 
         const response = await fetch('/api/dashboard/production', {
           method: 'PATCH',
@@ -466,17 +467,25 @@ export default function ProductionPage() {
 
         if (!response.ok) {
           const errorData = await response.json()
-          console.error('API Error:', errorData)
+          console.error('❌ API Error:', errorData)
           throw new Error(errorData.error || 'Failed to update')
         }
 
+        const responseData = await response.json()
+        console.log('✅ Successfully updated record:', responseData)
+
         toast.success(`Moved "${activeRecord.title}" to ${getColumnTitle(targetStatus)}`)
       } catch (error) {
-        console.error('Error updating record:', error)
+        console.error('❌ Error updating record:', error)
         toast.error('Failed to update record status')
         // Revert by refetching
         await fetchRecords()
       }
+    } else {
+      console.log('🔄 No status change detected:', {
+        current: activeRecord.record_type,
+        target: targetStatus
+      })
     }
   }
 

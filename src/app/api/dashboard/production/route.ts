@@ -56,6 +56,8 @@ export async function PATCH(request: NextRequest) {
 
     const { recordId, newStatus, updates } = await request.json();
 
+    console.log('🔄 PATCH request received:', { recordId, newStatus, updates });
+
     if (!recordId) {
       return NextResponse.json({ error: 'Record ID is required' }, { status: 400 });
     }
@@ -78,6 +80,8 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
+    console.log('📝 Update data:', updateData);
+
     // Update the record
     const { data, error } = await supabase
       .from('production_records')
@@ -86,6 +90,8 @@ export async function PATCH(request: NextRequest) {
       .eq('user_id', user.id) // Ensure user owns the record
       .select()
       .single();
+
+    console.log('📊 Supabase result:', { data, error });
 
     if (error) {
       console.error('Error updating record:', error);
