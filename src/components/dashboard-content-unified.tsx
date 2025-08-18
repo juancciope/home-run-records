@@ -216,19 +216,6 @@ export function DashboardContentUnified() {
     }
   }, [user?.id]);
 
-  // Function to refresh pipeline data
-  const refreshPipelineData = React.useCallback(async () => {
-    if (!user?.id) return;
-    
-    try {
-      // Re-run the loadDashboardData function
-      await loadDashboardData();
-      await loadChartData();
-    } catch (error) {
-      console.error('Error refreshing pipeline data:', error);
-    }
-  }, [user?.id, loadDashboardData, loadChartData]);
-
   // Load chart data from API
   const loadChartData = React.useCallback(async () => {
     if (!user?.id) return;
@@ -259,6 +246,19 @@ export function DashboardContentUnified() {
       setChartLoading(false);
     }
   }, [user?.id, timeFilter]);
+
+  // Function to refresh pipeline data
+  const refreshPipelineData = React.useCallback(async () => {
+    if (!user?.id) return;
+    
+    try {
+      // Re-run the loadDashboardData function
+      await loadDashboardData();
+      await loadChartData();
+    } catch (error) {
+      console.error('Error refreshing pipeline data:', error);
+    }
+  }, [user?.id, loadDashboardData, loadChartData]);
 
   React.useEffect(() => {
     loadDashboardData();
