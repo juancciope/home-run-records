@@ -1,10 +1,10 @@
 "use client"
 
-import { AnalyticsContent } from "@/components/analytics-content"
+import { ReachDashboardUnified } from "@/components/reach-dashboard-unified"
 
 // Force dynamic rendering
 export const dynamic = 'force-dynamic'
 
 export default function ReachPage() {
-  return <AnalyticsContent />;
+  return <ReachDashboardUnified />;
 }

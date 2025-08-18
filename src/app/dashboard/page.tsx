@@ -1,6 +1,6 @@
 import { requireAuth, getUserProfile } from '@/lib/auth/server-auth'
 import { redirect } from 'next/navigation'
-import { DashboardContent } from "@/components/dashboard-content"
+import { DashboardContentUnified } from "@/components/dashboard-content-unified"
 
 export const dynamic = 'force-dynamic'
 
@@ -13,5 +13,5 @@ export default async function DashboardPage() {
     redirect('/dashboard/superadmin')
   }
 
-  return <DashboardContent />
+  return <DashboardContentUnified />
 }
