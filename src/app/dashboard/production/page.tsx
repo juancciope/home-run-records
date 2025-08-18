@@ -66,10 +66,19 @@ import {
   Edit3,
   Trash2,
   Eye,
-  FileText
+  FileText,
+  Info,
+  Bot,
+  Plug
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
+import {
+  Tooltip,
+  TooltipContent,
+  TooltipProvider,
+  TooltipTrigger,
+} from '@/components/ui/tooltip'
 
 interface ProductionRecord {
   id: string
@@ -280,28 +289,7 @@ function KanbanColumn({
   return (
     <div className="flex-1 min-w-[300px]">
       <Card className={`h-full ${isOver ? 'ring-2 ring-primary' : ''}`}>
-        <CardHeader className="pb-4">
-          <div className="flex items-center justify-between">
-            <div className="flex items-center gap-3">
-              <div className={`h-10 w-10 rounded-lg ${color} flex items-center justify-center shadow-sm`}>
-                <Icon className="h-5 w-5 text-white" />
-              </div>
-              <div>
-                <CardTitle className="text-lg font-semibold">{title}</CardTitle>
-                <CardDescription className="text-sm">{safeRecords.length} tracks</CardDescription>
-              </div>
-            </div>
-            <div className="flex items-center gap-1">
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Eye className="h-4 w-4" />
-              </Button>
-              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
-                <Plus className="h-4 w-4" />
-              </Button>
-            </div>
-          </div>
-        </CardHeader>
-        <CardContent ref={setNodeRef} className="min-h-[500px] pt-0">
+        <CardContent ref={setNodeRef} className="min-h-[500px] p-4">
           <SortableContext 
             items={safeRecords.map(r => r.id)} 
             strategy={verticalListSortingStrategy}
@@ -354,6 +342,10 @@ export default function ProductionPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [originalStatus, setOriginalStatus] = useState<string | null>(null)
+  
+  const handleAddRecord = (recordType: 'unfinished' | 'finished' | 'released') => {
+    router.push(`/dashboard/production/new?type=${recordType}`)
+  }
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -658,7 +650,8 @@ export default function ProductionPage() {
   const activeRecord = activeId ? findRecordById(activeId as string) : null
 
   return (
-    <div className="space-y-6">
+    <TooltipProvider>
+      <div className="space-y-6">
       <div className="flex items-center justify-between pt-2">
         <div>
           <h1 className="text-3xl font-bold">Production Dashboard</h1>
@@ -682,12 +675,51 @@ export default function ProductionPage() {
                 <CardDescription className="text-sm">Projects in development</CardDescription>
               </div>
               <div className="flex gap-1">
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                  <Eye className="h-3.5 w-3.5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                  <MoreVertical className="h-3.5 w-3.5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Info className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>View details about projects in progress</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Bot className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Get AI suggestions for completing projects</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Plug className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Connect project management tools</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0 shrink-0"
+                      onClick={() => handleAddRecord('unfinished')}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Add new project manually</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
             <div className="text-4xl font-bold">{records.unfinished?.length || 0}</div>
@@ -716,12 +748,51 @@ export default function ProductionPage() {
                 <CardDescription className="text-sm">Completed, awaiting launch</CardDescription>
               </div>
               <div className="flex gap-1">
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                  <Eye className="h-3.5 w-3.5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                  <MoreVertical className="h-3.5 w-3.5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Info className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>View tracks ready for release</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Bot className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Get AI-powered release strategy suggestions</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Plug className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Connect distribution platforms</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0 shrink-0"
+                      onClick={() => handleAddRecord('finished')}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Add completed track</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
             <div className="text-4xl font-bold">{records.finished?.length || 0}</div>
@@ -750,12 +821,51 @@ export default function ProductionPage() {
                 <CardDescription className="text-sm">Live & generating revenue</CardDescription>
               </div>
               <div className="flex gap-1">
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                  <Eye className="h-3.5 w-3.5" />
-                </Button>
-                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                  <MoreVertical className="h-3.5 w-3.5" />
-                </Button>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Info className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>View released tracks performance</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Bot className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Optimize catalog with AI insights</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                      <Plug className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Connect streaming platforms</p>
+                  </TooltipContent>
+                </Tooltip>
+                <Tooltip>
+                  <TooltipTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0 shrink-0"
+                      onClick={() => handleAddRecord('released')}
+                    >
+                      <Plus className="h-3.5 w-3.5" />
+                    </Button>
+                  </TooltipTrigger>
+                  <TooltipContent side="top" className="text-xs">
+                    <p>Add tracks to catalog</p>
+                  </TooltipContent>
+                </Tooltip>
               </div>
             </div>
             <div className="text-4xl font-bold">{records.released?.length || 0}</div>
@@ -925,6 +1035,7 @@ export default function ProductionPage() {
           </AlertDialogFooter>
         </AlertDialogContent>
       </AlertDialog>
-    </div>
+      </div>
+    </TooltipProvider>
   )
 }
