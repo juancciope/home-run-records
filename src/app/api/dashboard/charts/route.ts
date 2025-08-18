@@ -56,7 +56,7 @@ export async function GET(request: NextRequest) {
 
     console.log('📅 Date range:', startDateStr, 'to', endDateStr, 'aggregation:', aggregation);
 
-    // Get user's artists first
+    // Get user's artists using the correct user_id relationship
     const { data: userArtists, error: artistError } = await supabase
       .from('artists')
       .select('*')
