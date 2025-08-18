@@ -637,17 +637,11 @@ export default function ProductionPage() {
   return (
     <TooltipProvider>
       <div className="space-y-6">
-      <div className="flex items-center justify-between pt-2">
-        <div>
-          <h1 className="text-3xl font-bold">Production Dashboard</h1>
-          <p className="text-muted-foreground">
-            Track your music production workflow and releases
-          </p>
-        </div>
-        <Button onClick={() => router.push('/dashboard/production/new')}>
-          <Plus className="h-4 w-4 mr-2" />
-          Add Record
-        </Button>
+      <div className="pt-2 mb-6">
+        <h1 className="text-3xl font-bold">Production Dashboard</h1>
+        <p className="text-muted-foreground">
+          Track your music production workflow and releases
+        </p>
       </div>
 
       {/* Stats Cards - Using shared component */}
