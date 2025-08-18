@@ -61,7 +61,6 @@ import {
   Loader2,
   Plus,
   MoreVertical,
-  Disc,
   Radio,
   Headphones,
   Edit3,
@@ -618,7 +617,7 @@ export default function ProductionPage() {
       </div>
 
       {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-4">
+      <div className="grid gap-4 md:grid-cols-3">
         <Card>
           <CardContent className="p-6">
             <div className="flex items-center justify-between">
@@ -651,20 +650,6 @@ export default function ProductionPage() {
                 <p className="text-2xl font-bold">{records.released?.length || 0}</p>
               </div>
               <Radio className="h-8 w-8 text-green-500 opacity-20" />
-            </div>
-          </CardContent>
-        </Card>
-        
-        <Card>
-          <CardContent className="p-6">
-            <div className="flex items-center justify-between">
-              <div>
-                <p className="text-sm font-medium text-muted-foreground">Total</p>
-                <p className="text-2xl font-bold">
-                  {(records.unfinished?.length || 0) + (records.finished?.length || 0) + (records.released?.length || 0)}
-                </p>
-              </div>
-              <Disc className="h-8 w-8 text-purple-500 opacity-20" />
             </div>
           </CardContent>
         </Card>

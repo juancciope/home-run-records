@@ -42,6 +42,19 @@ export async function GET(request: NextRequest) {
     // If no metrics exist, create default entry
     if (!metrics) {
       console.log('No metrics found, creating default entry for user:', userId);
+      
+      // Still get production data from production_records table
+      const { data: productionRecords, error: productionError } = await supabase
+        .from('production_records')
+        .select('record_type')
+        .eq('user_id', userId);
+
+      const productionCounts = {
+        unfinished: productionRecords?.filter(r => r.record_type === 'unfinished').length || 0,
+        finished: productionRecords?.filter(r => r.record_type === 'finished').length || 0,
+        released: productionRecords?.filter(r => r.record_type === 'released').length || 0
+      };
+
       const { data: newMetrics, error: insertError } = await supabase
         .from('user_dashboard_metrics')
         .insert([{ user_id: userId }])
@@ -65,9 +78,9 @@ export async function GET(request: NextRequest) {
             isRealData: false
           },
           production: {
-            unfinished: 0,
-            finished: 0,
-            released: 0
+            unfinished: productionCounts.unfinished,
+            finished: productionCounts.finished,
+            released: productionCounts.released
           },
           fanEngagement: {
             capturedData: 0,
@@ -99,6 +112,25 @@ export async function GET(request: NextRequest) {
 
     console.log('✅ Found metrics for user:', userId, metrics);
 
+    // Get production data from production_records table (same as Production dashboard)
+    const { data: productionRecords, error: productionError } = await supabase
+      .from('production_records')
+      .select('record_type')
+      .eq('user_id', userId);
+
+    if (productionError) {
+      console.error('Error fetching production records:', productionError);
+    }
+
+    // Count records by type
+    const productionCounts = {
+      unfinished: productionRecords?.filter(r => r.record_type === 'unfinished').length || 0,
+      finished: productionRecords?.filter(r => r.record_type === 'finished').length || 0,
+      released: productionRecords?.filter(r => r.record_type === 'released').length || 0
+    };
+
+    console.log('📊 Production counts from production_records table:', productionCounts);
+
     // Calculate platform breakdown for reach dashboard (estimate from total followers)
     const totalFollowers = metrics.viberate_followers || 0;
     const spotifyFollowers = Math.floor(totalFollowers * 0.4); // 40% Spotify
@@ -116,9 +148,9 @@ export async function GET(request: NextRequest) {
           isRealData: (metrics.viberate_followers || 0) > 0
         },
         production: {
-          unfinished: metrics.user_production_unfinished || 0,
-          finished: metrics.user_production_finished || 0,
-          released: metrics.user_production_released || 0
+          unfinished: productionCounts.unfinished,
+          finished: productionCounts.finished,
+          released: productionCounts.released
         },
         fanEngagement: {
           capturedData: metrics.user_fan_engagement || 0,
