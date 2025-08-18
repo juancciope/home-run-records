@@ -6,7 +6,7 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const timeFilter = searchParams.get('timeFilter') || '6m'; // all, 1m, 3m, 6m
-    const section = searchParams.get('section') || 'all'; // marketing, production, fanEngagement, all
+    // const section = searchParams.get('section') || 'all'; // marketing, production, fanEngagement, all
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
@@ -24,7 +24,7 @@ export async function GET(request: NextRequest) {
 
     // Calculate date range based on filter
     const endDate = new Date();
-    let startDate = new Date();
+    const startDate = new Date();
     let aggregation = 'day'; // day, week, month
 
     switch (timeFilter) {

@@ -268,31 +268,7 @@ export function DashboardContentUnified() {
     loadChartData();
   }, [loadChartData]);
 
-  if (isLoading) {
-    return (
-      <div className="space-y-6">
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          {[...Array(3)].map((_, i) => (
-            <Card key={i}>
-              <CardHeader>
-                <Skeleton className="h-4 w-32" />
-                <Skeleton className="h-6 w-24" />
-              </CardHeader>
-              <CardContent>
-                <Skeleton className="h-8 w-16" />
-              </CardContent>
-            </Card>
-          ))}
-        </div>
-      </div>
-    );
-  }
-
-  const marketing = data?.overview.marketing;
-  const production = data?.overview.production;
-  const fanEngagement = data?.overview.fanEngagement;
-
-  // Chart configurations
+  // Chart configurations (moved before early returns)
   const reachChartConfig = {
     reach: {
       label: "Reach",
@@ -308,8 +284,10 @@ export function DashboardContentUnified() {
     },
   } satisfies ChartConfig;
 
-  // Use real chart data or fallback to generated data
+  // Use real chart data or fallback to generated data (moved before early returns)
   const marketingTrendData = React.useMemo(() => {
+    const marketing = data?.overview.marketing;
+    
     if (chartData?.marketing?.followers && chartData.marketing.followers.length > 0) {
       // Use real data from API
       return chartData.marketing.followers.map((item: any) => ({
@@ -333,7 +311,31 @@ export function DashboardContentUnified() {
         followers: index === recentMonths.length - 1 ? marketing?.totalFollowers || 0 : Math.round((marketing?.totalFollowers || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1)))))
       }));
     }
-  }, [chartData, marketing]);
+  }, [chartData, data?.overview.marketing]);
+
+  if (isLoading) {
+    return (
+      <div className="space-y-6">
+        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
+          {[...Array(3)].map((_, i) => (
+            <Card key={i}>
+              <CardHeader>
+                <Skeleton className="h-4 w-32" />
+                <Skeleton className="h-6 w-24" />
+              </CardHeader>
+              <CardContent>
+                <Skeleton className="h-8 w-16" />
+              </CardContent>
+            </Card>
+          ))}
+        </div>
+      </div>
+    );
+  }
+
+  const marketing = data?.overview.marketing;
+  const production = data?.overview.production;
+  const fanEngagement = data?.overview.fanEngagement;
 
   return (
     <TooltipProvider>
