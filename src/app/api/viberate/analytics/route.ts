@@ -18,12 +18,64 @@ export async function GET(request: NextRequest) {
       process.env.SUPABASE_SERVICE_ROLE_KEY!
     );
 
-    // Query artist data from database
-    const { data: artist, error: artistError } = await supabase
+    // Query artist data from database  
+    // Try matching by id first (most common case), then by viberate_artist_id, then by uuid
+    let artist, artistError;
+    
+    console.log('🔍 Looking for artist with ID:', artistId);
+    
+    // First try direct ID match
+    const { data: artistById, error: errorById } = await supabase
       .from('artists')
       .select('*')
-      .eq('uuid', artistId)
+      .eq('id', artistId)
       .single();
+    
+    if (artistById && !errorById) {
+      artist = artistById;
+      console.log('✅ Found artist by ID:', artist.stage_name);
+    } else {
+      // Try artist_profiles table by user ID (this is where the real data is)
+      const { data: profileById, error: errorByProfile } = await supabase
+        .from('artist_profiles')
+        .select('*')
+        .eq('id', artistId)
+        .single();
+        
+      if (profileById && !errorByProfile) {
+        // Convert profile to artist format for compatibility
+        artist = {
+          id: profileById.id,
+          stage_name: profileById.stage_name || profileById.artist_name,
+          name: profileById.artist_name,
+          total_followers: profileById.total_followers,
+          spotify_followers: profileById.spotify_followers,
+          instagram_followers: profileById.instagram_followers,
+          youtube_subscribers: profileById.youtube_subscribers,
+          tiktok_followers: profileById.tiktok_followers,
+          facebook_followers: profileById.facebook_followers,
+          twitter_followers: profileById.twitter_followers,
+          deezer_followers: profileById.deezer_followers,
+          soundcloud_followers: profileById.soundcloud_followers
+        };
+        console.log('✅ Found artist profile by user ID:', artist.stage_name);
+      } else {
+        // Try viberate_artist_id match as fallback
+        const { data: artistByVibrateId, error: errorByVibrateId } = await supabase
+          .from('artists')
+          .select('*')
+          .eq('viberate_artist_id', artistId)
+          .single();
+          
+        if (artistByVibrateId && !errorByVibrateId) {
+          artist = artistByVibrateId;
+          console.log('✅ Found artist by Viberate ID:', artist.stage_name);
+        } else {
+          artistError = errorById || errorByProfile || errorByVibrateId;
+          console.warn('❌ Artist not found by any method:', { artistId, errorById, errorByProfile, errorByVibrateId });
+        }
+      }
+    }
 
     if (artistError || !artist) {
       console.warn('Artist not found in database:', artistError);

@@ -72,12 +72,12 @@ export async function GET(request: NextRequest) {
     // Get marketing data from Viberate API like reach dashboard does
     let marketingMetrics = { totalReach: 0, engagedAudience: 0, totalFollowers: 0 };
     
-    if (hasVibrateConnection && profile?.viberate_artist_id) {
-      try {
-        console.log('🔄 Fetching Viberate analytics for artist:', profile.viberate_artist_id);
-        
-        // Internal API call (same server)
-        const vibrateResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
+    // Always try to get marketing data, using user ID for lookup
+    try {
+      console.log('🔄 Fetching Viberate analytics for user:', userId);
+      
+      // Internal API call (same server) - use user ID for lookup
+      const vibrateResponse = await fetch(`${process.env.NEXT_PUBLIC_APP_URL || 'http://localhost:3000'}/api/viberate/analytics?artistId=${encodeURIComponent(userId)}`);
         
         if (vibrateResponse.ok) {
           const vibrateData = await vibrateResponse.json();
@@ -96,11 +96,8 @@ export async function GET(request: NextRequest) {
         } else {
           console.log('⚠️ Viberate API response not ok:', vibrateResponse.status);
         }
-      } catch (vibrateError) {
-        console.error('❌ Error fetching Viberate analytics:', vibrateError);
-      }
-    } else {
-      console.log('⚠️ No Viberate connection found, using 0 marketing data');
+    } catch (vibrateError) {
+      console.error('❌ Error fetching Viberate analytics:', vibrateError);
     }
 
     console.log('📊 Final metrics:', {

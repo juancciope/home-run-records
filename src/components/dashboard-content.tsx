@@ -335,11 +335,11 @@ export function DashboardContent() {
       // Load Viberate marketing data like reach dashboard does
       let marketingData = { totalReach: 0, engaged: 0, followers: 0, isRealData: false };
       
-      if (hasConnection && profile?.viberate_artist_id) {
-        try {
-          console.log('🔄 Fetching Viberate analytics for artist:', profile.viberate_artist_id);
-          const vibrateResponse = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(profile.viberate_artist_id)}`);
-          const vibrateData = await vibrateResponse.json();
+      // Always try to get marketing data from Viberate, using user ID for lookup
+      try {
+        console.log('🔄 Fetching Viberate analytics for user:', user.id);
+        const vibrateResponse = await fetch(`/api/viberate/analytics?artistId=${encodeURIComponent(user.id)}`);
+        const vibrateData = await vibrateResponse.json();
           
           console.log('📊 Viberate analytics response:', vibrateData);
           
@@ -354,11 +354,8 @@ export function DashboardContent() {
           } else {
             console.log('⚠️ Viberate API returned error or no data:', vibrateData?.error);
           }
-        } catch (vibrateError) {
-          console.error('❌ Error fetching Viberate analytics:', vibrateError);
-        }
-      } else {
-        console.log('⚠️ No Viberate connection found, using fallback marketing data');
+      } catch (vibrateError) {
+        console.error('❌ Error fetching Viberate analytics:', vibrateError);
       }
       
       console.log('📊 Final marketing data:', marketingData);
