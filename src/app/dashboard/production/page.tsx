@@ -318,6 +318,7 @@ export default function ProductionPage() {
   const [deletingRecord, setDeletingRecord] = useState<ProductionRecord | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
+  const [originalStatus, setOriginalStatus] = useState<string | null>(null)
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -361,6 +362,12 @@ export default function ProductionPage() {
 
   const handleDragStart = (event: DragStartEvent) => {
     setActiveId(event.active.id)
+    // Store the original status before any changes
+    const record = findRecordById(event.active.id as string)
+    if (record) {
+      setOriginalStatus(record.record_type)
+      console.log('🎯 Drag started - Original status:', record.record_type)
+    }
   }
 
   const handleDragOver = (event: DragOverEvent) => {
@@ -445,12 +452,13 @@ export default function ProductionPage() {
       targetStatus = overRecord?.record_type || activeRecord.record_type
     }
 
-    // Only update database if status actually changed
-    if (activeRecord.record_type !== targetStatus) {
+    // Only update database if status actually changed (compare with original status)
+    if (originalStatus && originalStatus !== targetStatus) {
       console.log('🎯 Starting database update:', {
         recordId: activeRecord.id,
         newStatus: targetStatus,
-        from: activeRecord.record_type,
+        originalStatus: originalStatus,
+        currentStatus: activeRecord.record_type,
         to: targetStatus
       })
       
@@ -483,10 +491,14 @@ export default function ProductionPage() {
       }
     } else {
       console.log('🔄 No status change detected:', {
-        current: activeRecord.record_type,
-        target: targetStatus
+        originalStatus: originalStatus,
+        currentStatus: activeRecord.record_type,
+        targetStatus: targetStatus
       })
     }
+    
+    // Clear the original status
+    setOriginalStatus(null)
   }
 
   const findRecordById = (id: string): ProductionRecord | undefined => {
