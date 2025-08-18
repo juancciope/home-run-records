@@ -35,7 +35,7 @@ export async function GET(request: NextRequest) {
       artist = artistById;
       console.log('✅ Found artist by ID:', artist.stage_name);
     } else {
-      // Try artist_profiles table by user ID (this is where the real data is)
+      // Try artist_profiles table by user ID (for overview dashboard)
       const { data: profileById, error: errorByProfile } = await supabase
         .from('artist_profiles')
         .select('*')
@@ -60,19 +60,57 @@ export async function GET(request: NextRequest) {
         };
         console.log('✅ Found artist profile by user ID:', artist.stage_name);
       } else {
-        // Try viberate_artist_id match as fallback
-        const { data: artistByVibrateId, error: errorByVibrateId } = await supabase
-          .from('artists')
+        // Try artist_profiles by viberate_artist_id (for reach dashboard)
+        const { data: profileByVibrateId, error: errorByProfileVibrate } = await supabase
+          .from('artist_profiles')
           .select('*')
           .eq('viberate_artist_id', artistId)
           .single();
           
-        if (artistByVibrateId && !errorByVibrateId) {
-          artist = artistByVibrateId;
-          console.log('✅ Found artist by Viberate ID:', artist.stage_name);
+        if (profileByVibrateId && !errorByProfileVibrate) {
+          // Convert profile to artist format for compatibility
+          artist = {
+            id: profileByVibrateId.id,
+            stage_name: profileByVibrateId.stage_name || profileByVibrateId.artist_name,
+            name: profileByVibrateId.artist_name,
+            total_followers: profileByVibrateId.total_followers,
+            spotify_followers: profileByVibrateId.spotify_followers,
+            instagram_followers: profileByVibrateId.instagram_followers,
+            youtube_subscribers: profileByVibrateId.youtube_subscribers,
+            tiktok_followers: profileByVibrateId.tiktok_followers,
+            facebook_followers: profileByVibrateId.facebook_followers,
+            twitter_followers: profileByVibrateId.twitter_followers,
+            deezer_followers: profileByVibrateId.deezer_followers,
+            soundcloud_followers: profileByVibrateId.soundcloud_followers
+          };
+          console.log('✅ Found artist profile by Viberate ID:', artist.stage_name);
         } else {
-          artistError = errorById || errorByProfile || errorByVibrateId;
-          console.warn('❌ Artist not found by any method:', { artistId, errorById, errorByProfile, errorByVibrateId });
+          // Try legacy artists table by viberate_artist_id
+          const { data: artistByVibrateId, error: errorByVibrateId } = await supabase
+            .from('artists')
+            .select('*')
+            .eq('viberate_artist_id', artistId)
+            .single();
+            
+          if (artistByVibrateId && !errorByVibrateId) {
+            artist = artistByVibrateId;
+            console.log('✅ Found artist by legacy Viberate ID:', artist.stage_name);
+          } else {
+            // Final fallback: try uuid match
+            const { data: artistByUuid, error: errorByUuid } = await supabase
+              .from('artists')
+              .select('*')
+              .eq('uuid', artistId)
+              .single();
+              
+            if (artistByUuid && !errorByUuid) {
+              artist = artistByUuid;
+              console.log('✅ Found artist by UUID:', artist.stage_name);
+            } else {
+              artistError = errorById || errorByProfile || errorByProfileVibrate || errorByVibrateId || errorByUuid;
+              console.warn('❌ Artist not found by any method:', { artistId, errorById, errorByProfile, errorByProfileVibrate, errorByVibrateId, errorByUuid });
+            }
+          }
         }
       }
     }
