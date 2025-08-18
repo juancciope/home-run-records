@@ -5,6 +5,33 @@ import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
+import { Input } from '@/components/ui/input'
+import { Label } from '@/components/ui/label'
+import { Textarea } from '@/components/ui/textarea'
+import {
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  DialogFooter,
+} from '@/components/ui/dialog'
+import {
+  AlertDialog,
+  AlertDialogAction,
+  AlertDialogCancel,
+  AlertDialogContent,
+  AlertDialogDescription,
+  AlertDialogFooter,
+  AlertDialogHeader,
+  AlertDialogTitle,
+} from '@/components/ui/alert-dialog'
+import {
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
+} from '@/components/ui/dropdown-menu'
 import {
   DndContext,
   DragEndEvent,
@@ -15,7 +42,8 @@ import {
   useSensors,
   closestCorners,
   DragOverEvent,
-  UniqueIdentifier
+  UniqueIdentifier,
+  useDroppable
 } from '@dnd-kit/core'
 import {
   SortableContext,
@@ -35,7 +63,10 @@ import {
   MoreVertical,
   Disc,
   Radio,
-  Headphones
+  Headphones,
+  Edit3,
+  Trash2,
+  Eye
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -61,7 +92,15 @@ interface GroupedRecords {
 }
 
 // Sortable Card Component
-function SortableCard({ record }: { record: ProductionRecord }) {
+function SortableCard({ 
+  record, 
+  onEdit, 
+  onDelete 
+}: { 
+  record: ProductionRecord
+  onEdit: (record: ProductionRecord) => void
+  onDelete: (recordId: string) => void
+}) {
   const {
     attributes,
     listeners,
@@ -99,9 +138,39 @@ function SortableCard({ record }: { record: ProductionRecord }) {
                 )}
               </div>
             </div>
-            <Button variant="ghost" size="icon" className="h-6 w-6">
-              <MoreVertical className="h-3 w-3" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon" className="h-6 w-6">
+                  <MoreVertical className="h-3 w-3" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end" className="w-32">
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onEdit(record)
+                  }}
+                >
+                  <Edit3 className="h-3 w-3 mr-2" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem>
+                  <Eye className="h-3 w-3 mr-2" />
+                  View
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  onClick={(e) => {
+                    e.stopPropagation()
+                    onDelete(record.id)
+                  }}
+                  className="text-red-600 hover:text-red-700"
+                >
+                  <Trash2 className="h-3 w-3 mr-2" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
           </div>
 
           {record.description && (
@@ -150,18 +219,22 @@ function KanbanColumn({
   status, 
   records, 
   icon: Icon,
-  color 
+  color,
+  onEdit,
+  onDelete
 }: { 
   title: string
   status: string
   records: ProductionRecord[]
   icon: any
   color: string
+  onEdit: (record: ProductionRecord) => void
+  onDelete: (recordId: string) => void
 }) {
   const {
     setNodeRef,
     isOver,
-  } = useSortable({
+  } = useDroppable({
     id: status,
     data: {
       type: 'column',
@@ -197,7 +270,12 @@ function KanbanColumn({
             strategy={verticalListSortingStrategy}
           >
             {safeRecords.map((record) => (
-              <SortableCard key={record.id} record={record} />
+              <SortableCard 
+                key={record.id} 
+                record={record} 
+                onEdit={onEdit}
+                onDelete={onDelete}
+              />
             ))}
           </SortableContext>
           
@@ -222,6 +300,18 @@ export default function ProductionPage() {
   })
   const [loading, setLoading] = useState(true)
   const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
+  const [editingRecord, setEditingRecord] = useState<ProductionRecord | null>(null)
+  const [editFormData, setEditFormData] = useState({
+    title: '',
+    artist_name: '',
+    description: '',
+    completion_percentage: 0,
+    release_date: '',
+    platforms: [] as string[]
+  })
+  const [isEditModalOpen, setIsEditModalOpen] = useState(false)
+  const [deletingRecord, setDeletingRecord] = useState<ProductionRecord | null>(null)
+  const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -268,79 +358,88 @@ export default function ProductionPage() {
   }
 
   const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event
-    
-    if (!over) return
-
-    const activeRecord = findRecordById(active.id as string)
-    const overStatus = over.data?.current?.sortable?.containerId || over.id
-
-    if (activeRecord && overStatus && activeRecord.record_type !== overStatus) {
-      // Validate the new status
-      if (!['unfinished', 'finished', 'released'].includes(overStatus as string)) {
-        return
-      }
-
-      // Move record to new column immediately for smooth UX
-      setRecords(prev => {
-        const newRecords = { ...prev }
-        
-        // Ensure arrays exist
-        if (!newRecords.unfinished) newRecords.unfinished = []
-        if (!newRecords.finished) newRecords.finished = []
-        if (!newRecords.released) newRecords.released = []
-        
-        // Remove from old column
-        const oldStatus = activeRecord.record_type as keyof GroupedRecords
-        newRecords[oldStatus] = newRecords[oldStatus].filter(r => r.id !== activeRecord.id)
-        
-        // Add to new column
-        const updatedRecord = { ...activeRecord, record_type: overStatus as any }
-        const newStatus = overStatus as keyof GroupedRecords
-        newRecords[newStatus] = [...newRecords[newStatus], updatedRecord]
-        
-        return newRecords
-      })
-    }
+    // We'll handle the actual movement in handleDragEnd for better UX
+    // This is just for visual feedback
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
     const { active, over } = event
     
+    setActiveId(null)
+    
     if (!over) {
-      setActiveId(null)
       return
     }
 
     const activeRecord = findRecordById(active.id as string)
-    const overStatus = over.data?.current?.sortable?.containerId || over.id
-
-    if (activeRecord && overStatus && activeRecord.record_type !== overStatus) {
-      // Update in database
-      try {
-        const response = await fetch('/api/dashboard/production', {
-          method: 'PATCH',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            recordId: activeRecord.id,
-            newStatus: overStatus
-          })
-        })
-
-        if (!response.ok) {
-          throw new Error('Failed to update')
-        }
-
-        toast.success(`Moved "${activeRecord.title}" to ${getColumnTitle(overStatus as string)}`)
-      } catch (error) {
-        console.error('Error updating record:', error)
-        toast.error('Failed to update record status')
-        // Revert the change
-        await fetchRecords()
-      }
+    if (!activeRecord) {
+      return
     }
 
-    setActiveId(null)
+    // Determine the target status - check if we're over a column or over another card
+    let overStatus: string
+    if (over.data?.current?.type === 'column') {
+      // Dropped on a column
+      overStatus = over.data.current.status
+    } else {
+      // Dropped on a card - find which column the card belongs to
+      const overRecord = findRecordById(over.id as string)
+      overStatus = overRecord?.record_type || 'unfinished'
+    }
+
+    // If the status is the same, no need to update
+    if (activeRecord.record_type === overStatus) {
+      return
+    }
+
+    // Validate the new status
+    if (!['unfinished', 'finished', 'released'].includes(overStatus)) {
+      return
+    }
+
+    // Optimistically update the UI
+    setRecords(prev => {
+      const newRecords = { ...prev }
+      
+      // Ensure arrays exist
+      if (!newRecords.unfinished) newRecords.unfinished = []
+      if (!newRecords.finished) newRecords.finished = []
+      if (!newRecords.released) newRecords.released = []
+      
+      // Remove from old column
+      const oldStatus = activeRecord.record_type as keyof GroupedRecords
+      newRecords[oldStatus] = newRecords[oldStatus].filter(r => r.id !== activeRecord.id)
+      
+      // Add to new column
+      const updatedRecord = { ...activeRecord, record_type: overStatus as any }
+      const newStatus = overStatus as keyof GroupedRecords
+      newRecords[newStatus] = [...newRecords[newStatus], updatedRecord]
+      
+      return newRecords
+    })
+
+    // Update in database
+    try {
+      const response = await fetch('/api/dashboard/production', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recordId: activeRecord.id,
+          newStatus: overStatus
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update')
+      }
+
+      toast.success(`Moved "${activeRecord.title}" to ${getColumnTitle(overStatus)}`)
+    } catch (error) {
+      console.error('Error updating record:', error)
+      toast.error('Failed to update record status')
+      // Revert the optimistic update
+      await fetchRecords()
+    }
   }
 
   const findRecordById = (id: string): ProductionRecord | undefined => {
@@ -358,6 +457,86 @@ export default function ProductionPage() {
       case 'finished': return 'Ready to Release'
       case 'released': return 'Live Catalog'
       default: return status
+    }
+  }
+
+  const handleEdit = (record: ProductionRecord) => {
+    setEditingRecord(record)
+    setEditFormData({
+      title: record.title,
+      artist_name: record.artist_name || '',
+      description: record.description || '',
+      completion_percentage: record.completion_percentage,
+      release_date: record.release_date ? record.release_date.split('T')[0] : '',
+      platforms: record.platforms || []
+    })
+    setIsEditModalOpen(true)
+  }
+
+  const handleSaveEdit = async () => {
+    if (!editingRecord) return
+
+    try {
+      const response = await fetch('/api/dashboard/production', {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          recordId: editingRecord.id,
+          updates: {
+            title: editFormData.title,
+            artist_name: editFormData.artist_name,
+            description: editFormData.description,
+            completion_percentage: editFormData.completion_percentage,
+            release_date: editFormData.release_date,
+            platforms: editFormData.platforms
+          }
+        })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to update record')
+      }
+
+      toast.success('Record updated successfully')
+      setIsEditModalOpen(false)
+      setEditingRecord(null)
+      await fetchRecords() // Refresh the data
+    } catch (error) {
+      console.error('Error updating record:', error)
+      toast.error('Failed to update record')
+    }
+  }
+
+  const handleDelete = (recordId: string) => {
+    const record = findRecordById(recordId)
+    if (record) {
+      setDeletingRecord(record)
+      setIsDeleteDialogOpen(true)
+    }
+  }
+
+  const confirmDelete = async () => {
+    if (!deletingRecord) return
+    
+    try {
+      const response = await fetch('/api/dashboard/production', {
+        method: 'DELETE',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ recordId: deletingRecord.id })
+      })
+
+      if (!response.ok) {
+        throw new Error('Failed to delete')
+      }
+
+      toast.success('Record deleted successfully')
+      await fetchRecords() // Refresh the data
+    } catch (error) {
+      console.error('Error deleting record:', error)
+      toast.error('Failed to delete record')
+    } finally {
+      setDeletingRecord(null)
+      setIsDeleteDialogOpen(false)
     }
   }
 
@@ -454,6 +633,8 @@ export default function ProductionPage() {
             records={records.unfinished}
             icon={Clock}
             color="bg-orange-500"
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
           <KanbanColumn 
             title="Ready to Release"
@@ -461,6 +642,8 @@ export default function ProductionPage() {
             records={records.finished}
             icon={CheckCircle2}
             color="bg-blue-500"
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
           <KanbanColumn 
             title="Live Catalog"
@@ -468,6 +651,8 @@ export default function ProductionPage() {
             records={records.released}
             icon={Radio}
             color="bg-green-500"
+            onEdit={handleEdit}
+            onDelete={handleDelete}
           />
         </div>
         
@@ -484,6 +669,100 @@ export default function ProductionPage() {
           ) : null}
         </DragOverlay>
       </DndContext>
+
+      {/* Edit Record Modal */}
+      <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
+        <DialogContent className="sm:max-w-[525px]">
+          <DialogHeader>
+            <DialogTitle>Edit Record</DialogTitle>
+          </DialogHeader>
+          <div className="grid gap-4 py-4">
+            <div className="grid gap-2">
+              <Label htmlFor="title">Title *</Label>
+              <Input
+                id="title"
+                value={editFormData.title}
+                onChange={(e) => setEditFormData({ ...editFormData, title: e.target.value })}
+                placeholder="Song or album title"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="artist_name">Artist Name</Label>
+              <Input
+                id="artist_name"
+                value={editFormData.artist_name}
+                onChange={(e) => setEditFormData({ ...editFormData, artist_name: e.target.value })}
+                placeholder="Artist or band name"
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="description">Description</Label>
+              <Textarea
+                id="description"
+                value={editFormData.description}
+                onChange={(e) => setEditFormData({ ...editFormData, description: e.target.value })}
+                placeholder="Brief description or notes"
+                rows={3}
+              />
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="completion_percentage">Completion Percentage</Label>
+              <div className="flex items-center gap-2">
+                <Input
+                  id="completion_percentage"
+                  type="number"
+                  min="0"
+                  max="100"
+                  value={editFormData.completion_percentage}
+                  onChange={(e) => setEditFormData({ ...editFormData, completion_percentage: parseInt(e.target.value) || 0 })}
+                />
+                <span className="text-sm text-muted-foreground">%</span>
+              </div>
+            </div>
+            
+            <div className="grid gap-2">
+              <Label htmlFor="release_date">Release Date</Label>
+              <Input
+                id="release_date"
+                type="date"
+                value={editFormData.release_date}
+                onChange={(e) => setEditFormData({ ...editFormData, release_date: e.target.value })}
+              />
+            </div>
+          </div>
+          <DialogFooter>
+            <Button variant="outline" onClick={() => setIsEditModalOpen(false)}>
+              Cancel
+            </Button>
+            <Button onClick={handleSaveEdit} disabled={!editFormData.title}>
+              Save Changes
+            </Button>
+          </DialogFooter>
+        </DialogContent>
+      </Dialog>
+
+      {/* Delete Confirmation Dialog */}
+      <AlertDialog open={isDeleteDialogOpen} onOpenChange={setIsDeleteDialogOpen}>
+        <AlertDialogContent>
+          <AlertDialogHeader>
+            <AlertDialogTitle>Delete Record</AlertDialogTitle>
+            <AlertDialogDescription>
+              Are you sure you want to delete "{deletingRecord?.title}"? This action cannot be undone.
+            </AlertDialogDescription>
+          </AlertDialogHeader>
+          <AlertDialogFooter>
+            <AlertDialogCancel onClick={() => setIsDeleteDialogOpen(false)}>
+              Cancel
+            </AlertDialogCancel>
+            <AlertDialogAction onClick={confirmDelete} className="bg-destructive text-destructive-foreground hover:bg-destructive/90">
+              Delete
+            </AlertDialogAction>
+          </AlertDialogFooter>
+        </AlertDialogContent>
+      </AlertDialog>
     </div>
   )
 }

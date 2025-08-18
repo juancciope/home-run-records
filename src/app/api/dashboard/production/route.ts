@@ -54,24 +54,38 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
     }
 
-    const { recordId, newStatus } = await request.json();
+    const { recordId, newStatus, updates } = await request.json();
 
-    if (!recordId || !newStatus) {
-      return NextResponse.json({ error: 'Missing required fields' }, { status: 400 });
+    if (!recordId) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 });
     }
 
-    // Validate status
-    if (!['unfinished', 'finished', 'released'].includes(newStatus)) {
-      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+    let updateData: any = {
+      updated_at: new Date().toISOString()
+    };
+
+    // Handle status update (drag and drop)
+    if (newStatus) {
+      if (!['unfinished', 'finished', 'released'].includes(newStatus)) {
+        return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
+      }
+      updateData.record_type = newStatus;
+    }
+
+    // Handle general record updates (edit modal)
+    if (updates) {
+      if (updates.title) updateData.title = updates.title;
+      if (updates.artist_name !== undefined) updateData.artist_name = updates.artist_name;
+      if (updates.description !== undefined) updateData.description = updates.description;
+      if (updates.completion_percentage !== undefined) updateData.completion_percentage = updates.completion_percentage;
+      if (updates.release_date !== undefined) updateData.release_date = updates.release_date;
+      if (updates.platforms !== undefined) updateData.platforms = updates.platforms;
     }
 
     // Update the record
     const { data, error } = await supabase
       .from('production_records')
-      .update({ 
-        record_type: newStatus,
-        updated_at: new Date().toISOString()
-      })
+      .update(updateData)
       .eq('id', recordId)
       .eq('user_id', user.id) // Ensure user owns the record
       .select()
@@ -89,6 +103,46 @@ export async function PATCH(request: NextRequest) {
 
   } catch (error) {
     console.error('Error updating production record:', error);
+    return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
+  }
+}
+
+export async function DELETE(request: NextRequest) {
+  try {
+    const supabase = await createClient();
+    
+    // Get current user
+    const { data: { user }, error: authError } = await supabase.auth.getUser();
+    
+    if (authError || !user) {
+      return NextResponse.json({ error: 'Unauthorized' }, { status: 401 });
+    }
+
+    const { recordId } = await request.json();
+
+    if (!recordId) {
+      return NextResponse.json({ error: 'Record ID is required' }, { status: 400 });
+    }
+
+    // Delete the record (ensure user owns it)
+    const { error } = await supabase
+      .from('production_records')
+      .delete()
+      .eq('id', recordId)
+      .eq('user_id', user.id); // Ensure user owns the record
+
+    if (error) {
+      console.error('Error deleting record:', error);
+      return NextResponse.json({ error: 'Failed to delete record' }, { status: 500 });
+    }
+
+    return NextResponse.json({
+      success: true,
+      message: 'Record deleted successfully'
+    });
+
+  } catch (error) {
+    console.error('Error deleting production record:', error);
     return NextResponse.json({ error: 'Internal server error' }, { status: 500 });
   }
 }
