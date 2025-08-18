@@ -60,26 +60,22 @@ export async function PATCH(request: NextRequest) {
       return NextResponse.json({ error: 'Record ID is required' }, { status: 400 });
     }
 
-    let updateData: any = {
-      updated_at: new Date().toISOString()
+    const updateData: any = {
+      updated_at: new Date().toISOString(),
+      // Handle status update (drag and drop)
+      ...(newStatus && ['unfinished', 'finished', 'released'].includes(newStatus) ? { record_type: newStatus } : {}),
+      // Handle general record updates (edit modal)
+      ...(updates?.title && { title: updates.title }),
+      ...(updates?.artist_name !== undefined && { artist_name: updates.artist_name }),
+      ...(updates?.description !== undefined && { description: updates.description }),
+      ...(updates?.completion_percentage !== undefined && { completion_percentage: updates.completion_percentage }),
+      ...(updates?.release_date !== undefined && { release_date: updates.release_date }),
+      ...(updates?.platforms !== undefined && { platforms: updates.platforms }),
     };
 
-    // Handle status update (drag and drop)
-    if (newStatus) {
-      if (!['unfinished', 'finished', 'released'].includes(newStatus)) {
-        return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
-      }
-      updateData.record_type = newStatus;
-    }
-
-    // Handle general record updates (edit modal)
-    if (updates) {
-      if (updates.title) updateData.title = updates.title;
-      if (updates.artist_name !== undefined) updateData.artist_name = updates.artist_name;
-      if (updates.description !== undefined) updateData.description = updates.description;
-      if (updates.completion_percentage !== undefined) updateData.completion_percentage = updates.completion_percentage;
-      if (updates.release_date !== undefined) updateData.release_date = updates.release_date;
-      if (updates.platforms !== undefined) updateData.platforms = updates.platforms;
+    // Validate status if provided
+    if (newStatus && !['unfinished', 'finished', 'released'].includes(newStatus)) {
+      return NextResponse.json({ error: 'Invalid status' }, { status: 400 });
     }
 
     // Update the record
