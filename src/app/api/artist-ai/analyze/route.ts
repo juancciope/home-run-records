@@ -412,10 +412,16 @@ async function analyzeWithOpenAI(
     3. Provide 4-6 specific actionable recommendations
     4. Analyze content performance: best performing content type, worst performing, optimal posting times, top hashtags
     5. Predict follower growth percentage for 30, 60, and 90 days based on current trends
+    6. Create a detailed content guide with specific recommendations for:
+       - Content types that work best (Reels vs Posts vs Carousels vs Stories)
+       - Caption structure and length that drives engagement
+       - Hashtag strategy (number, mix of popular vs niche)
+       - Best posting frequency
+    7. Identify top 5 best performing posts and analyze WHY they worked
     
     Consider these metrics in your analysis:
-    - Instagram: Likes, comments, views (for videos), hashtag performance
-    - TikTok: Views, likes, comments, shares, viral potential
+    - Instagram: Likes, comments, views (for videos), hashtag performance, engagement rate
+    - TikTok: Views, likes, comments, shares, viral potential, completion rate
     - Cross-platform consistency and audience overlap
     - Music platform data: follower counts, streaming numbers, geographic distribution
     
@@ -441,7 +447,34 @@ async function analyzeWithOpenAI(
         "thirtyDays": number,
         "sixtyDays": number,
         "ninetyDays": number
-      }
+      },
+      "contentGuide": {
+        "contentTypeMix": {
+          "reels": "percentage and recommendation",
+          "posts": "percentage and recommendation",
+          "carousels": "percentage and recommendation",
+          "stories": "frequency recommendation"
+        },
+        "captionStrategy": {
+          "idealLength": "string",
+          "structure": "string",
+          "callToAction": "string"
+        },
+        "hashtagStrategy": {
+          "optimalCount": "string",
+          "mix": "string",
+          "examples": ["string"]
+        },
+        "postingFrequency": "string"
+      },
+      "topPerformers": [
+        {
+          "platform": "string",
+          "type": "string",
+          "engagement": "string",
+          "whyItWorked": "string"
+        }
+      ]
     }
     `;
 

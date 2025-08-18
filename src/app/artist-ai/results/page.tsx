@@ -69,6 +69,31 @@ interface AnalysisData {
       sixtyDays: number;
       ninetyDays: number;
     };
+    contentGuide?: {
+      contentTypeMix: {
+        reels: string;
+        posts: string;
+        carousels: string;
+        stories: string;
+      };
+      captionStrategy: {
+        idealLength: string;
+        structure: string;
+        callToAction: string;
+      };
+      hashtagStrategy: {
+        optimalCount: string;
+        mix: string;
+        examples: string[];
+      };
+      postingFrequency: string;
+    };
+    topPerformers?: Array<{
+      platform: string;
+      type: string;
+      engagement: string;
+      whyItWorked: string;
+    }>;
   };
   platforms?: {
     viberate?: {
@@ -279,6 +304,115 @@ export default function AnalysisResultsPage() {
           </Card>
         </motion.div>
 
+        {/* Post Statistics */}
+        <motion.div
+          initial={{ opacity: 0, y: 20 }}
+          animate={{ opacity: 1, y: 0 }}
+          transition={{ delay: 0.15 }}
+          className="mb-8"
+        >
+          <Card>
+            <CardHeader>
+              <CardTitle className="flex items-center gap-2">
+                <BarChart3 className="h-5 w-5 text-blue-500" />
+                Content Analysis Summary
+              </CardTitle>
+              <CardDescription>
+                Data extracted and analyzed from your social media accounts
+              </CardDescription>
+            </CardHeader>
+            <CardContent>
+              <div className="grid md:grid-cols-3 gap-6">
+                {/* Instagram Stats */}
+                {analysisData.scraped_posts?.instagram && (
+                  <div className="text-center p-4 bg-gradient-to-br from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20 rounded-lg">
+                    <Instagram className="h-8 w-8 mx-auto mb-2 text-purple-600" />
+                    <div className="text-3xl font-bold">{analysisData.scraped_posts.instagram.length}</div>
+                    <div className="text-sm text-muted-foreground">Instagram Posts</div>
+                    <div className="text-xs mt-2">
+                      {(() => {
+                        const totalEngagement = analysisData.scraped_posts.instagram.reduce((sum, post) => 
+                          sum + post.likes + post.comments + (post.views || 0), 0);
+                        const avgEngagement = Math.round(totalEngagement / analysisData.scraped_posts.instagram.length);
+                        return `Avg. ${avgEngagement.toLocaleString()} engagements`;
+                      })()}
+                    </div>
+                  </div>
+                )}
+                
+                {/* TikTok Stats */}
+                {analysisData.scraped_posts?.tiktok && (
+                  <div className="text-center p-4 bg-gradient-to-br from-gray-50 to-black/5 dark:from-gray-950/20 dark:to-black/20 rounded-lg">
+                    <TikTokIcon />
+                    <div className="text-3xl font-bold mt-2">{analysisData.scraped_posts.tiktok.length}</div>
+                    <div className="text-sm text-muted-foreground">TikTok Videos</div>
+                    <div className="text-xs mt-2">
+                      {(() => {
+                        const totalViews = analysisData.scraped_posts.tiktok.reduce((sum, post) => sum + post.views, 0);
+                        const avgViews = Math.round(totalViews / analysisData.scraped_posts.tiktok.length);
+                        return `Avg. ${avgViews.toLocaleString()} views`;
+                      })()}
+                    </div>
+                  </div>
+                )}
+                
+                {/* Total Stats */}
+                <div className="text-center p-4 bg-gradient-to-br from-blue-50 to-green-50 dark:from-blue-950/20 dark:to-green-950/20 rounded-lg">
+                  <Brain className="h-8 w-8 mx-auto mb-2 text-blue-600" />
+                  <div className="text-3xl font-bold">{analysisData.posts_analyzed}</div>
+                  <div className="text-sm text-muted-foreground">Total Analyzed</div>
+                  <div className="text-xs mt-2">
+                    AI-powered insights generated
+                  </div>
+                </div>
+              </div>
+            </CardContent>
+          </Card>
+        </motion.div>
+
+        {/* Top Performing Posts */}
+        {analysis.topPerformers && analysis.topPerformers.length > 0 && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.2 }}
+            className="mb-8"
+          >
+            <Card>
+              <CardHeader>
+                <CardTitle className="flex items-center gap-2">
+                  <TrendingUp className="h-5 w-5 text-green-500" />
+                  Top Performing Content
+                </CardTitle>
+                <CardDescription>
+                  Your best posts and why they resonated with your audience
+                </CardDescription>
+              </CardHeader>
+              <CardContent>
+                <div className="space-y-4">
+                  {analysis.topPerformers.map((post, index) => (
+                    <div key={index} className="flex items-start gap-4 p-4 bg-green-50 dark:bg-green-950/20 rounded-lg border border-green-200 dark:border-green-800">
+                      <div className="flex-shrink-0 w-8 h-8 bg-green-600 text-white rounded-full flex items-center justify-center font-bold text-sm">
+                        {index + 1}
+                      </div>
+                      <div className="flex-1">
+                        <div className="flex items-center gap-2 mb-2">
+                          {post.platform === 'instagram' ? <Instagram className="h-4 w-4" /> : <TikTokIcon />}
+                          <Badge variant="secondary" className="text-xs">{post.type}</Badge>
+                          <span className="text-sm font-semibold text-green-700 dark:text-green-400">{post.engagement}</span>
+                        </div>
+                        <p className="text-sm text-muted-foreground">
+                          <span className="font-medium">Why it worked:</span> {post.whyItWorked}
+                        </p>
+                      </div>
+                    </div>
+                  ))}
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
+
         {/* Data Sources Section */}
         {analysisData.platforms && (
           <motion.div
@@ -436,6 +570,125 @@ export default function AnalysisResultsPage() {
             </CardContent>
           </Card>
         </motion.div>
+
+        {/* Content Strategy Guide */}
+        {analysis.contentGuide && (
+          <motion.div
+            initial={{ opacity: 0, y: 20 }}
+            animate={{ opacity: 1, y: 0 }}
+            transition={{ delay: 0.25 }}
+            className="mb-8"
+          >
+            <Card className="border-2 border-purple-200 dark:border-purple-800">
+              <CardHeader className="bg-gradient-to-r from-purple-50 to-pink-50 dark:from-purple-950/20 dark:to-pink-950/20">
+                <CardTitle className="flex items-center gap-2">
+                  <Sparkles className="h-5 w-5 text-purple-500" />
+                  Your Personalized Content Strategy
+                </CardTitle>
+                <CardDescription>
+                  Based on your actual post performance data
+                </CardDescription>
+              </CardHeader>
+              <CardContent className="pt-6">
+                <div className="grid md:grid-cols-2 gap-6">
+                  {/* Content Type Mix */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <PlayCircle className="h-4 w-4 text-purple-500" />
+                      Content Type Strategy
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="flex justify-between p-2 bg-muted/50 rounded">
+                        <span>Reels/Videos</span>
+                        <span className="font-medium">{analysis.contentGuide.contentTypeMix.reels}</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/50 rounded">
+                        <span>Static Posts</span>
+                        <span className="font-medium">{analysis.contentGuide.contentTypeMix.posts}</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/50 rounded">
+                        <span>Carousels</span>
+                        <span className="font-medium">{analysis.contentGuide.contentTypeMix.carousels}</span>
+                      </div>
+                      <div className="flex justify-between p-2 bg-muted/50 rounded">
+                        <span>Stories</span>
+                        <span className="font-medium">{analysis.contentGuide.contentTypeMix.stories}</span>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Caption Strategy */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <MessageSquare className="h-4 w-4 text-blue-500" />
+                      Caption Strategy
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                        <div className="font-medium mb-1">Ideal Length</div>
+                        <div className="text-muted-foreground">{analysis.contentGuide.captionStrategy.idealLength}</div>
+                      </div>
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                        <div className="font-medium mb-1">Structure</div>
+                        <div className="text-muted-foreground">{analysis.contentGuide.captionStrategy.structure}</div>
+                      </div>
+                      <div className="p-3 bg-blue-50 dark:bg-blue-950/20 rounded-lg">
+                        <div className="font-medium mb-1">Call to Action</div>
+                        <div className="text-muted-foreground">{analysis.contentGuide.captionStrategy.callToAction}</div>
+                      </div>
+                    </div>
+                  </div>
+
+                  {/* Hashtag Strategy */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <Hash className="h-4 w-4 text-green-500" />
+                      Hashtag Strategy
+                    </h4>
+                    <div className="space-y-2 text-sm">
+                      <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                        <div className="font-medium mb-1">Optimal Count</div>
+                        <div className="text-muted-foreground">{analysis.contentGuide.hashtagStrategy.optimalCount}</div>
+                      </div>
+                      <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                        <div className="font-medium mb-1">Mix Strategy</div>
+                        <div className="text-muted-foreground">{analysis.contentGuide.hashtagStrategy.mix}</div>
+                      </div>
+                      {analysis.contentGuide.hashtagStrategy.examples.length > 0 && (
+                        <div className="p-3 bg-green-50 dark:bg-green-950/20 rounded-lg">
+                          <div className="font-medium mb-2">Example Hashtags</div>
+                          <div className="flex flex-wrap gap-1">
+                            {analysis.contentGuide.hashtagStrategy.examples.map((tag, idx) => (
+                              <Badge key={idx} variant="outline" className="text-xs">
+                                {tag}
+                              </Badge>
+                            ))}
+                          </div>
+                        </div>
+                      )}
+                    </div>
+                  </div>
+
+                  {/* Posting Frequency */}
+                  <div className="space-y-3">
+                    <h4 className="font-semibold flex items-center gap-2">
+                      <Calendar className="h-4 w-4 text-orange-500" />
+                      Posting Schedule
+                    </h4>
+                    <div className="p-4 bg-orange-50 dark:bg-orange-950/20 rounded-lg">
+                      <div className="font-medium mb-2">Recommended Frequency</div>
+                      <div className="text-sm text-muted-foreground">{analysis.contentGuide.postingFrequency}</div>
+                      <div className="mt-3 pt-3 border-t">
+                        <div className="font-medium mb-1">Best Time</div>
+                        <div className="text-sm text-muted-foreground">{analysis.contentAnalysis.optimalPostingTime}</div>
+                      </div>
+                    </div>
+                  </div>
+                </div>
+              </CardContent>
+            </Card>
+          </motion.div>
+        )}
 
         <div className="grid lg:grid-cols-2 gap-8 mb-8">
           {/* Content Analysis */}
@@ -606,10 +859,10 @@ export default function AnalysisResultsPage() {
               <CardHeader>
                 <CardTitle className="flex items-center gap-2">
                   <Eye className="h-5 w-5 text-blue-500" />
-                  Content Data Preview
+                  Actual Posts Analyzed
                 </CardTitle>
                 <CardDescription>
-                  Sample of your posts analyzed by our AI (showing top performing content)
+                  Real data from your social media - sorted by engagement rate
                 </CardDescription>
               </CardHeader>
               <CardContent>
@@ -625,12 +878,27 @@ export default function AnalysisResultsPage() {
                         </Badge>
                       </div>
                       <div className="grid md:grid-cols-2 gap-4">
-                        {analysisData.scraped_posts.instagram.slice(0, 4).map((post, index) => (
-                          <div key={index} className="p-3 bg-muted/30 rounded-lg border">
+                        {analysisData.scraped_posts.instagram
+                          .sort((a, b) => {
+                            const engagementA = a.likes + a.comments + (a.views || 0);
+                            const engagementB = b.likes + b.comments + (b.views || 0);
+                            return engagementB - engagementA;
+                          })
+                          .slice(0, 6)
+                          .map((post, index) => {
+                            const totalEngagement = post.likes + post.comments + (post.views || 0);
+                            const engagementRate = post.views ? 
+                              ((totalEngagement / post.views) * 100).toFixed(2) : 
+                              '—';
+                            return (
+                          <div key={index} className="p-3 bg-muted/30 rounded-lg border hover:border-purple-400 transition-colors">
                             <div className="flex items-start justify-between mb-2">
-                              <Badge variant="secondary" className="text-xs capitalize">
-                                {post.type}
-                              </Badge>
+                              <div className="flex items-center gap-2">
+                                <Badge variant="secondary" className="text-xs capitalize">
+                                  {post.type}
+                                </Badge>
+                                {index === 0 && <Badge className="text-xs bg-gradient-to-r from-yellow-500 to-orange-500">Top Post</Badge>}
+                              </div>
                               <span className="text-xs text-muted-foreground">
                                 {new Date(post.timestamp).toLocaleDateString()}
                               </span>
@@ -651,6 +919,11 @@ export default function AnalysisResultsPage() {
                                   <span>{post.views.toLocaleString()}</span>
                                 </div>
                               )}
+                              {engagementRate !== '—' && (
+                                <Badge variant="outline" className="text-xs ml-auto">
+                                  {engagementRate}% ER
+                                </Badge>
+                              )}
                             </div>
                             {post.hashtags.length > 0 && (
                               <div className="flex flex-wrap gap-1 mt-2">
@@ -665,7 +938,8 @@ export default function AnalysisResultsPage() {
                               </div>
                             )}
                           </div>
-                        ))}
+                        );
+                      })}
                       </div>
                     </div>
                   )}
