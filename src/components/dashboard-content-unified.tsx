@@ -26,6 +26,7 @@ import {
 } from "recharts";
 import { Plus, TrendingUp, Users, Target, Music, FileText, Eye, MoreHorizontal, Info, Bot, Plug, Calendar } from "lucide-react";
 import { AddDataModal } from "./add-data-modal";
+import { ProductionPipelineCards } from "./production-pipeline-cards";
 import {
   Select,
   SelectContent,
@@ -439,118 +440,10 @@ export function DashboardContentUnified() {
           </div>
         </div>
         
-        <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card className="border-orange-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base font-medium">In Progress</CardTitle>
-                  <CardDescription className="text-sm">Projects in development</CardDescription>
-                </div>
-                <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View details about projects in progress" />
-                  <ActionButton icon={Bot} tooltip="Get AI suggestions for completing projects" />
-                  <ActionButton icon={Plug} tooltip="Connect project management tools" />
-                  <AddDataButton 
-                    section="production" 
-                    recordType="unfinished" 
-                    tooltip="Add new project manually"
-                    onRecordAdded={refreshPipelineData}
-                  />
-                </div>
-              </div>
-              <div className="text-4xl font-bold">{production?.unfinished || 0}</div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span>Priority</span>
-                  <span className="text-red-500 font-medium">High</span>
-                </div>
-                <Badge variant="outline" className="text-xs">Active</Badge>
-              </div>
-              <div className="w-full bg-orange-100 rounded-full h-2">
-                <div className="bg-orange-500 h-2 rounded-full" style={{ width: '75%' }}></div>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3" />
-                <span>Focus on completion</span>
-              </div>
-            </CardHeader>
-          </Card>
-          
-          <Card className="border-yellow-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base font-medium">Ready to Release</CardTitle>
-                  <CardDescription className="text-sm">Completed, awaiting launch</CardDescription>
-                </div>
-                <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View tracks ready for release" />
-                  <ActionButton icon={Bot} tooltip="Get AI-powered release strategy suggestions" />
-                  <ActionButton icon={Plug} tooltip="Connect distribution platforms" />
-                  <AddDataButton 
-                    section="production" 
-                    recordType="finished" 
-                    tooltip="Add completed track"
-                    onRecordAdded={refreshPipelineData}
-                  />
-                </div>
-              </div>
-              <div className="text-4xl font-bold">{production?.finished || 0}</div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span>Next Release</span>
-                  <span className="text-yellow-600 font-medium">2 weeks</span>
-                </div>
-                <Badge variant="outline" className="text-xs">Ready</Badge>
-              </div>
-              <div className="w-full bg-yellow-100 rounded-full h-2">
-                <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '90%' }}></div>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <FileText className="h-3 w-3" />
-                <span>Schedule releases</span>
-              </div>
-            </CardHeader>
-          </Card>
-          
-          <Card className="border-green-200">
-            <CardHeader className="pb-3">
-              <div className="flex items-center justify-between">
-                <div>
-                  <CardTitle className="text-base font-medium">Live Catalog</CardTitle>
-                  <CardDescription className="text-sm">Live & generating revenue</CardDescription>
-                </div>
-                <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View released tracks performance" />
-                  <ActionButton icon={Bot} tooltip="Optimize catalog with AI insights" />
-                  <ActionButton icon={Plug} tooltip="Connect streaming platforms" />
-                  <AddDataButton 
-                    section="production" 
-                    recordType="released" 
-                    tooltip="Add tracks to catalog"
-                    onRecordAdded={refreshPipelineData}
-                  />
-                </div>
-              </div>
-              <div className="text-4xl font-bold">{production?.released || 0}</div>
-              <div className="flex items-center justify-between text-sm">
-                <div className="flex items-center gap-2">
-                  <span>Completion</span>
-                  <span className="text-green-600 font-medium">100%</span>
-                </div>
-                <Badge variant="outline" className="text-xs">Live</Badge>
-              </div>
-              <div className="w-full bg-green-100 rounded-full h-2">
-                <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
-              </div>
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <TrendingUp className="h-3 w-3" />
-                <span>Earning revenue</span>
-              </div>
-            </CardHeader>
-          </Card>
-        </div>
+        <ProductionPipelineCards 
+          production={production} 
+          onRecordAdded={refreshPipelineData}
+        />
       </div>
 
       {/* Marketing Reach */}

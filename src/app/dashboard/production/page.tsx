@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -55,21 +55,15 @@ import {
   Music, 
   Calendar, 
   Clock, 
-  TrendingUp,
   CheckCircle2,
   PlayCircle,
   Loader2,
   Plus,
   MoreVertical,
   Radio,
-  Headphones,
   Edit3,
   Trash2,
-  Eye,
-  FileText,
-  Info,
-  Bot,
-  Plug
+  Eye
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -79,6 +73,7 @@ import {
   TooltipProvider,
   TooltipTrigger,
 } from '@/components/ui/tooltip'
+import { ProductionPipelineCards } from '@/components/production-pipeline-cards'
 
 interface ProductionRecord {
   id: string
@@ -342,10 +337,6 @@ export default function ProductionPage() {
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
   const [refreshKey, setRefreshKey] = useState(0)
   const [originalStatus, setOriginalStatus] = useState<string | null>(null)
-  
-  const handleAddRecord = (recordType: 'unfinished' | 'finished' | 'released') => {
-    router.push(`/dashboard/production/new?type=${recordType}`)
-  }
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
@@ -665,227 +656,11 @@ export default function ProductionPage() {
         </Button>
       </div>
 
-      {/* Stats Cards - Matching Overview Dashboard Style */}
-      <div className="grid gap-6 md:grid-cols-3">
-        <Card className="border-orange-200">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-medium">In Progress</CardTitle>
-                <CardDescription className="text-sm">Projects in development</CardDescription>
-              </div>
-              <div className="flex gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Info className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>View details about projects in progress</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Bot className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Get AI suggestions for completing projects</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Plug className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Connect project management tools</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 w-7 p-0 shrink-0"
-                      onClick={() => handleAddRecord('unfinished')}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Add new project manually</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-            <div className="text-4xl font-bold">{records.unfinished?.length || 0}</div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <span>Priority</span>
-                <span className="text-red-500 font-medium">High</span>
-              </div>
-              <Badge variant="outline" className="text-xs">Active</Badge>
-            </div>
-            <div className="w-full bg-orange-100 rounded-full h-2">
-              <div className="bg-orange-500 h-2 rounded-full" style={{ width: '75%' }}></div>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3" />
-              <span>Focus on completion</span>
-            </div>
-          </CardHeader>
-        </Card>
-        
-        <Card className="border-yellow-200">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-medium">Ready to Release</CardTitle>
-                <CardDescription className="text-sm">Completed, awaiting launch</CardDescription>
-              </div>
-              <div className="flex gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Info className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>View tracks ready for release</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Bot className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Get AI-powered release strategy suggestions</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Plug className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Connect distribution platforms</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 w-7 p-0 shrink-0"
-                      onClick={() => handleAddRecord('finished')}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Add completed track</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-            <div className="text-4xl font-bold">{records.finished?.length || 0}</div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <span>Next Release</span>
-                <span className="text-yellow-600 font-medium">2 weeks</span>
-              </div>
-              <Badge variant="outline" className="text-xs">Ready</Badge>
-            </div>
-            <div className="w-full bg-yellow-100 rounded-full h-2">
-              <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '90%' }}></div>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <FileText className="h-3 w-3" />
-              <span>Schedule releases</span>
-            </div>
-          </CardHeader>
-        </Card>
-        
-        <Card className="border-green-200">
-          <CardHeader className="pb-3">
-            <div className="flex items-center justify-between">
-              <div>
-                <CardTitle className="text-base font-medium">Live Catalog</CardTitle>
-                <CardDescription className="text-sm">Live & generating revenue</CardDescription>
-              </div>
-              <div className="flex gap-1">
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Info className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>View released tracks performance</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Bot className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Optimize catalog with AI insights</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
-                      <Plug className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Connect streaming platforms</p>
-                  </TooltipContent>
-                </Tooltip>
-                <Tooltip>
-                  <TooltipTrigger asChild>
-                    <Button 
-                      variant="ghost" 
-                      size="sm" 
-                      className="h-7 w-7 p-0 shrink-0"
-                      onClick={() => handleAddRecord('released')}
-                    >
-                      <Plus className="h-3.5 w-3.5" />
-                    </Button>
-                  </TooltipTrigger>
-                  <TooltipContent side="top" className="text-xs">
-                    <p>Add tracks to catalog</p>
-                  </TooltipContent>
-                </Tooltip>
-              </div>
-            </div>
-            <div className="text-4xl font-bold">{records.released?.length || 0}</div>
-            <div className="flex items-center justify-between text-sm">
-              <div className="flex items-center gap-2">
-                <span>Completion</span>
-                <span className="text-green-600 font-medium">100%</span>
-              </div>
-              <Badge variant="outline" className="text-xs">Live</Badge>
-            </div>
-            <div className="w-full bg-green-100 rounded-full h-2">
-              <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
-            </div>
-            <div className="flex items-center gap-1 text-xs text-muted-foreground">
-              <TrendingUp className="h-3 w-3" />
-              <span>Earning revenue</span>
-            </div>
-          </CardHeader>
-        </Card>
-      </div>
+      {/* Stats Cards - Using shared component */}
+      <ProductionPipelineCards 
+        production={records} 
+        onRecordAdded={fetchRecords}
+      />
       
       {/* Kanban Board */}
       <DndContext
