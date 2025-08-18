@@ -20,17 +20,25 @@ export async function GET(request: NextRequest) {
 
     console.log('📊 Loading unified dashboard data for user:', userId);
 
-    // Get unified metrics from new table
-    const { data: metrics, error } = await supabase
+    // Try to get or create unified metrics for the user
+    let metrics;
+    
+    // First, try to get existing metrics
+    const { data: existingMetrics, error: selectError } = await supabase
       .from('user_dashboard_metrics')
       .select('*')
       .eq('user_id', userId)
-      .single();
+      .maybeSingle(); // Use maybeSingle instead of single to avoid error on no results
 
-    if (error && error.code !== 'PGRST116') { // PGRST116 = no rows found
-      console.error('Database error:', error);
-      return NextResponse.json({ error: 'Database error' }, { status: 500 });
+    if (selectError) {
+      console.error('Database select error:', selectError);
+      return NextResponse.json({ 
+        error: 'Database access error', 
+        details: selectError.message 
+      }, { status: 500 });
     }
+
+    metrics = existingMetrics;
 
     // If no metrics exist, create default entry
     if (!metrics) {
