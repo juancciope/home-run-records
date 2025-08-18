@@ -24,8 +24,15 @@ import {
   CartesianGrid,
   XAxis,
 } from "recharts";
-import { Plus, TrendingUp, Users, Target, Music, FileText, Eye, MoreHorizontal, Info, Bot, Plug } from "lucide-react";
+import { Plus, TrendingUp, Users, Target, Music, FileText, Eye, MoreHorizontal, Info, Bot, Plug, Calendar } from "lucide-react";
 import { AddDataModal } from "./add-data-modal";
+import {
+  Select,
+  SelectContent,
+  SelectItem,
+  SelectTrigger,
+  SelectValue,
+} from "@/components/ui/select";
 
 // Utility function to format numbers properly without showing 0K
 const formatNumber = (num: number): string => {
@@ -156,6 +163,9 @@ export function DashboardContentUnified() {
   const [data, setData] = React.useState<DashboardData | null>(null);
   const [isLoading, setIsLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
+  const [timeFilter, setTimeFilter] = React.useState<'all' | '6m' | '3m' | '1m'>('6m');
+  const [chartData, setChartData] = React.useState<any>(null);
+  const [chartLoading, setChartLoading] = React.useState(false);
 
   const loadDashboardData = React.useCallback(async () => {
     if (!user?.id) return;
@@ -213,14 +223,50 @@ export function DashboardContentUnified() {
     try {
       // Re-run the loadDashboardData function
       await loadDashboardData();
+      await loadChartData();
     } catch (error) {
       console.error('Error refreshing pipeline data:', error);
     }
-  }, [user?.id, loadDashboardData]);
+  }, [user?.id, loadDashboardData, loadChartData]);
+
+  // Load chart data from API
+  const loadChartData = React.useCallback(async () => {
+    if (!user?.id) return;
+
+    try {
+      setChartLoading(true);
+      console.log('📈 Loading chart data for time filter:', timeFilter);
+      
+      const response = await fetch(`/api/dashboard/charts?userId=${user.id}&timeFilter=${timeFilter}`);
+      
+      if (!response.ok) {
+        throw new Error(`Chart API error: ${response.status}`);
+      }
+      
+      const result = await response.json();
+      
+      if (result.success) {
+        console.log('✅ Chart data loaded:', result.data);
+        setChartData(result.data);
+      } else {
+        console.error('Failed to load chart data:', result);
+        setChartData(null);
+      }
+    } catch (err) {
+      console.error('❌ Error loading chart data:', err);
+      setChartData(null);
+    } finally {
+      setChartLoading(false);
+    }
+  }, [user?.id, timeFilter]);
 
   React.useEffect(() => {
     loadDashboardData();
   }, [loadDashboardData]);
+
+  React.useEffect(() => {
+    loadChartData();
+  }, [loadChartData]);
 
   if (isLoading) {
     return (
@@ -246,9 +292,6 @@ export function DashboardContentUnified() {
   const production = data?.overview.production;
   const fanEngagement = data?.overview.fanEngagement;
 
-  // Generate recent months for charts
-  const recentMonths = generateRecentMonths(6);
-
   // Chart configurations
   const reachChartConfig = {
     reach: {
@@ -265,14 +308,32 @@ export function DashboardContentUnified() {
     },
   } satisfies ChartConfig;
 
-  // Generate trend data for charts
-  const marketingTrendData = recentMonths.map((monthInfo, index) => ({
-    month: monthInfo.monthYear,
-    date: monthInfo.fullDate,
-    reach: index === recentMonths.length - 1 ? marketing?.totalReach || 0 : Math.round((marketing?.totalReach || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1))))),
-    engaged: index === recentMonths.length - 1 ? marketing?.engagedAudience || 0 : Math.round((marketing?.engagedAudience || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1))))),
-    followers: index === recentMonths.length - 1 ? marketing?.totalFollowers || 0 : Math.round((marketing?.totalFollowers || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1)))))
-  }));
+  // Use real chart data or fallback to generated data
+  const marketingTrendData = React.useMemo(() => {
+    if (chartData?.marketing?.followers && chartData.marketing.followers.length > 0) {
+      // Use real data from API
+      return chartData.marketing.followers.map((item: any) => ({
+        month: new Date(item.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
+        date: item.date,
+        reach: item.total || 0,
+        engaged: chartData.marketing.engagement.find((e: any) => e.date === item.date)?.value || 0,
+        followers: item.total || 0,
+        spotify: item.spotify || 0,
+        instagram: item.instagram || 0,
+        tiktok: item.tiktok || 0
+      }));
+    } else {
+      // Fallback to generated data if no real data available
+      const recentMonths = generateRecentMonths(6);
+      return recentMonths.map((monthInfo, index) => ({
+        month: monthInfo.monthYear,
+        date: monthInfo.fullDate,
+        reach: index === recentMonths.length - 1 ? marketing?.totalReach || 0 : Math.round((marketing?.totalReach || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1))))),
+        engaged: index === recentMonths.length - 1 ? marketing?.engagedAudience || 0 : Math.round((marketing?.engagedAudience || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1))))),
+        followers: index === recentMonths.length - 1 ? marketing?.totalFollowers || 0 : Math.round((marketing?.totalFollowers || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1)))))
+      }));
+    }
+  }, [chartData, marketing]);
 
   return (
     <TooltipProvider>
@@ -282,8 +343,20 @@ export function DashboardContentUnified() {
         <div className="flex items-center justify-between mb-2">
           <h1 className="text-3xl font-bold tracking-tight">Business Intelligence Dashboard</h1>
           <div className="flex items-center gap-2">
+            <Select value={timeFilter} onValueChange={(value: any) => setTimeFilter(value)}>
+              <SelectTrigger className="w-[140px]">
+                <Calendar className="h-4 w-4 mr-2" />
+                <SelectValue placeholder="Time range" />
+              </SelectTrigger>
+              <SelectContent>
+                <SelectItem value="1m">Last month</SelectItem>
+                <SelectItem value="3m">Last 3 months</SelectItem>
+                <SelectItem value="6m">Last 6 months</SelectItem>
+                <SelectItem value="all">All time</SelectItem>
+              </SelectContent>
+            </Select>
             <Badge variant="secondary" className="text-xs">
-              🟢 Live Data
+              {chartLoading ? '⏳ Loading...' : '🟢 Live Data'}
             </Badge>
             <Button variant="outline" size="sm">
               Manage Connection
