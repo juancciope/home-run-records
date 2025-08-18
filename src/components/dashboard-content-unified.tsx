@@ -284,23 +284,45 @@ export function DashboardContentUnified() {
     },
   } satisfies ChartConfig;
 
-  // Use real chart data or fallback to generated data (moved before early returns)
+  // Use real chart data from Viberate API (moved before early returns)
   const marketingTrendData = React.useMemo(() => {
     const marketing = data?.overview.marketing;
     
     if (chartData?.marketing?.followers && chartData.marketing.followers.length > 0) {
-      // Use real data from API
-      return chartData.marketing.followers.map((item: any) => ({
-        month: new Date(item.date).toLocaleDateString('en-US', { month: 'short', year: '2-digit' }),
-        date: item.date,
-        reach: item.total || 0,
-        engaged: chartData.marketing.engagement.find((e: any) => e.date === item.date)?.value || 0,
-        followers: item.total || 0,
-        spotify: item.spotify || 0,
-        instagram: item.instagram || 0,
-        tiktok: item.tiktok || 0
-      }));
+      console.log('📊 Using real Viberate data:', chartData.marketing.followers.length, 'data points');
+      console.log('📊 Sample data:', chartData.marketing.followers.slice(0, 2));
+      console.log('📊 Metadata:', chartData.metadata);
+      
+      // Use real Viberate data from API - properly formatted
+      return chartData.marketing.followers.map((item: any) => {
+        const itemDate = new Date(item.date);
+        const monthLabel = itemDate.toLocaleDateString('en-US', { 
+          month: 'short', 
+          year: '2-digit' 
+        });
+        
+        return {
+          month: monthLabel,
+          date: item.date,
+          reach: item.total || 0,
+          engaged: chartData.marketing.engagement.find((e: any) => e.date === item.date)?.value || 0,
+          followers: item.total || 0,
+          spotify: item.spotify || 0,
+          instagram: item.instagram || 0,
+          tiktok: item.tiktok || 0,
+          youtube: item.youtube || 0,
+          soundcloud: item.soundcloud || 0,
+          beatport: item.beatport || 0,
+          facebook: item.facebook || 0,
+          twitter: item.twitter || 0,
+          // Additional metadata for debugging
+          artistCount: item.artistCount || 0,
+          artists: item.artists || []
+        };
+      });
     } else {
+      console.log('📊 No real data available, using fallback data');
+      
       // Fallback to generated data if no real data available
       const recentMonths = generateRecentMonths(6);
       return recentMonths.map((monthInfo, index) => ({
@@ -308,7 +330,17 @@ export function DashboardContentUnified() {
         date: monthInfo.fullDate,
         reach: index === recentMonths.length - 1 ? marketing?.totalReach || 0 : Math.round((marketing?.totalReach || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1))))),
         engaged: index === recentMonths.length - 1 ? marketing?.engagedAudience || 0 : Math.round((marketing?.engagedAudience || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1))))),
-        followers: index === recentMonths.length - 1 ? marketing?.totalFollowers || 0 : Math.round((marketing?.totalFollowers || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1)))))
+        followers: index === recentMonths.length - 1 ? marketing?.totalFollowers || 0 : Math.round((marketing?.totalFollowers || 0) * (0.70 + (index * (0.30 / (recentMonths.length - 1))))),
+        spotify: 0,
+        instagram: 0,
+        tiktok: 0,
+        youtube: 0,
+        soundcloud: 0,
+        beatport: 0,
+        facebook: 0,
+        twitter: 0,
+        artistCount: 0,
+        artists: []
       }));
     }
   }, [chartData, data?.overview.marketing]);
@@ -360,6 +392,11 @@ export function DashboardContentUnified() {
             <Badge variant="secondary" className="text-xs">
               {chartLoading ? '⏳ Loading...' : '🟢 Live Data'}
             </Badge>
+            {chartData?.metadata && (
+              <Badge variant="outline" className="text-xs">
+                {chartData.metadata.artistCount} Artist{chartData.metadata.artistCount !== 1 ? 's' : ''}
+              </Badge>
+            )}
             <Button variant="outline" size="sm">
               Manage Connection
             </Button>
@@ -590,7 +627,12 @@ export function DashboardContentUnified() {
                 </ChartContainer>
                 <div className="flex items-center gap-1 text-xs text-muted-foreground">
                   <TrendingUp className="h-3 w-3" />
-                  <span>Expanding awareness</span>
+                  <span>
+                    {marketingTrendData.length > 0 && marketingTrendData[marketingTrendData.length - 1]?.artists?.length > 0
+                      ? `${marketingTrendData[marketingTrendData.length - 1].artists.length} artist${marketingTrendData[marketingTrendData.length - 1].artists.length !== 1 ? 's' : ''} contributing`
+                      : 'Expanding awareness'
+                    }
+                  </span>
                 </div>
               </div>
             </CardHeader>

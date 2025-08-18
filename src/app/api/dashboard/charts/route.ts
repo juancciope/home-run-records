@@ -6,7 +6,6 @@ export async function GET(request: NextRequest) {
     const { searchParams } = new URL(request.url);
     const userId = searchParams.get('userId');
     const timeFilter = searchParams.get('timeFilter') || '6m'; // all, 1m, 3m, 6m
-    // const section = searchParams.get('section') || 'all'; // marketing, production, fanEngagement, all
 
     if (!userId) {
       return NextResponse.json({ error: 'User ID required' }, { status: 400 });
@@ -24,35 +23,45 @@ export async function GET(request: NextRequest) {
 
     // Calculate date range based on filter
     const endDate = new Date();
-    const startDate = new Date();
-    let aggregation = 'day'; // day, week, month
+    let startDate: Date;
+    let aggregation: 'day' | 'week' | 'month' = 'day';
 
     switch (timeFilter) {
       case '1m':
+        startDate = new Date();
         startDate.setMonth(startDate.getMonth() - 1);
         aggregation = 'day';
         break;
       case '3m':
+        startDate = new Date();
         startDate.setMonth(startDate.getMonth() - 3);
         aggregation = 'week';
         break;
       case '6m':
+        startDate = new Date();
         startDate.setMonth(startDate.getMonth() - 6);
         aggregation = 'month';
         break;
       case 'all':
+        startDate = new Date();
         startDate.setFullYear(startDate.getFullYear() - 2);
         aggregation = 'month';
         break;
+      default:
+        startDate = new Date();
+        startDate.setMonth(startDate.getMonth() - 6);
+        aggregation = 'month';
     }
 
     const startDateStr = startDate.toISOString().split('T')[0];
     const endDateStr = endDate.toISOString().split('T')[0];
 
+    console.log('📅 Date range:', startDateStr, 'to', endDateStr, 'aggregation:', aggregation);
+
     // Get user's artists first
     const { data: userArtists, error: artistError } = await supabase
       .from('artists')
-      .select('id, stage_name, uuid')
+      .select('id, stage_name, uuid, viberate_artist_id')
       .eq('user_id', userId);
 
     if (artistError) {
@@ -80,12 +89,12 @@ export async function GET(request: NextRequest) {
       });
     }
 
-    console.log('Found artists for user:', artistIds);
+    console.log('🎤 Found artists:', userArtists?.map(a => a.stage_name).join(', '));
 
-    // Fetch artist analytics data
+    // Fetch artist analytics data with proper date filtering
     const { data: analyticsData, error: analyticsError } = await supabase
       .from('artist_analytics')
-      .select('*')
+      .select('artist_id, date, platform, metric_type, value')
       .in('artist_id', artistIds)
       .gte('date', startDateStr)
       .lte('date', endDateStr)
@@ -96,53 +105,24 @@ export async function GET(request: NextRequest) {
       return NextResponse.json({ error: 'Failed to fetch analytics data' }, { status: 500 });
     }
 
-    console.log(`Found ${analyticsData?.length || 0} analytics records`);
+    console.log(`📈 Found ${analyticsData?.length || 0} analytics records`);
 
-    // Process and aggregate data based on time filter
-    const processedData = processAnalyticsData(analyticsData || [], aggregation);
+    // Process and aggregate the data properly
+    const processedData = processVibrateAnalytics(analyticsData || [], userArtists || [], aggregation);
 
-    // Fetch marketing records (user-entered data)
-    const { data: marketingRecords } = await supabase
-      .from('marketing_records')
-      .select('*')
-      .eq('user_id', userId)
-      .gte('date_recorded', startDateStr)
-      .lte('date_recorded', endDateStr)
-      .order('date_recorded', { ascending: true });
-
-    // Fetch production records count over time
-    const { data: productionRecords } = await supabase
-      .from('production_records')
-      .select('created_at, record_type')
-      .eq('user_id', userId)
-      .gte('created_at', startDateStr)
-      .lte('created_at', endDateStr)
-      .order('created_at', { ascending: true });
-
-    // Fetch fan engagement records over time
-    const { data: fanRecords } = await supabase
-      .from('fan_engagement_records')
-      .select('created_at, record_type')
-      .eq('user_id', userId)
-      .gte('created_at', startDateStr)
-      .lte('created_at', endDateStr)
-      .order('created_at', { ascending: true });
-
-    // Combine all data sources
-    const combinedData = {
+    const result = {
       success: true,
       data: {
         marketing: {
           reach: processedData.reach,
           followers: processedData.followers,
-          engagement: processedData.engagement,
-          userRecords: processMarketingRecords(marketingRecords || [], aggregation)
+          engagement: processedData.engagement
         },
         production: {
-          records: processProductionRecords(productionRecords || [], aggregation)
+          records: []
         },
         fanEngagement: {
-          fans: processFanRecords(fanRecords || [], aggregation)
+          fans: []
         }
       },
       metadata: {
@@ -150,11 +130,18 @@ export async function GET(request: NextRequest) {
         timeFilter,
         aggregation,
         artistCount: artistIds.length,
-        totalDataPoints: analyticsData?.length || 0
+        totalDataPoints: analyticsData?.length || 0,
+        artists: userArtists?.map(a => ({ id: a.id, name: a.stage_name }))
       }
     };
 
-    return NextResponse.json(combinedData);
+    console.log('✅ Returning processed data:', {
+      followers: processedData.followers.length,
+      reach: processedData.reach.length,
+      engagement: processedData.engagement.length
+    });
+
+    return NextResponse.json(result);
 
   } catch (error) {
     console.error('❌ Error loading chart data:', error);
@@ -165,139 +152,110 @@ export async function GET(request: NextRequest) {
   }
 }
 
-// Helper function to process analytics data
-function processAnalyticsData(data: any[], aggregation: string) {
-  const reach: any[] = [];
-  const followers: any[] = [];
-  const engagement: any[] = [];
+// Completely rewritten data processing function
+function processVibrateAnalytics(
+  data: Array<{
+    artist_id: string;
+    date: string;
+    platform: string;
+    metric_type: string;
+    value: number;
+  }>,
+  artists: Array<{
+    id: string;
+    stage_name: string;
+    uuid?: string;
+    viberate_artist_id?: string;
+  }>,
+  aggregation: 'day' | 'week' | 'month'
+) {
+  // Create artist lookup
+  const artistLookup = new Map(artists.map(a => [a.id, a.stage_name]));
 
-  // Group data by date
-  const groupedByDate: Record<string, any> = {};
+  // Group data by date and aggregate across all artists
+  const dateGroups: Record<string, {
+    date: string;
+    platforms: Record<string, number>;
+    totalReach: number;
+    totalEngagement: number;
+    artistCount: number;
+    artists: Set<string>;
+  }> = {};
 
+  // Process each analytics record
   data.forEach(record => {
-    const dateKey = getAggregatedDateKey(record.date, aggregation);
-    
-    if (!groupedByDate[dateKey]) {
-      groupedByDate[dateKey] = {
+    const dateKey = getDateKey(record.date, aggregation);
+    const artistName = artistLookup.get(record.artist_id) || 'Unknown';
+
+    if (!dateGroups[dateKey]) {
+      dateGroups[dateKey] = {
         date: dateKey,
-        reach: 0,
-        followers: {},
-        streams: 0,
-        engagement: 0
+        platforms: {},
+        totalReach: 0,
+        totalEngagement: 0,
+        artistCount: 0,
+        artists: new Set()
       };
     }
 
-    // Aggregate based on metric type
+    const group = dateGroups[dateKey];
+    group.artists.add(artistName);
+
+    // Aggregate data based on metric type
     if (record.metric_type === 'followers') {
-      groupedByDate[dateKey].followers[record.platform] = 
-        (groupedByDate[dateKey].followers[record.platform] || 0) + record.value;
-      groupedByDate[dateKey].reach += record.value;
-    } else if (record.metric_type === 'streams') {
-      groupedByDate[dateKey].streams += record.value;
-      groupedByDate[dateKey].engagement += record.value;
-    } else if (record.metric_type === 'engagement') {
-      groupedByDate[dateKey].engagement += record.value;
+      // Sum followers across all artists for each platform
+      group.platforms[record.platform] = (group.platforms[record.platform] || 0) + record.value;
+      group.totalReach += record.value;
+    } else if (record.metric_type === 'engagement' || record.metric_type === 'streams') {
+      group.totalEngagement += record.value;
     }
   });
 
-  // Convert to arrays
-  Object.keys(groupedByDate).sort().forEach(dateKey => {
-    const data = groupedByDate[dateKey];
-    
-    reach.push({
+  // Convert to sorted arrays for charts
+  const sortedDates = Object.keys(dateGroups).sort();
+  
+  const followers = sortedDates.map(dateKey => {
+    const group = dateGroups[dateKey];
+    return {
       date: dateKey,
-      value: data.reach
-    });
-
-    followers.push({
-      date: dateKey,
-      ...data.followers,
-      total: Object.values(data.followers).reduce((sum: number, val: any) => sum + val, 0)
-    });
-
-    engagement.push({
-      date: dateKey,
-      value: data.engagement || data.streams
-    });
+      total: group.totalReach,
+      spotify: group.platforms.spotify || 0,
+      instagram: group.platforms.instagram || 0,
+      tiktok: group.platforms.tiktok || 0,
+      youtube: group.platforms.youtube || 0,
+      soundcloud: group.platforms.soundcloud || 0,
+      beatport: group.platforms.beatport || 0,
+      facebook: group.platforms.facebook || 0,
+      twitter: group.platforms.twitter || 0,
+      artistCount: group.artists.size,
+      artists: Array.from(group.artists)
+    };
   });
 
-  return { reach, followers, engagement };
-}
+  const reach = sortedDates.map(dateKey => ({
+    date: dateKey,
+    value: dateGroups[dateKey].totalReach,
+    artistCount: dateGroups[dateKey].artists.size
+  }));
 
-// Helper function to process marketing records
-function processMarketingRecords(records: any[], aggregation: string) {
-  const grouped: Record<string, any> = {};
+  const engagement = sortedDates.map(dateKey => ({
+    date: dateKey,
+    value: dateGroups[dateKey].totalEngagement,
+    artistCount: dateGroups[dateKey].artists.size
+  }));
 
-  records.forEach(record => {
-    const dateKey = getAggregatedDateKey(record.date_recorded, aggregation);
-    
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = {
-        date: dateKey,
-        reach: 0,
-        engagement: 0,
-        followers: 0
-      };
-    }
-
-    grouped[dateKey].reach += record.reach_count || 0;
-    grouped[dateKey].engagement += record.engagement_count || 0;
-    grouped[dateKey].followers += record.follower_count || 0;
+  console.log('📊 Processed data summary:', {
+    datePoints: sortedDates.length,
+    dateRange: sortedDates.length > 0 ? `${sortedDates[0]} to ${sortedDates[sortedDates.length - 1]}` : 'none',
+    totalArtists: artistLookup.size,
+    sampleFollowers: followers.slice(0, 2)
   });
 
-  return Object.keys(grouped).sort().map(key => grouped[key]);
+  return { followers, reach, engagement };
 }
 
-// Helper function to process production records
-function processProductionRecords(records: any[], aggregation: string) {
-  const grouped: Record<string, any> = {};
-
-  records.forEach(record => {
-    const dateKey = getAggregatedDateKey(record.created_at, aggregation);
-    
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = {
-        date: dateKey,
-        unfinished: 0,
-        finished: 0,
-        released: 0,
-        total: 0
-      };
-    }
-
-    grouped[dateKey][record.record_type] = (grouped[dateKey][record.record_type] || 0) + 1;
-    grouped[dateKey].total += 1;
-  });
-
-  return Object.keys(grouped).sort().map(key => grouped[key]);
-}
-
-// Helper function to process fan engagement records
-function processFanRecords(records: any[], aggregation: string) {
-  const grouped: Record<string, any> = {};
-
-  records.forEach(record => {
-    const dateKey = getAggregatedDateKey(record.created_at, aggregation);
-    
-    if (!grouped[dateKey]) {
-      grouped[dateKey] = {
-        date: dateKey,
-        captured: 0,
-        fans: 0,
-        super_fans: 0,
-        total: 0
-      };
-    }
-
-    grouped[dateKey][record.record_type] = (grouped[dateKey][record.record_type] || 0) + 1;
-    grouped[dateKey].total += 1;
-  });
-
-  return Object.keys(grouped).sort().map(key => grouped[key]);
-}
-
-// Helper function to get aggregated date key
-function getAggregatedDateKey(dateStr: string, aggregation: string): string {
+// Improved date aggregation function
+function getDateKey(dateStr: string, aggregation: 'day' | 'week' | 'month'): string {
   const date = new Date(dateStr);
   
   switch (aggregation) {
@@ -305,9 +263,9 @@ function getAggregatedDateKey(dateStr: string, aggregation: string): string {
       return date.toISOString().split('T')[0];
     case 'week':
       // Get the Monday of the week
-      const day = date.getDay();
-      const diff = date.getDate() - day + (day === 0 ? -6 : 1);
-      const monday = new Date(date.setDate(diff));
+      const dayOfWeek = date.getDay();
+      const diff = date.getDate() - dayOfWeek + (dayOfWeek === 0 ? -6 : 1);
+      const monday = new Date(date.getFullYear(), date.getMonth(), diff);
       return monday.toISOString().split('T')[0];
     case 'month':
       return `${date.getFullYear()}-${String(date.getMonth() + 1).padStart(2, '0')}-01`;
