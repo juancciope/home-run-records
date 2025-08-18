@@ -1,7 +1,7 @@
 "use client"
 
 import { useEffect, useState } from 'react'
-import { Card, CardContent, CardHeader, CardTitle } from '@/components/ui/card'
+import { Card, CardContent, CardDescription, CardHeader, CardTitle } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
 import { Progress } from '@/components/ui/progress'
@@ -65,7 +65,8 @@ import {
   Headphones,
   Edit3,
   Trash2,
-  Eye
+  Eye,
+  FileText
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -129,86 +130,112 @@ function SortableCard({
       {...listeners}
       className="mb-3"
     >
-      <Card className="cursor-move hover:shadow-md transition-shadow">
+      <Card className="cursor-move hover:shadow-md transition-shadow border-l-4 border-l-primary/30">
         <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-2">
-            <div className="flex items-center gap-2">
-              <div className="h-8 w-8 rounded-full bg-primary/10 flex items-center justify-center">
-                <Music className="h-4 w-4 text-primary" />
+          <div className="flex items-start justify-between mb-3">
+            <div className="flex items-center gap-3">
+              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                <Music className="h-5 w-5 text-primary" />
               </div>
-              <div>
-                <h4 className="font-medium text-sm">{record.title}</h4>
+              <div className="flex-1 min-w-0">
+                <h4 className="font-semibold text-sm truncate">{record.title}</h4>
                 {record.artist_name && (
-                  <p className="text-xs text-muted-foreground">{record.artist_name}</p>
+                  <p className="text-xs text-muted-foreground truncate">{record.artist_name}</p>
                 )}
               </div>
             </div>
-            <DropdownMenu>
-              <DropdownMenuTrigger asChild>
-                <Button variant="ghost" size="icon" className="h-6 w-6">
-                  <MoreVertical className="h-3 w-3" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-32">
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEdit(record)
-                  }}
-                >
-                  <Edit3 className="h-3 w-3 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuItem>
-                  <Eye className="h-3 w-3 mr-2" />
-                  View
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete(record.id)
-                  }}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-3 w-3 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                <Eye className="h-3.5 w-3.5" />
+              </Button>
+              <DropdownMenu>
+                <DropdownMenuTrigger asChild>
+                  <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                    <MoreVertical className="h-3.5 w-3.5" />
+                  </Button>
+                </DropdownMenuTrigger>
+                <DropdownMenuContent align="end" className="w-32">
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onEdit(record)
+                    }}
+                  >
+                    <Edit3 className="h-3 w-3 mr-2" />
+                    Edit
+                  </DropdownMenuItem>
+                  <DropdownMenuItem>
+                    <Eye className="h-3 w-3 mr-2" />
+                    View
+                  </DropdownMenuItem>
+                  <DropdownMenuSeparator />
+                  <DropdownMenuItem
+                    onClick={(e) => {
+                      e.stopPropagation()
+                      onDelete(record.id)
+                    }}
+                    className="text-red-600 hover:text-red-700"
+                  >
+                    <Trash2 className="h-3 w-3 mr-2" />
+                    Delete
+                  </DropdownMenuItem>
+                </DropdownMenuContent>
+              </DropdownMenu>
+            </div>
           </div>
 
           {record.description && (
-            <p className="text-xs text-muted-foreground mb-3 line-clamp-2">
+            <p className="text-xs text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
               {record.description}
             </p>
           )}
 
-          <div className="space-y-2">
+          <div className="space-y-3">
             {record.completion_percentage > 0 && record.record_type === 'unfinished' && (
               <div>
-                <div className="flex justify-between text-xs mb-1">
-                  <span>Progress</span>
-                  <span>{record.completion_percentage}%</span>
+                <div className="flex justify-between text-xs mb-2">
+                  <span className="font-medium">Progress</span>
+                  <span className="font-semibold">{record.completion_percentage}%</span>
                 </div>
-                <Progress value={record.completion_percentage} className="h-1" />
+                <Progress value={record.completion_percentage} className="h-2" />
               </div>
             )}
 
-            {record.release_date && (
-              <div className="flex items-center gap-1 text-xs text-muted-foreground">
-                <Calendar className="h-3 w-3" />
-                <span>{new Date(record.release_date).toLocaleDateString()}</span>
-              </div>
-            )}
+            <div className="flex items-center justify-between text-xs">
+              {record.release_date && (
+                <div className="flex items-center gap-1 text-muted-foreground">
+                  <Calendar className="h-3 w-3" />
+                  <span>{new Date(record.release_date).toLocaleDateString()}</span>
+                </div>
+              )}
+              
+              {record.record_type && (
+                <Badge 
+                  variant="outline" 
+                  className={`text-xs ${
+                    record.record_type === 'unfinished' ? 'border-orange-200 text-orange-700' :
+                    record.record_type === 'finished' ? 'border-yellow-200 text-yellow-700' :
+                    'border-green-200 text-green-700'
+                  }`}
+                >
+                  {record.record_type === 'unfinished' ? 'In Progress' :
+                   record.record_type === 'finished' ? 'Ready' : 'Live'}
+                </Badge>
+              )}
+            </div>
 
             {record.platforms && record.platforms.length > 0 && (
               <div className="flex flex-wrap gap-1">
-                {record.platforms.map((platform, idx) => (
-                  <Badge key={idx} variant="secondary" className="text-xs">
+                {record.platforms.slice(0, 3).map((platform, idx) => (
+                  <Badge key={idx} variant="secondary" className="text-xs px-2 py-0.5">
                     {platform}
                   </Badge>
                 ))}
+                {record.platforms.length > 3 && (
+                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                    +{record.platforms.length - 3}
+                  </Badge>
+                )}
               </div>
             )}
           </div>
@@ -253,41 +280,49 @@ function KanbanColumn({
   return (
     <div className="flex-1 min-w-[300px]">
       <Card className={`h-full ${isOver ? 'ring-2 ring-primary' : ''}`}>
-        <CardHeader className="pb-3">
+        <CardHeader className="pb-4">
           <div className="flex items-center justify-between">
-            <div className="flex items-center gap-2">
-              <div className={`h-8 w-8 rounded-lg ${color} flex items-center justify-center`}>
-                <Icon className="h-4 w-4 text-white" />
+            <div className="flex items-center gap-3">
+              <div className={`h-10 w-10 rounded-lg ${color} flex items-center justify-center shadow-sm`}>
+                <Icon className="h-5 w-5 text-white" />
               </div>
               <div>
-                <CardTitle className="text-base">{title}</CardTitle>
-                <p className="text-xs text-muted-foreground">{safeRecords.length} items</p>
+                <CardTitle className="text-lg font-semibold">{title}</CardTitle>
+                <CardDescription className="text-sm">{safeRecords.length} tracks</CardDescription>
               </div>
             </div>
-            <Button variant="ghost" size="icon" className="h-6 w-6">
-              <Plus className="h-3 w-3" />
-            </Button>
+            <div className="flex items-center gap-1">
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Eye className="h-4 w-4" />
+              </Button>
+              <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                <Plus className="h-4 w-4" />
+              </Button>
+            </div>
           </div>
         </CardHeader>
-        <CardContent ref={setNodeRef} className="min-h-[400px]">
+        <CardContent ref={setNodeRef} className="min-h-[500px] pt-0">
           <SortableContext 
             items={safeRecords.map(r => r.id)} 
             strategy={verticalListSortingStrategy}
           >
-            {safeRecords.map((record) => (
-              <SortableCard 
-                key={record.id} 
-                record={record} 
-                onEdit={onEdit}
-                onDelete={onDelete}
-              />
-            ))}
+            <div className="space-y-3">
+              {safeRecords.map((record) => (
+                <SortableCard 
+                  key={record.id} 
+                  record={record} 
+                  onEdit={onEdit}
+                  onDelete={onDelete}
+                />
+              ))}
+            </div>
           </SortableContext>
           
           {safeRecords.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
-              <Icon className="h-8 w-8 mb-2 opacity-20" />
-              <p className="text-sm">No items</p>
+            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
+              <Icon className="h-12 w-12 mb-3 opacity-30" />
+              <p className="text-sm font-medium mb-1">No tracks</p>
+              <p className="text-xs">Drag tracks here or click + to add</p>
             </div>
           )}
         </CardContent>
@@ -637,42 +672,108 @@ export default function ProductionPage() {
         </Button>
       </div>
 
-      {/* Stats Cards */}
-      <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardContent className="p-6">
+      {/* Stats Cards - Matching Overview Dashboard Style */}
+      <div className="grid gap-6 md:grid-cols-3">
+        <Card className="border-orange-200">
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-                <p className="text-2xl font-bold">{records.unfinished?.length || 0}</p>
+                <CardTitle className="text-base font-medium">In Progress</CardTitle>
+                <CardDescription className="text-sm">Projects in development</CardDescription>
               </div>
-              <Clock className="h-8 w-8 text-orange-500 opacity-20" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-          </CardContent>
+            <div className="text-4xl font-bold">{records.unfinished?.length || 0}</div>
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span>Priority</span>
+                <span className="text-red-500 font-medium">High</span>
+              </div>
+              <Badge variant="outline" className="text-xs">Active</Badge>
+            </div>
+            <div className="w-full bg-orange-100 rounded-full h-2">
+              <div className="bg-orange-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3" />
+              <span>Focus on completion</span>
+            </div>
+          </CardHeader>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border-yellow-200">
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Ready</p>
-                <p className="text-2xl font-bold">{records.finished?.length || 0}</p>
+                <CardTitle className="text-base font-medium">Ready to Release</CardTitle>
+                <CardDescription className="text-sm">Completed, awaiting launch</CardDescription>
               </div>
-              <CheckCircle2 className="h-8 w-8 text-blue-500 opacity-20" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-          </CardContent>
+            <div className="text-4xl font-bold">{records.finished?.length || 0}</div>
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span>Next Release</span>
+                <span className="text-yellow-600 font-medium">2 weeks</span>
+              </div>
+              <Badge variant="outline" className="text-xs">Ready</Badge>
+            </div>
+            <div className="w-full bg-yellow-100 rounded-full h-2">
+              <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '90%' }}></div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <FileText className="h-3 w-3" />
+              <span>Schedule releases</span>
+            </div>
+          </CardHeader>
         </Card>
         
-        <Card>
-          <CardContent className="p-6">
+        <Card className="border-green-200">
+          <CardHeader className="pb-3">
             <div className="flex items-center justify-between">
               <div>
-                <p className="text-sm font-medium text-muted-foreground">Released</p>
-                <p className="text-2xl font-bold">{records.released?.length || 0}</p>
+                <CardTitle className="text-base font-medium">Live Catalog</CardTitle>
+                <CardDescription className="text-sm">Live & generating revenue</CardDescription>
               </div>
-              <Radio className="h-8 w-8 text-green-500 opacity-20" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                  <Eye className="h-3.5 w-3.5" />
+                </Button>
+                <Button variant="ghost" size="sm" className="h-7 w-7 p-0 shrink-0">
+                  <MoreVertical className="h-3.5 w-3.5" />
+                </Button>
+              </div>
             </div>
-          </CardContent>
+            <div className="text-4xl font-bold">{records.released?.length || 0}</div>
+            <div className="flex items-center justify-between text-sm">
+              <div className="flex items-center gap-2">
+                <span>Completion</span>
+                <span className="text-green-600 font-medium">100%</span>
+              </div>
+              <Badge variant="outline" className="text-xs">Live</Badge>
+            </div>
+            <div className="w-full bg-green-100 rounded-full h-2">
+              <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+            </div>
+            <div className="flex items-center gap-1 text-xs text-muted-foreground">
+              <TrendingUp className="h-3 w-3" />
+              <span>Earning revenue</span>
+            </div>
+          </CardHeader>
         </Card>
       </div>
       

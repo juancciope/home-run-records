@@ -1,0 +1,89 @@
+# Claude Code Documentation
+
+## Project Overview
+Home Run Records - Music production management platform with dashboards for tracking artist metrics and production workflows.
+
+## MANDATORY RULES
+
+### UI/UX Kit Consistency (CRITICAL)
+**ALWAYS USE THE EXISTING UI/UX KIT FOR ALL COMPONENTS, SCREENS, AND FEATURES**
+
+- **ALL new components MUST follow existing design patterns**
+- **ALL cards MUST match the Overview dashboard style with:**
+  - Same header structure (CardTitle, CardDescription)
+  - Same action button patterns (ghost buttons, proper sizing)
+  - Same color schemes and border styles
+  - Same spacing and typography
+- **ALL buttons MUST use shadcn/ui Button component with consistent sizing**
+- **ALL layouts MUST follow grid patterns established in existing dashboards**
+- **NEVER create custom styling that deviates from the established design system**
+
+## Technology Stack
+- Next.js 15.4.5 with App Router and TypeScript
+- shadcn/ui component library (MANDATORY FOR ALL UI COMPONENTS)
+- @dnd-kit for drag-and-drop functionality
+- Supabase for database operations
+- PostgreSQL with RLS policies
+
+## Database Schema
+- `production_records` table with `record_type` field ('unfinished', 'finished', 'released')
+- `user_dashboard_metrics` table for overview dashboard data
+
+## Critical Features
+
+### Production Dashboard Drag and Drop (WORKING - DO NOT BREAK)
+**Location**: `/src/app/dashboard/production/page.tsx`
+
+**Key Implementation Details**:
+1. **State Management**: Uses `originalStatus` to track pre-drag state
+2. **Drag Start**: Stores original status before any UI changes
+3. **Drag Over**: Updates UI optimistically but doesn't save to DB
+4. **Drag End**: Compares `originalStatus` vs `targetStatus` (NOT current vs target)
+
+**Critical Code Sections**:
+```typescript
+const [originalStatus, setOriginalStatus] = useState<string | null>(null)
+
+const handleDragStart = (event: DragStartEvent) => {
+  setActiveId(event.active.id)
+  const record = findRecordById(event.active.id as string)
+  if (record) {
+    setOriginalStatus(record.record_type) // Store ORIGINAL status
+  }
+}
+
+const handleDragEnd = async (event: DragEndEvent) => {
+  // Compare originalStatus vs targetStatus (not current vs target)
+  if (originalStatus && originalStatus !== targetStatus) {
+    // Database update logic
+  }
+  setOriginalStatus(null) // Clear after operation
+}
+```
+
+**Why This Works**:
+- `handleDragOver` updates UI immediately for smooth UX
+- `handleDragEnd` uses stored `originalStatus` to detect actual changes
+- Prevents false "no change" detections that caused persistence issues
+
+**Database Mapping**:
+- UI Column "In-progress" → `record_type: 'unfinished'`
+- UI Column "Ready to Release" → `record_type: 'finished'`  
+- UI Column "Live Catalog" → `record_type: 'released'`
+
+### Data Consistency
+Both Overview and Production dashboards use `production_records` table directly for consistent counts.
+
+## Build Commands
+- `npm run build` - Build for production
+- `npm run lint` - Run ESLint
+- `npm run dev` - Development server
+
+## API Endpoints
+- `/api/dashboard/production` - GET/PATCH/DELETE for production records
+- `/api/dashboard/unified` - GET/PUT for overview dashboard data
+
+## Testing Notes
+- Test drag and drop persistence by dragging items and refreshing page
+- Verify dropdown menus remain clickable after delete operations
+- Ensure data consistency between Overview and Production dashboards
