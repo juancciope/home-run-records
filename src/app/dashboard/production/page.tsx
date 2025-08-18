@@ -169,6 +169,9 @@ function KanbanColumn({
     },
   })
 
+  // Ensure records is always an array
+  const safeRecords = records || []
+
   return (
     <div className="flex-1 min-w-[300px]">
       <Card className={`h-full ${isOver ? 'ring-2 ring-primary' : ''}`}>
@@ -180,7 +183,7 @@ function KanbanColumn({
               </div>
               <div>
                 <CardTitle className="text-base">{title}</CardTitle>
-                <p className="text-xs text-muted-foreground">{records.length} items</p>
+                <p className="text-xs text-muted-foreground">{safeRecords.length} items</p>
               </div>
             </div>
             <Button variant="ghost" size="icon" className="h-6 w-6">
@@ -190,15 +193,15 @@ function KanbanColumn({
         </CardHeader>
         <CardContent ref={setNodeRef} className="min-h-[400px]">
           <SortableContext 
-            items={records.map(r => r.id)} 
+            items={safeRecords.map(r => r.id)} 
             strategy={verticalListSortingStrategy}
           >
-            {records.map((record) => (
+            {safeRecords.map((record) => (
               <SortableCard key={record.id} record={record} />
             ))}
           </SortableContext>
           
-          {records.length === 0 && (
+          {safeRecords.length === 0 && (
             <div className="flex flex-col items-center justify-center h-32 text-muted-foreground">
               <Icon className="h-8 w-8 mb-2 opacity-20" />
               <p className="text-sm">No items</p>
@@ -238,7 +241,19 @@ export default function ProductionPage() {
       const data = await response.json()
       
       if (data.success) {
-        setRecords(data.data)
+        // Ensure all arrays are defined
+        setRecords({
+          unfinished: data.data.unfinished || [],
+          finished: data.data.finished || [],
+          released: data.data.released || []
+        })
+      } else {
+        console.error('API Error:', data.error)
+        if (data.error === 'Unauthorized') {
+          toast.error('Please log in to view production records')
+        } else {
+          toast.error('Failed to load production records')
+        }
       }
     } catch (error) {
       console.error('Error fetching records:', error)
@@ -261,20 +276,28 @@ export default function ProductionPage() {
     const overStatus = over.data?.current?.sortable?.containerId || over.id
 
     if (activeRecord && overStatus && activeRecord.record_type !== overStatus) {
+      // Validate the new status
+      if (!['unfinished', 'finished', 'released'].includes(overStatus as string)) {
+        return
+      }
+
       // Move record to new column immediately for smooth UX
       setRecords(prev => {
         const newRecords = { ...prev }
         
+        // Ensure arrays exist
+        if (!newRecords.unfinished) newRecords.unfinished = []
+        if (!newRecords.finished) newRecords.finished = []
+        if (!newRecords.released) newRecords.released = []
+        
         // Remove from old column
-        newRecords[activeRecord.record_type as keyof GroupedRecords] = 
-          newRecords[activeRecord.record_type as keyof GroupedRecords].filter(r => r.id !== activeRecord.id)
+        const oldStatus = activeRecord.record_type as keyof GroupedRecords
+        newRecords[oldStatus] = newRecords[oldStatus].filter(r => r.id !== activeRecord.id)
         
         // Add to new column
         const updatedRecord = { ...activeRecord, record_type: overStatus as any }
-        newRecords[overStatus as keyof GroupedRecords] = [
-          ...newRecords[overStatus as keyof GroupedRecords],
-          updatedRecord
-        ]
+        const newStatus = overStatus as keyof GroupedRecords
+        newRecords[newStatus] = [...newRecords[newStatus], updatedRecord]
         
         return newRecords
       })
@@ -321,8 +344,12 @@ export default function ProductionPage() {
   }
 
   const findRecordById = (id: string): ProductionRecord | undefined => {
-    return [...records.unfinished, ...records.finished, ...records.released]
-      .find(record => record.id === id)
+    const allRecords = [
+      ...(records.unfinished || []),
+      ...(records.finished || []),
+      ...(records.released || [])
+    ]
+    return allRecords.find(record => record.id === id)
   }
 
   const getColumnTitle = (status: string) => {
@@ -366,7 +393,7 @@ export default function ProductionPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">In Progress</p>
-                <p className="text-2xl font-bold">{records.unfinished.length}</p>
+                <p className="text-2xl font-bold">{records.unfinished?.length || 0}</p>
               </div>
               <Clock className="h-8 w-8 text-orange-500 opacity-20" />
             </div>
@@ -378,7 +405,7 @@ export default function ProductionPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Ready</p>
-                <p className="text-2xl font-bold">{records.finished.length}</p>
+                <p className="text-2xl font-bold">{records.finished?.length || 0}</p>
               </div>
               <CheckCircle2 className="h-8 w-8 text-blue-500 opacity-20" />
             </div>
@@ -390,7 +417,7 @@ export default function ProductionPage() {
             <div className="flex items-center justify-between">
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Released</p>
-                <p className="text-2xl font-bold">{records.released.length}</p>
+                <p className="text-2xl font-bold">{records.released?.length || 0}</p>
               </div>
               <Radio className="h-8 w-8 text-green-500 opacity-20" />
             </div>
@@ -403,7 +430,7 @@ export default function ProductionPage() {
               <div>
                 <p className="text-sm font-medium text-muted-foreground">Total</p>
                 <p className="text-2xl font-bold">
-                  {records.unfinished.length + records.finished.length + records.released.length}
+                  {(records.unfinished?.length || 0) + (records.finished?.length || 0) + (records.released?.length || 0)}
                 </p>
               </div>
               <Disc className="h-8 w-8 text-purple-500 opacity-20" />
