@@ -108,7 +108,13 @@ function SortableCard({
     transform,
     transition,
     isDragging,
-  } = useSortable({ id: record.id })
+  } = useSortable({ 
+    id: record.id,
+    data: {
+      type: 'task',
+      task: record
+    }
+  })
 
   const style = {
     transform: CSS.Transform.toString(transform),
@@ -238,7 +244,7 @@ function KanbanColumn({
     id: status,
     data: {
       type: 'column',
-      status,
+      column: { id: status, title }
     },
   })
 
@@ -358,8 +364,66 @@ export default function ProductionPage() {
   }
 
   const handleDragOver = (event: DragOverEvent) => {
-    // We'll handle the actual movement in handleDragEnd for better UX
-    // This is just for visual feedback
+    const { active, over } = event
+    
+    if (!over) return
+    
+    const activeId = active.id
+    const overId = over.id
+    
+    if (activeId === overId) return
+
+    // Find the active record
+    const activeRecord = findRecordById(activeId as string)
+    if (!activeRecord) return
+
+    // Determine if we're dropping on a column or card
+    const isOverAColumn = over.data?.current?.type === 'column'
+    const isOverATask = over.data?.current?.type === 'task'
+
+    if (!isOverAColumn && !isOverATask) return
+
+    // If dropping on a column, move to that column
+    if (isOverAColumn) {
+      const newColumnId = overId as string
+      if (activeRecord.record_type !== newColumnId) {
+        setRecords(prev => {
+          const newRecords = { ...prev }
+          
+          // Remove from old column
+          const oldStatus = activeRecord.record_type as keyof GroupedRecords
+          newRecords[oldStatus] = (newRecords[oldStatus] || []).filter(r => r.id !== activeId)
+          
+          // Add to new column
+          const updatedRecord = { ...activeRecord, record_type: newColumnId as any }
+          const newStatus = newColumnId as keyof GroupedRecords
+          newRecords[newStatus] = [...(newRecords[newStatus] || []), updatedRecord]
+          
+          return newRecords
+        })
+      }
+    }
+    
+    // If dropping on a task, move to that task's column
+    if (isOverATask) {
+      const overRecord = findRecordById(overId as string)
+      if (overRecord && activeRecord.record_type !== overRecord.record_type) {
+        setRecords(prev => {
+          const newRecords = { ...prev }
+          
+          // Remove from old column
+          const oldStatus = activeRecord.record_type as keyof GroupedRecords
+          newRecords[oldStatus] = (newRecords[oldStatus] || []).filter(r => r.id !== activeId)
+          
+          // Add to new column
+          const updatedRecord = { ...activeRecord, record_type: overRecord.record_type }
+          const newStatus = overRecord.record_type as keyof GroupedRecords
+          newRecords[newStatus] = [...(newRecords[newStatus] || []), updatedRecord]
+          
+          return newRecords
+        })
+      }
+    }
   }
 
   const handleDragEnd = async (event: DragEndEvent) => {
@@ -367,78 +431,52 @@ export default function ProductionPage() {
     
     setActiveId(null)
     
-    if (!over) {
-      return
-    }
+    if (!over) return
 
     const activeRecord = findRecordById(active.id as string)
-    if (!activeRecord) {
-      return
-    }
+    if (!activeRecord) return
 
-    // Determine the target status - check if we're over a column or over another card
-    let overStatus: string
+    // Determine the target status
+    let targetStatus: string
     if (over.data?.current?.type === 'column') {
-      // Dropped on a column
-      overStatus = over.data.current.status
+      targetStatus = over.id as string
     } else {
-      // Dropped on a card - find which column the card belongs to
       const overRecord = findRecordById(over.id as string)
-      overStatus = overRecord?.record_type || 'unfinished'
+      targetStatus = overRecord?.record_type || activeRecord.record_type
     }
 
-    // If the status is the same, no need to update
-    if (activeRecord.record_type === overStatus) {
-      return
-    }
-
-    // Validate the new status
-    if (!['unfinished', 'finished', 'released'].includes(overStatus)) {
-      return
-    }
-
-    // Optimistically update the UI
-    setRecords(prev => {
-      const newRecords = { ...prev }
-      
-      // Ensure arrays exist
-      if (!newRecords.unfinished) newRecords.unfinished = []
-      if (!newRecords.finished) newRecords.finished = []
-      if (!newRecords.released) newRecords.released = []
-      
-      // Remove from old column
-      const oldStatus = activeRecord.record_type as keyof GroupedRecords
-      newRecords[oldStatus] = newRecords[oldStatus].filter(r => r.id !== activeRecord.id)
-      
-      // Add to new column
-      const updatedRecord = { ...activeRecord, record_type: overStatus as any }
-      const newStatus = overStatus as keyof GroupedRecords
-      newRecords[newStatus] = [...newRecords[newStatus], updatedRecord]
-      
-      return newRecords
-    })
-
-    // Update in database
-    try {
-      const response = await fetch('/api/dashboard/production', {
-        method: 'PATCH',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({
+    // Only update database if status actually changed
+    if (activeRecord.record_type !== targetStatus) {
+      try {
+        console.log('Updating record:', {
           recordId: activeRecord.id,
-          newStatus: overStatus
+          newStatus: targetStatus,
+          from: activeRecord.record_type,
+          to: targetStatus
         })
-      })
 
-      if (!response.ok) {
-        throw new Error('Failed to update')
+        const response = await fetch('/api/dashboard/production', {
+          method: 'PATCH',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify({
+            recordId: activeRecord.id,
+            newStatus: targetStatus
+          })
+        })
+
+        if (!response.ok) {
+          const errorData = await response.json()
+          console.error('API Error:', errorData)
+          throw new Error(errorData.error || 'Failed to update')
+        }
+
+        toast.success(`Moved "${activeRecord.title}" to ${getColumnTitle(targetStatus)}`)
+      } catch (error) {
+        console.error('Error updating record:', error)
+        toast.error('Failed to update record status')
+        // Revert by refetching
+        await fetchRecords()
       }
-
-      toast.success(`Moved "${activeRecord.title}" to ${getColumnTitle(overStatus)}`)
-    } catch (error) {
-      console.error('Error updating record:', error)
-      toast.error('Failed to update record status')
-      // Revert the optimistic update
-      await fetchRecords()
     }
   }
 
