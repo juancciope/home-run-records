@@ -25,7 +25,7 @@ interface ReachData {
   };
   metadata: {
     lastSynced: string;
-    hasVibrateConnection: boolean;
+    hasDataConnection: boolean;
   };
 }
 
@@ -87,7 +87,7 @@ export function ReachDashboardUnified() {
           },
           isRealData: false
         },
-        metadata: { lastSynced: new Date().toISOString(), hasVibrateConnection: false }
+        metadata: { lastSynced: new Date().toISOString(), hasDataConnection: false }
       });
     } finally {
       setIsLoading(false);
@@ -144,8 +144,8 @@ export function ReachDashboardUnified() {
             Track your audience growth and engagement across all platforms
           </p>
         </div>
-        {data?.metadata.hasVibrateConnection && (
-          <Badge variant="secondary">Viberate Connected</Badge>
+        {data?.metadata.hasDataConnection && (
+          <Badge variant="secondary">Data Connected</Badge>
         )}
       </div>
 
@@ -340,9 +340,9 @@ export function ReachDashboardUnified() {
             <div className="text-center space-y-2">
               <h3 className="font-medium">No Analytics Data Available</h3>
               <p className="text-sm text-muted-foreground">
-                {data?.metadata.hasVibrateConnection 
-                  ? "Data is being synced from Viberate. Check back in a few minutes."
-                  : "Connect your Viberate account to see real analytics data."}
+                {data?.metadata.hasDataConnection 
+                  ? "Data is being synced from your connected sources. Check back in a few minutes."
+                  : "Connect your analytics sources to see real data."}
               </p>
             </div>
           </CardContent>
@@ -358,7 +358,7 @@ export function ReachDashboardUnified() {
                 Last updated: {new Date(data.metadata.lastSynced).toLocaleString()}
               </span>
               <span>
-                {data.metadata.hasVibrateConnection ? '🟢 Viberate Connected' : '🔴 No Viberate Connection'}
+                {data.metadata.hasDataConnection ? '🟢 Data Connected' : '🔴 No Data Connection'}
               </span>
             </div>
           </CardContent>

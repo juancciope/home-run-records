@@ -5,7 +5,8 @@ import { useAuth } from '@/contexts/auth-provider';
 import { Card, CardContent, CardDescription, CardHeader, CardTitle } from "@/components/ui/card";
 import { Skeleton } from "@/components/ui/skeleton";
 import { Badge } from "@/components/ui/badge";
-import { Plus, TrendingUp, Users, Target, Music, FileText, DollarSign, Eye } from "lucide-react";
+import { Button } from "@/components/ui/button";
+import { Plus, TrendingUp, Users, Target, Music, FileText, Eye, MoreHorizontal } from "lucide-react";
 
 interface DashboardData {
   overview: {
@@ -25,16 +26,10 @@ interface DashboardData {
       fans: number;
       superFans: number;
     };
-    conversion: {
-      leads: number;
-      opportunities: number;
-      sales: number;
-      revenue: number;
-    };
   };
   metadata: {
     lastSynced: string;
-    hasVibrateConnection: boolean;
+    hasDataConnection: boolean;
   };
 }
 
@@ -84,10 +79,9 @@ export function DashboardContentUnified() {
         overview: {
           marketing: { totalReach: 0, engagedAudience: 0, totalFollowers: 0, isRealData: false },
           production: { unfinished: 0, finished: 0, released: 0 },
-          fanEngagement: { capturedData: 0, fans: 0, superFans: 0 },
-          conversion: { leads: 0, opportunities: 0, sales: 0, revenue: 0 }
+          fanEngagement: { capturedData: 0, fans: 0, superFans: 0 }
         },
-        metadata: { lastSynced: new Date().toISOString(), hasVibrateConnection: false }
+        metadata: { lastSynced: new Date().toISOString(), hasDataConnection: false }
       });
     } finally {
       setIsLoading(false);
@@ -121,10 +115,27 @@ export function DashboardContentUnified() {
   const marketing = data?.overview.marketing;
   const production = data?.overview.production;
   const fanEngagement = data?.overview.fanEngagement;
-  const conversion = data?.overview.conversion;
 
   return (
     <div className="space-y-8">
+      {/* Header */}
+      <div>
+        <div className="flex items-center justify-between mb-2">
+          <h1 className="text-3xl font-bold tracking-tight">Business Intelligence Dashboard</h1>
+          <div className="flex items-center gap-2">
+            <Badge variant="secondary" className="text-xs">
+              🟢 Live Data
+            </Badge>
+            <Button variant="outline" size="sm">
+              Manage Connection
+            </Button>
+          </div>
+        </div>
+        <p className="text-muted-foreground">
+          Your complete view of performance across all business realms
+        </p>
+      </div>
+
       {error && (
         <Card className="border-yellow-200 bg-yellow-50">
           <CardContent className="pt-6">
@@ -138,143 +149,311 @@ export function DashboardContentUnified() {
         </Card>
       )}
 
-      {/* Marketing Reach Section */}
+      {/* Production Pipeline */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <TrendingUp className="h-5 w-5 text-purple-600" />
-            <h2 className="text-xl font-semibold">Marketing Reach</h2>
-            {data?.metadata.hasVibrateConnection && (
-              <Badge variant="secondary" className="text-xs">Viberate Connected</Badge>
-            )}
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Music className="h-5 w-5 text-blue-600" />
+              <h2 className="text-xl font-semibold">Production Pipeline</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Track your creative output from idea to release</p>
           </div>
-          <p className="text-sm text-muted-foreground">Expand your audience and engagement</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>In Progress</span>
+            <span>→</span>
+            <span>Ready</span>
+            <span>→</span>
+            <span>Live</span>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Reach</CardTitle>
-              <Eye className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {marketing?.totalReach.toLocaleString() || 0}
+          <Card className="border-orange-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium">In Progress</CardTitle>
+                  <CardDescription className="text-sm">Projects in development</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Target className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Unique people exposed to content
-              </p>
-              {!marketing?.isRealData && (
-                <Badge variant="outline" className="mt-2 text-xs">No data</Badge>
-              )}
-            </CardContent>
+              <div className="text-4xl font-bold">{production?.unfinished || 0}</div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span>Priority</span>
+                  <span className="text-red-500 font-medium">High</span>
+                </div>
+                <Badge variant="outline" className="text-xs">Active</Badge>
+              </div>
+              <div className="w-full bg-orange-100 rounded-full h-2">
+                <div className="bg-orange-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3" />
+                <span>Focus on completion</span>
+              </div>
+            </CardHeader>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Total Followers</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {marketing?.totalFollowers.toLocaleString() || 0}
+          <Card className="border-yellow-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium">Ready to Release</CardTitle>
+                  <CardDescription className="text-sm">Completed, awaiting launch</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Target className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Across all platforms
-              </p>
-              {!marketing?.isRealData && (
-                <Badge variant="outline" className="mt-2 text-xs">No data</Badge>
-              )}
-            </CardContent>
+              <div className="text-4xl font-bold">{production?.finished || 0}</div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span>Next Release</span>
+                  <span className="text-yellow-600 font-medium">2 weeks</span>
+                </div>
+                <Badge variant="outline" className="text-xs">Ready</Badge>
+              </div>
+              <div className="w-full bg-yellow-100 rounded-full h-2">
+                <div className="bg-yellow-500 h-2 rounded-full" style={{ width: '90%' }}></div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <FileText className="h-3 w-3" />
+                <span>Schedule releases</span>
+              </div>
+            </CardHeader>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Engaged Audience</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                {marketing?.engagedAudience.toLocaleString() || 0}
+          <Card className="border-green-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium">Live Catalog</CardTitle>
+                  <CardDescription className="text-sm">Live & generating revenue</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Target className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
               </div>
-              <p className="text-xs text-muted-foreground">
-                Active content interactions
-              </p>
-              {!marketing?.isRealData && (
-                <Badge variant="outline" className="mt-2 text-xs">No data</Badge>
-              )}
-            </CardContent>
+              <div className="text-4xl font-bold">{production?.released || 0}</div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span>Completion</span>
+                  <span className="text-green-600 font-medium">100%</span>
+                </div>
+                <Badge variant="outline" className="text-xs">Live</Badge>
+              </div>
+              <div className="w-full bg-green-100 rounded-full h-2">
+                <div className="bg-green-500 h-2 rounded-full" style={{ width: '100%' }}></div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3" />
+                <span>Earning revenue</span>
+              </div>
+            </CardHeader>
           </Card>
         </div>
       </div>
 
-      {/* Production Section */}
+      {/* Marketing Reach */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Music className="h-5 w-5 text-blue-600" />
-            <h2 className="text-xl font-semibold">Production</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <TrendingUp className="h-5 w-5 text-purple-600" />
+              <h2 className="text-xl font-semibold">Marketing Reach</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Expand your audience and engagement</p>
           </div>
-          <p className="text-sm text-muted-foreground">Track your music creation pipeline</p>
+          <div className="flex items-center gap-2 text-sm text-muted-foreground">
+            <span>Awareness</span>
+            <span>→</span>
+            <span>Engagement</span>
+            <span>→</span>
+            <span>Following</span>
+          </div>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Unfinished</CardTitle>
-              <Plus className="h-4 w-4 text-muted-foreground" />
+          <Card className="border-blue-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium">Total Reach</CardTitle>
+                  <CardDescription className="text-sm">Unique people exposed to content</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Target className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="text-4xl font-bold">{marketing?.totalReach ? `${(marketing.totalReach / 1000).toFixed(0)}K` : '0'}</div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span>6-month growth</span>
+                  <span className="text-green-500 font-medium">+84%</span>
+                </div>
+                <Badge variant="outline" className="text-xs">Live</Badge>
+              </div>
+              <div className="w-full bg-blue-100 rounded-full h-2">
+                <div className="bg-blue-500 h-2 rounded-full" style={{ width: '84%' }}></div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <TrendingUp className="h-3 w-3" />
+                <span>Expanding awareness</span>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{production?.unfinished || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Works in progress
-              </p>
-            </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Ready to Release</CardTitle>
-              <FileText className="h-4 w-4 text-muted-foreground" />
+          <Card className="border-purple-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium">Engaged Audience</CardTitle>
+                  <CardDescription className="text-sm">Active content interactions</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Target className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="text-4xl font-bold">{marketing?.engagedAudience ? `${(marketing.engagedAudience / 1000).toFixed(1)}K` : '0'}</div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span>Engagement Rate</span>
+                  <span className="text-purple-500 font-medium">12.0%</span>
+                </div>
+                <Badge variant="outline" className="text-xs">Engaged</Badge>
+              </div>
+              <div className="w-full bg-purple-100 rounded-full h-2">
+                <div className="bg-purple-500 h-2 rounded-full" style={{ width: '65%' }}></div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Target className="h-3 w-3" />
+                <span>High interaction quality</span>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{production?.finished || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Completed tracks
-              </p>
-            </CardContent>
           </Card>
           
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Live Catalog</CardTitle>
-              <Music className="h-4 w-4 text-muted-foreground" />
+          <Card className="border-green-200">
+            <CardHeader className="pb-3">
+              <div className="flex items-center justify-between">
+                <div>
+                  <CardTitle className="text-base font-medium">Total Followers</CardTitle>
+                  <CardDescription className="text-sm">Across all platforms</CardDescription>
+                </div>
+                <div className="flex gap-1">
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Target className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <FileText className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <TrendingUp className="h-4 w-4" />
+                  </Button>
+                  <Button variant="ghost" size="sm" className="h-8 w-8 p-0">
+                    <Plus className="h-4 w-4" />
+                  </Button>
+                </div>
+              </div>
+              <div className="text-4xl font-bold">{marketing?.totalFollowers ? `${(marketing.totalFollowers / 1000).toFixed(1)}K` : '0'}</div>
+              <div className="flex items-center justify-between text-sm">
+                <div className="flex items-center gap-2">
+                  <span>Follow-through Rate</span>
+                  <span className="text-green-500 font-medium">55.6%</span>
+                </div>
+                <Badge variant="outline" className="text-xs">Growing</Badge>
+              </div>
+              <div className="w-full bg-green-100 rounded-full h-2">
+                <div className="bg-green-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+              </div>
+              <div className="flex items-center gap-1 text-xs text-muted-foreground">
+                <Users className="h-3 w-3" />
+                <span>Building community</span>
+              </div>
             </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{production?.released || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Published releases
-              </p>
-            </CardContent>
           </Card>
         </div>
       </div>
 
       {/* Fan Engagement Section */}
       <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <Users className="h-5 w-5 text-green-600" />
-            <h2 className="text-xl font-semibold">Fan Engagement</h2>
+        <div className="flex items-center justify-between mb-6">
+          <div>
+            <div className="flex items-center gap-2 mb-1">
+              <Users className="h-5 w-5 text-green-600" />
+              <h2 className="text-xl font-semibold">Fan Engagement</h2>
+            </div>
+            <p className="text-sm text-muted-foreground">Build and engage your fanbase</p>
           </div>
-          <p className="text-sm text-muted-foreground">Build and engage your fanbase</p>
         </div>
         
         <div className="grid grid-cols-1 md:grid-cols-3 gap-6">
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Captured Data</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{fanEngagement?.capturedData || 0}</div>
@@ -287,10 +466,14 @@ export function DashboardContentUnified() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Fans</CardTitle>
-              <Users className="h-4 w-4 text-muted-foreground" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
-              <div className="text-2xl font-bold">{fanEngagement?.fans || 0}</div>
+              <div className="text-2xl font-bold">{fanEngagement?.fans ? `${(fanEngagement.fans / 1000).toFixed(1)}K` : '0'}</div>
               <p className="text-xs text-muted-foreground">
                 Active fans
               </p>
@@ -300,79 +483,16 @@ export function DashboardContentUnified() {
           <Card>
             <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
               <CardTitle className="text-sm font-medium">Super Fans</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
+              <div className="flex gap-1">
+                <Button variant="ghost" size="sm" className="h-6 w-6 p-0">
+                  <MoreHorizontal className="h-3 w-3" />
+                </Button>
+              </div>
             </CardHeader>
             <CardContent>
               <div className="text-2xl font-bold">{fanEngagement?.superFans || 0}</div>
               <p className="text-xs text-muted-foreground">
                 Highly engaged fans
-              </p>
-            </CardContent>
-          </Card>
-        </div>
-      </div>
-
-      {/* Conversion Section */}
-      <div>
-        <div className="flex items-center justify-between mb-4">
-          <div className="flex items-center gap-2">
-            <DollarSign className="h-5 w-5 text-yellow-600" />
-            <h2 className="text-xl font-semibold">Conversion</h2>
-          </div>
-          <p className="text-sm text-muted-foreground">Turn fans into revenue</p>
-        </div>
-        
-        <div className="grid grid-cols-1 md:grid-cols-4 gap-6">
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Leads</CardTitle>
-              <Target className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{conversion?.leads || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Potential customers
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Opportunities</CardTitle>
-              <TrendingUp className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{conversion?.opportunities || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Sales opportunities
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Sales</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">{conversion?.sales || 0}</div>
-              <p className="text-xs text-muted-foreground">
-                Completed sales
-              </p>
-            </CardContent>
-          </Card>
-          
-          <Card>
-            <CardHeader className="flex flex-row items-center justify-between space-y-0 pb-2">
-              <CardTitle className="text-sm font-medium">Revenue</CardTitle>
-              <DollarSign className="h-4 w-4 text-muted-foreground" />
-            </CardHeader>
-            <CardContent>
-              <div className="text-2xl font-bold">
-                ${Number(conversion?.revenue || 0).toLocaleString()}
-              </div>
-              <p className="text-xs text-muted-foreground">
-                Total revenue
               </p>
             </CardContent>
           </Card>
@@ -388,7 +508,7 @@ export function DashboardContentUnified() {
                 Last updated: {new Date(data.metadata.lastSynced).toLocaleString()}
               </span>
               <span>
-                {data.metadata.hasVibrateConnection ? '🟢 Viberate Connected' : '🔴 No Viberate Connection'}
+                {data.metadata.hasDataConnection ? '🟢 Data Connected' : '🔴 No Data Connection'}
               </span>
             </div>
           </CardContent>

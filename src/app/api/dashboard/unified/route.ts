@@ -73,12 +73,6 @@ export async function GET(request: NextRequest) {
             capturedData: 0,
             fans: 0,
             superFans: 0
-          },
-          conversion: {
-            leads: 0,
-            opportunities: 0,
-            sales: 0,
-            revenue: 0
           }
         },
         reach: {
@@ -98,7 +92,7 @@ export async function GET(request: NextRequest) {
         },
         metadata: {
           lastSynced: defaultMetrics.last_synced,
-          hasVibrateConnection: false
+          hasDataConnection: false
         }
       });
     }
@@ -130,12 +124,6 @@ export async function GET(request: NextRequest) {
           capturedData: metrics.user_fan_engagement || 0,
           fans: metrics.user_fans || 0,
           superFans: metrics.user_super_fans || 0
-        },
-        conversion: {
-          leads: metrics.user_conversion_leads || 0,
-          opportunities: metrics.user_conversion_opportunities || 0,
-          sales: metrics.user_conversion_sales || 0,
-          revenue: metrics.user_conversion_revenue || 0
         }
       },
       reach: {
@@ -173,7 +161,7 @@ export async function GET(request: NextRequest) {
       },
       metadata: {
         lastSynced: metrics.last_synced,
-        hasVibrateConnection: !!metrics.viberate_artist_id
+        hasDataConnection: !!metrics.viberate_artist_id
       }
     });
 
