@@ -66,7 +66,14 @@ export function DashboardContentUnified() {
       }
       
       console.log('✅ Dashboard data loaded:', result);
-      setData(result);
+      
+      // Use the overview data from the API response
+      const transformedData = {
+        overview: result.overview,
+        metadata: result.metadata
+      };
+      
+      setData(transformedData);
       
     } catch (err) {
       console.error('❌ Error loading dashboard:', err);

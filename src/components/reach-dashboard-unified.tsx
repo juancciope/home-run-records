@@ -57,7 +57,14 @@ export function ReachDashboardUnified() {
       }
       
       console.log('✅ Reach data loaded:', result);
-      setData(result);
+      
+      // Transform API response to match component interface
+      const transformedData = {
+        reach: result.reach,
+        metadata: result.metadata
+      };
+      
+      setData(transformedData);
       
     } catch (err) {
       console.error('❌ Error loading reach dashboard:', err);
