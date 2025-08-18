@@ -21,7 +21,6 @@ export async function GET(request: NextRequest) {
     console.log('📊 Loading unified dashboard data for user:', userId);
 
     // Try to get or create unified metrics for the user
-    let metrics;
     
     // First, try to get existing metrics
     const { data: existingMetrics, error: selectError } = await supabase
@@ -38,7 +37,7 @@ export async function GET(request: NextRequest) {
       }, { status: 500 });
     }
 
-    metrics = existingMetrics;
+    const metrics = existingMetrics;
 
     // If no metrics exist, create default entry
     if (!metrics) {
