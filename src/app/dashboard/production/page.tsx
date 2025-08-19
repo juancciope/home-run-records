@@ -97,20 +97,20 @@ function DraggableCard({
         <div
           ref={provided.innerRef}
           {...provided.draggableProps}
+          {...provided.dragHandleProps}
           className="mb-3"
         >
           <Card 
-            className={`hover:shadow-md transition-shadow border-l-4 border-l-primary/30 ${
+            className={`hover:shadow-md transition-shadow border-l-4 border-l-primary/30 cursor-move ${
               snapshot.isDragging ? 'shadow-lg transform rotate-2' : ''
             }`}
           >
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
                 <div className="flex items-center gap-3">
-                  {/* Drag handle */}
+                  {/* Visual drag indicator */}
                   <div 
-                    className="cursor-move p-1 hover:bg-muted rounded flex items-center justify-center"
-                    {...provided.dragHandleProps}
+                    className="p-1 rounded flex items-center justify-center"
                   >
                     <GripVertical className="h-4 w-4 text-muted-foreground" />
                   </div>
