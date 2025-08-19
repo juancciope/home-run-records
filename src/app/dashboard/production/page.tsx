@@ -250,7 +250,8 @@ function KanbanColumn({
   records, 
   icon: Icon,
   onEdit,
-  onDelete
+  onDelete,
+  refreshKey
 }: { 
   title: string
   status: string
@@ -258,6 +259,7 @@ function KanbanColumn({
   icon: any
   onEdit: (record: ProductionRecord) => void
   onDelete: (recordId: string) => void
+  refreshKey: number
 }) {
   const {
     setNodeRef,
@@ -284,7 +286,7 @@ function KanbanColumn({
             <div className="space-y-3">
               {safeRecords.map((record) => (
                 <SortableCard 
-                  key={record.id} 
+                  key={`${record.id}-${refreshKey}`} 
                   record={record} 
                   onEdit={onEdit}
                   onDelete={onDelete}
@@ -669,6 +671,7 @@ export default function ProductionPage() {
             icon={Clock}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            refreshKey={refreshKey}
           />
           <KanbanColumn 
             key={`finished-${refreshKey}`}
@@ -678,6 +681,7 @@ export default function ProductionPage() {
             icon={CheckCircle2}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            refreshKey={refreshKey}
           />
           <KanbanColumn 
             key={`released-${refreshKey}`}
@@ -687,6 +691,7 @@ export default function ProductionPage() {
             icon={Radio}
             onEdit={handleEdit}
             onDelete={handleDelete}
+            refreshKey={refreshKey}
           />
         </div>
         
