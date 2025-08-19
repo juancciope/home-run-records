@@ -62,7 +62,8 @@ import {
   Radio,
   Edit3,
   Trash2,
-  Eye
+  Eye,
+  GripVertical
 } from 'lucide-react'
 import { useRouter } from 'next/navigation'
 import { toast } from 'sonner'
@@ -129,13 +130,19 @@ function SortableCard({
       className="mb-3"
     >
       <Card 
-        className="cursor-move hover:shadow-md transition-shadow border-l-4 border-l-primary/30"
-        {...attributes}
-        {...listeners}
+        className="hover:shadow-md transition-shadow border-l-4 border-l-primary/30"
       >
         <CardContent className="p-4">
           <div className="flex items-start justify-between mb-3">
             <div className="flex items-center gap-3">
+              {/* Dedicated drag handle */}
+              <div 
+                className="cursor-move p-1 hover:bg-muted rounded flex items-center justify-center"
+                {...attributes}
+                {...listeners}
+              >
+                <GripVertical className="h-4 w-4 text-muted-foreground" />
+              </div>
               <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
                 <Music className="h-5 w-5 text-primary" />
               </div>
