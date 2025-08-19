@@ -24,7 +24,7 @@ import {
   CartesianGrid,
   XAxis,
 } from "recharts";
-import { Plus, TrendingUp, Users, Target, Music, FileText, Eye, MoreHorizontal, Info, Bot, Plug, Calendar } from "lucide-react";
+import { Plus, TrendingUp, Users, Target, Music, FileText, Eye, MoreHorizontal, Calendar } from "lucide-react";
 import { AddDataModal } from "./add-data-modal";
 import { ProductionPipelineCards } from "./production-pipeline-cards";
 import {
@@ -43,37 +43,6 @@ const formatNumber = (num: number): string => {
   return num.toString();
 }
 
-// Action Button Component for pipeline cards
-function ActionButton({ 
-  icon: Icon, 
-  tooltip, 
-  variant = "ghost",
-  onClick 
-}: { 
-  icon: any; 
-  tooltip: string; 
-  variant?: "ghost" | "outline"; 
-  onClick?: () => void;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant={variant}
-          size="sm"
-          className="h-7 w-7 p-0 shrink-0"
-          onClick={onClick}
-        >
-          <Icon className="h-3.5 w-3.5" />
-          <span className="sr-only">{tooltip}</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="text-xs">
-        <p>{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
 
 // Add Data Action Button Component
 function AddDataButton({ 
@@ -474,15 +443,6 @@ export function DashboardContentUnified() {
                   <CardDescription className="text-sm">Unique people exposed to content</CardDescription>
                 </div>
                 <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View reach sources and demographics" />
-                  <ActionButton icon={Bot} tooltip="Get AI insights for expanding reach" />
-                  <ActionButton icon={Plug} tooltip="Connect marketing platforms" />
-                  <AddDataButton 
-                    section="marketing" 
-                    recordType="reach" 
-                    tooltip="Add reach data manually"
-                    onRecordAdded={refreshPipelineData}
-                  />
                 </div>
               </div>
               <div className="text-4xl font-bold">{formatNumber(marketing?.totalReach || 0)}</div>
@@ -539,15 +499,6 @@ export function DashboardContentUnified() {
                   <CardDescription className="text-sm">Active content interactions</CardDescription>
                 </div>
                 <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View engagement metrics and patterns" />
-                  <ActionButton icon={Bot} tooltip="Get AI recommendations for engagement" />
-                  <ActionButton icon={Plug} tooltip="Connect social media tools" />
-                  <AddDataButton 
-                    section="marketing" 
-                    recordType="engaged" 
-                    tooltip="Add engagement data manually"
-                    onRecordAdded={refreshPipelineData}
-                  />
                 </div>
               </div>
               <div className="text-4xl font-bold">{formatNumber(marketing?.engagedAudience || 0)}</div>
@@ -601,15 +552,6 @@ export function DashboardContentUnified() {
                   <CardDescription className="text-sm">Across all platforms</CardDescription>
                 </div>
                 <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View follower breakdown by platform" />
-                  <ActionButton icon={Bot} tooltip="Get AI strategies for follower growth" />
-                  <ActionButton icon={Plug} tooltip="Connect social platforms" />
-                  <AddDataButton 
-                    section="marketing" 
-                    recordType="followers" 
-                    tooltip="Add follower data manually"
-                    onRecordAdded={refreshPipelineData}
-                  />
                 </div>
               </div>
               <div className="text-4xl font-bold">{formatNumber(marketing?.totalFollowers || 0)}</div>
@@ -678,9 +620,6 @@ export function DashboardContentUnified() {
                   <CardDescription className="text-sm">Email & contact information</CardDescription>
                 </div>
                 <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View captured data sources and quality" />
-                  <ActionButton icon={Bot} tooltip="Get AI strategies for data capture" />
-                  <ActionButton icon={Plug} tooltip="Connect email marketing tools" />
                   <AddDataButton 
                     section="fan_engagement" 
                     recordType="captured" 
@@ -712,9 +651,6 @@ export function DashboardContentUnified() {
                   <CardDescription className="text-sm">Regular engagement & support</CardDescription>
                 </div>
                 <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View fan activity and engagement patterns" />
-                  <ActionButton icon={Bot} tooltip="Get AI insights for fan activation" />
-                  <ActionButton icon={Plug} tooltip="Connect fan engagement platforms" />
                   <AddDataButton 
                     section="fan_engagement" 
                     recordType="fans" 
@@ -746,9 +682,6 @@ export function DashboardContentUnified() {
                   <CardDescription className="text-sm">Most loyal advocates</CardDescription>
                 </div>
                 <div className="flex gap-1">
-                  <ActionButton icon={Info} tooltip="View super fan profiles and activities" />
-                  <ActionButton icon={Bot} tooltip="Get AI strategies for fan advocacy" />
-                  <ActionButton icon={Plug} tooltip="Connect loyalty and rewards platforms" />
                   <AddDataButton 
                     section="fan_engagement" 
                     recordType="super_fans" 

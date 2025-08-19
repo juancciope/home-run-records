@@ -9,40 +9,9 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from "@/components/ui/tooltip";
-import { Plus, TrendingUp, FileText, Info, Bot, Plug } from "lucide-react";
+import { Plus, TrendingUp, FileText } from "lucide-react";
 import { AddDataModal } from "./add-data-modal";
 
-// Action Button Component for pipeline cards
-function ActionButton({ 
-  icon: Icon, 
-  tooltip, 
-  variant = "ghost",
-  onClick 
-}: { 
-  icon: any; 
-  tooltip: string; 
-  variant?: "ghost" | "outline"; 
-  onClick?: () => void;
-}) {
-  return (
-    <Tooltip>
-      <TooltipTrigger asChild>
-        <Button
-          variant={variant}
-          size="sm"
-          className="h-7 w-7 p-0 shrink-0"
-          onClick={onClick}
-        >
-          <Icon className="h-3.5 w-3.5" />
-          <span className="sr-only">{tooltip}</span>
-        </Button>
-      </TooltipTrigger>
-      <TooltipContent side="top" className="text-xs">
-        <p>{tooltip}</p>
-      </TooltipContent>
-    </Tooltip>
-  );
-}
 
 // Add Data Action Button Component
 function AddDataButton({ 
@@ -106,9 +75,6 @@ export function ProductionPipelineCards({ production, onRecordAdded }: Productio
               <CardDescription className="text-sm">Projects in development</CardDescription>
             </div>
             <div className="flex gap-1">
-              <ActionButton icon={Info} tooltip="View details about projects in progress" />
-              <ActionButton icon={Bot} tooltip="Get AI suggestions for completing projects" />
-              <ActionButton icon={Plug} tooltip="Connect project management tools" />
               <AddDataButton 
                 section="production" 
                 recordType="unfinished" 
@@ -143,9 +109,6 @@ export function ProductionPipelineCards({ production, onRecordAdded }: Productio
               <CardDescription className="text-sm">Completed, awaiting launch</CardDescription>
             </div>
             <div className="flex gap-1">
-              <ActionButton icon={Info} tooltip="View tracks ready for release" />
-              <ActionButton icon={Bot} tooltip="Get AI-powered release strategy suggestions" />
-              <ActionButton icon={Plug} tooltip="Connect distribution platforms" />
               <AddDataButton 
                 section="production" 
                 recordType="finished" 
@@ -180,9 +143,6 @@ export function ProductionPipelineCards({ production, onRecordAdded }: Productio
               <CardDescription className="text-sm">Live & generating revenue</CardDescription>
             </div>
             <div className="flex gap-1">
-              <ActionButton icon={Info} tooltip="View released tracks performance" />
-              <ActionButton icon={Bot} tooltip="Optimize catalog with AI insights" />
-              <ActionButton icon={Plug} tooltip="Connect streaming platforms" />
               <AddDataButton 
                 section="production" 
                 recordType="released" 
