@@ -4,7 +4,6 @@ import { useEffect, useState } from 'react'
 import { Card, CardContent } from '@/components/ui/card'
 import { Badge } from '@/components/ui/badge'
 import { Button } from '@/components/ui/button'
-import { Progress } from '@/components/ui/progress'
 import { Input } from '@/components/ui/input'
 import { Label } from '@/components/ui/label'
 import { Textarea } from '@/components/ui/textarea'
@@ -172,7 +171,12 @@ function DraggableCard({
                       <span className="font-medium">Progress</span>
                       <span className="font-semibold">{record.completion_percentage}%</span>
                     </div>
-                    <Progress value={record.completion_percentage} className="h-2" />
+                    <div className="relative h-2 w-full overflow-hidden rounded-full bg-orange-100">
+                      <div 
+                        className="h-full bg-orange-500 transition-all"
+                        style={{ width: `${record.completion_percentage}%` }}
+                      />
+                    </div>
                   </div>
                 )}
 
@@ -555,7 +559,10 @@ export default function ProductionPage() {
         production={{
           unfinished: records.unfinished?.length || 0,
           finished: records.finished?.length || 0,
-          released: records.released?.length || 0
+          released: records.released?.length || 0,
+          averageCompletion: records.unfinished?.length > 0 
+            ? Math.round(records.unfinished.reduce((sum, record) => sum + record.completion_percentage, 0) / records.unfinished.length)
+            : 0
         }} 
         onRecordAdded={fetchRecords}
       />

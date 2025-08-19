@@ -60,6 +60,7 @@ interface ProductionPipelineCardsProps {
     unfinished: number;
     finished: number;
     released: number;
+    averageCompletion?: number;
   };
   onRecordAdded?: () => void;
 }
@@ -92,7 +93,7 @@ export function ProductionPipelineCards({ production, onRecordAdded }: Productio
             <Badge variant="outline" className="text-xs">Active</Badge>
           </div>
           <div className="w-full bg-orange-100 rounded-full h-2">
-            <div className="bg-orange-500 h-2 rounded-full" style={{ width: '75%' }}></div>
+            <div className="bg-orange-500 h-2 rounded-full" style={{ width: `${production?.averageCompletion || 0}%` }}></div>
           </div>
           <div className="flex items-center gap-1 text-xs text-muted-foreground">
             <TrendingUp className="h-3 w-3" />
