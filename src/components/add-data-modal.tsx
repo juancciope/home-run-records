@@ -151,14 +151,40 @@ export function AddDataModal({ section, recordType, onRecordAdded, children, ope
       let processedCsvData = csvData
 
       // For production section, detect if it's a simple song list
-      if (section === 'production' && !csvData.includes(',') && !csvData.includes('record_type')) {
-        // Convert song list to CSV format
+      if (section === 'production' && !csvData.includes('record_type')) {
+        // Check if it's a simple song list (with or without completion percentages)
         const songLines = csvData.trim().split('\n').filter(line => line.trim())
-        const csvHeader = config.csvTemplate
-        const csvRows = songLines.map(songTitle => 
-          `${recordType},${songTitle.trim()},,,${recordType === 'unfinished' ? '0' : recordType === 'finished' ? '100' : '100'},,`
-        )
-        processedCsvData = csvHeader + '\n' + csvRows.join('\n')
+        const firstLine = songLines[0] || ''
+        
+        // If no commas OR commas only for completion percentage format
+        const isSimpleList = !csvData.includes(',') || 
+          firstLine.split(',').length === 2 && firstLine.includes('%')
+        
+        if (isSimpleList) {
+          // Convert song list to CSV format
+          const csvHeader = config.csvTemplate
+          const csvRows = songLines.map(line => {
+            const trimmedLine = line.trim()
+            let songTitle = trimmedLine
+            let completionPercentage = recordType === 'unfinished' ? '0' : '100'
+            
+            // Check if line has format: "song title, XX%"
+            if (trimmedLine.includes(',') && trimmedLine.includes('%')) {
+              const parts = trimmedLine.split(',')
+              if (parts.length === 2) {
+                songTitle = parts[0].trim()
+                const percentPart = parts[1].trim()
+                const percentMatch = percentPart.match(/(\d+)%?/)
+                if (percentMatch) {
+                  completionPercentage = percentMatch[1]
+                }
+              }
+            }
+            
+            return `${recordType},${songTitle},,,${completionPercentage},,`
+          })
+          processedCsvData = csvHeader + '\n' + csvRows.join('\n')
+        }
       }
 
       console.log('Importing CSV data for section:', section)
