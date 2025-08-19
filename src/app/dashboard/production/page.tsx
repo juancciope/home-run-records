@@ -146,7 +146,7 @@ function SortableCard({
                 )}
               </div>
             </div>
-            <DropdownMenu>
+            <DropdownMenu modal={false}>
               <DropdownMenuTrigger asChild>
                 <Button 
                   variant="ghost" 
@@ -334,6 +334,24 @@ export default function ProductionPage() {
   useEffect(() => {
     fetchRecords()
   }, [])
+
+  // Cleanup effect to fix Radix UI pointer-events bug
+  useEffect(() => {
+    const cleanupPointerEvents = () => {
+      // Force remove pointer-events: none from body if it gets stuck
+      if (document.body.style.pointerEvents === 'none') {
+        document.body.style.pointerEvents = 'auto'
+      }
+    }
+
+    // Clean up after modal operations
+    const timeoutId = setTimeout(cleanupPointerEvents, 100)
+    
+    return () => {
+      clearTimeout(timeoutId)
+      cleanupPointerEvents()
+    }
+  }, [records]) // Run after records update (after edit/delete operations)
 
   const fetchRecords = async () => {
     try {
@@ -563,6 +581,13 @@ export default function ProductionPage() {
       setIsEditModalOpen(false)
       setEditingRecord(null)
       await fetchRecords() // Refresh the data
+      
+      // Fix Radix UI pointer-events bug
+      setTimeout(() => {
+        if (document.body.style.pointerEvents === 'none') {
+          document.body.style.pointerEvents = 'auto'
+        }
+      }, 50)
     } catch (error) {
       console.error('Error updating record:', error)
       toast.error('Failed to update record')
@@ -599,6 +624,13 @@ export default function ProductionPage() {
       
       // Then refresh the data
       await fetchRecords()
+      
+      // Fix Radix UI pointer-events bug
+      setTimeout(() => {
+        if (document.body.style.pointerEvents === 'none') {
+          document.body.style.pointerEvents = 'auto'
+        }
+      }, 50)
       
     } catch (error) {
       console.error('Error deleting record:', error)

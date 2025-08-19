@@ -86,10 +86,41 @@ const sensors = useSensors(
 - UI Column "Ready to Release" → `record_type: 'finished'`  
 - UI Column "Live Catalog" → `record_type: 'released'`
 
-**CRITICAL: Button Functionality**
+**CRITICAL: Button Functionality & Radix UI Bug Fix**
 - NEVER use `refreshKey` state or forced re-renders after operations
 - React loses event handlers when components are forced to re-render with changing keys
 - Only call `fetchRecords()` to refresh data - React will handle UI updates properly
+
+**CRITICAL: Radix UI Pointer-Events Bug**
+- DropdownMenu + Dialog/AlertDialog combo causes `body { pointer-events: none }` to remain after modal close
+- This disables ALL clicks globally across the entire app
+- Fixed with `modal={false}` on DropdownMenu and cleanup effect:
+
+```typescript
+// DropdownMenu fix
+<DropdownMenu modal={false}>
+
+// Cleanup effect in component
+useEffect(() => {
+  const cleanupPointerEvents = () => {
+    if (document.body.style.pointerEvents === 'none') {
+      document.body.style.pointerEvents = 'auto'
+    }
+  }
+  const timeoutId = setTimeout(cleanupPointerEvents, 100)
+  return () => {
+    clearTimeout(timeoutId)
+    cleanupPointerEvents()
+  }
+}, [records])
+
+// In modal close handlers
+setTimeout(() => {
+  if (document.body.style.pointerEvents === 'none') {
+    document.body.style.pointerEvents = 'auto'
+  }
+}, 50)
+```
 
 ### Data Consistency
 Both Overview and Production dashboards use `production_records` table directly for consistent counts.
