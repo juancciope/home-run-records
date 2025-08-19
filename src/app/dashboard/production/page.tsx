@@ -152,27 +152,20 @@ function SortableCard({
                   variant="ghost" 
                   size="sm" 
                   className="h-7 w-7 p-0 shrink-0"
-                  onPointerDown={(e) => e.stopPropagation()}
                 >
                   <MoreVertical className="h-3.5 w-3.5" />
                 </Button>
               </DropdownMenuTrigger>
               <DropdownMenuContent align="end" className="w-32">
                 <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onEdit(record)
-                  }}
+                  onClick={() => onEdit(record)}
                 >
                   <Edit3 className="h-3 w-3 mr-2" />
                   Edit
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem
-                  onClick={(e) => {
-                    e.stopPropagation()
-                    onDelete(record.id)
-                  }}
+                  onClick={() => onDelete(record.id)}
                   className="text-red-600 hover:text-red-700"
                 >
                   <Trash2 className="h-3 w-3 mr-2" />
@@ -250,8 +243,7 @@ function KanbanColumn({
   records, 
   icon: Icon,
   onEdit,
-  onDelete,
-  refreshKey
+  onDelete
 }: { 
   title: string
   status: string
@@ -259,7 +251,6 @@ function KanbanColumn({
   icon: any
   onEdit: (record: ProductionRecord) => void
   onDelete: (recordId: string) => void
-  refreshKey: number
 }) {
   const {
     setNodeRef,
@@ -286,7 +277,7 @@ function KanbanColumn({
             <div className="space-y-3">
               {safeRecords.map((record) => (
                 <SortableCard 
-                  key={`${record.id}-${refreshKey}`} 
+                  key={record.id} 
                   record={record} 
                   onEdit={onEdit}
                   onDelete={onDelete}
@@ -329,13 +320,13 @@ export default function ProductionPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [deletingRecord, setDeletingRecord] = useState<ProductionRecord | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [refreshKey, setRefreshKey] = useState(0)
   const [originalStatus, setOriginalStatus] = useState<string | null>(null)
   
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: {
-        distance: 8,
+        delay: 100,
+        tolerance: 5,
       },
     })
   )
@@ -572,7 +563,6 @@ export default function ProductionPage() {
       setIsEditModalOpen(false)
       setEditingRecord(null)
       await fetchRecords() // Refresh the data
-      setRefreshKey(prev => prev + 1) // Force re-render
     } catch (error) {
       console.error('Error updating record:', error)
       toast.error('Failed to update record')
@@ -609,12 +599,6 @@ export default function ProductionPage() {
       
       // Then refresh the data
       await fetchRecords()
-      setRefreshKey(prev => prev + 1) // Force re-render
-      
-      // Force a small delay to ensure state is properly updated
-      setTimeout(() => {
-        // This ensures React has time to properly reconcile the component tree
-      }, 100)
       
     } catch (error) {
       console.error('Error deleting record:', error)
@@ -662,36 +646,30 @@ export default function ProductionPage() {
         onDragOver={handleDragOver}
         onDragEnd={handleDragEnd}
       >
-        <div className="flex gap-4 overflow-x-auto pb-4" key={refreshKey}>
+        <div className="flex gap-4 overflow-x-auto pb-4">
           <KanbanColumn 
-            key={`unfinished-${refreshKey}`}
             title="In-progress"
             status="unfinished"
             records={records.unfinished}
             icon={Clock}
             onEdit={handleEdit}
             onDelete={handleDelete}
-            refreshKey={refreshKey}
           />
           <KanbanColumn 
-            key={`finished-${refreshKey}`}
             title="Ready to Release"
             status="finished"
             records={records.finished}
             icon={CheckCircle2}
             onEdit={handleEdit}
             onDelete={handleDelete}
-            refreshKey={refreshKey}
           />
           <KanbanColumn 
-            key={`released-${refreshKey}`}
             title="Live Catalog"
             status="released"
             records={records.released}
             icon={Radio}
             onEdit={handleEdit}
             onDelete={handleDelete}
-            refreshKey={refreshKey}
           />
         </div>
         

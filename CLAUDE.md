@@ -39,6 +39,7 @@ Home Run Records - Music production management platform with dashboards for trac
 2. **Drag Start**: Stores original status before any UI changes
 3. **Drag Over**: Updates UI optimistically but doesn't save to DB
 4. **Drag End**: Compares `originalStatus` vs `targetStatus` (NOT current vs target)
+5. **Button Functionality**: NEVER use `refreshKey` or forced re-renders - they break button event handlers
 
 **Critical Code Sections**:
 ```typescript
@@ -66,10 +67,29 @@ const handleDragEnd = async (event: DragEndEvent) => {
 - `handleDragEnd` uses stored `originalStatus` to detect actual changes
 - Prevents false "no change" detections that caused persistence issues
 
+**Sensor Configuration (CRITICAL)**:
+```typescript
+const sensors = useSensors(
+  useSensor(PointerSensor, {
+    activationConstraint: {
+      delay: 100,
+      tolerance: 5,
+    },
+  })
+)
+```
+- `delay: 100` prevents drag interference with button clicks
+- `tolerance: 5` allows small movements without triggering drag
+
 **Database Mapping**:
 - UI Column "In-progress" → `record_type: 'unfinished'`
 - UI Column "Ready to Release" → `record_type: 'finished'`  
 - UI Column "Live Catalog" → `record_type: 'released'`
+
+**CRITICAL: Button Functionality**
+- NEVER use `refreshKey` state or forced re-renders after operations
+- React loses event handlers when components are forced to re-render with changing keys
+- Only call `fetchRecords()` to refresh data - React will handle UI updates properly
 
 ### Data Consistency
 Both Overview and Production dashboards use `production_records` table directly for consistent counts.
