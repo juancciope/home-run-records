@@ -33,24 +33,11 @@ import {
   DropdownMenuTrigger,
 } from '@/components/ui/dropdown-menu'
 import {
-  DndContext,
-  DragEndEvent,
-  DragOverlay,
-  DragStartEvent,
-  PointerSensor,
-  useSensor,
-  useSensors,
-  closestCorners,
-  DragOverEvent,
-  UniqueIdentifier,
-  useDroppable
-} from '@dnd-kit/core'
-import {
-  SortableContext,
-  verticalListSortingStrategy,
-} from '@dnd-kit/sortable'
-import { useSortable } from '@dnd-kit/sortable'
-import { CSS } from '@dnd-kit/utilities'
+  DragDropContext,
+  Droppable,
+  Draggable,
+  DropResult,
+} from '@hello-pangea/dnd'
 import { 
   Music, 
   Calendar, 
@@ -92,154 +79,140 @@ interface GroupedRecords {
   released: ProductionRecord[]
 }
 
-// Sortable Card Component
-function SortableCard({ 
+// Draggable Card Component
+function DraggableCard({ 
   record, 
+  index,
   onEdit, 
   onDelete 
 }: { 
   record: ProductionRecord
+  index: number
   onEdit: (record: ProductionRecord) => void
   onDelete: (recordId: string) => void
 }) {
-  const {
-    attributes,
-    listeners,
-    setNodeRef,
-    transform,
-    transition,
-    isDragging,
-  } = useSortable({ 
-    id: record.id,
-    data: {
-      type: 'task',
-      task: record
-    }
-  })
-
-  const style = {
-    transform: CSS.Transform.toString(transform),
-    transition,
-    opacity: isDragging ? 0.5 : 1,
-  }
-
   return (
-    <div
-      ref={setNodeRef}
-      style={style}
-      className="mb-3"
-    >
-      <Card 
-        className="hover:shadow-md transition-shadow border-l-4 border-l-primary/30"
-      >
-        <CardContent className="p-4">
-          <div className="flex items-start justify-between mb-3">
-            <div className="flex items-center gap-3">
-              {/* Dedicated drag handle */}
-              <div 
-                className="cursor-move p-1 hover:bg-muted rounded flex items-center justify-center"
-                {...attributes}
-                {...listeners}
-              >
-                <GripVertical className="h-4 w-4 text-muted-foreground" />
+    <Draggable draggableId={record.id} index={index}>
+      {(provided, snapshot) => (
+        <div
+          ref={provided.innerRef}
+          {...provided.draggableProps}
+          className="mb-3"
+        >
+          <Card 
+            className={`hover:shadow-md transition-shadow border-l-4 border-l-primary/30 ${
+              snapshot.isDragging ? 'shadow-lg transform rotate-2' : ''
+            }`}
+          >
+            <CardContent className="p-4">
+              <div className="flex items-start justify-between mb-3">
+                <div className="flex items-center gap-3">
+                  {/* Drag handle */}
+                  <div 
+                    className="cursor-move p-1 hover:bg-muted rounded flex items-center justify-center"
+                    {...provided.dragHandleProps}
+                  >
+                    <GripVertical className="h-4 w-4 text-muted-foreground" />
+                  </div>
+                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
+                    <Music className="h-5 w-5 text-primary" />
+                  </div>
+                  <div className="flex-1 min-w-0">
+                    <h4 className="font-semibold text-sm truncate">{record.title}</h4>
+                    {record.artist_name && (
+                      <p className="text-xs text-muted-foreground truncate">{record.artist_name}</p>
+                    )}
+                  </div>
+                </div>
+                <DropdownMenu modal={false}>
+                  <DropdownMenuTrigger asChild>
+                    <Button 
+                      variant="ghost" 
+                      size="sm" 
+                      className="h-7 w-7 p-0 shrink-0"
+                    >
+                      <MoreVertical className="h-3.5 w-3.5" />
+                    </Button>
+                  </DropdownMenuTrigger>
+                  <DropdownMenuContent align="end" className="w-32">
+                    <DropdownMenuItem
+                      onClick={() => onEdit(record)}
+                    >
+                      <Edit3 className="h-3 w-3 mr-2" />
+                      Edit
+                    </DropdownMenuItem>
+                    <DropdownMenuSeparator />
+                    <DropdownMenuItem
+                      onClick={() => onDelete(record.id)}
+                      className="text-red-600 hover:text-red-700"
+                    >
+                      <Trash2 className="h-3 w-3 mr-2" />
+                      Delete
+                    </DropdownMenuItem>
+                  </DropdownMenuContent>
+                </DropdownMenu>
               </div>
-              <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                <Music className="h-5 w-5 text-primary" />
-              </div>
-              <div className="flex-1 min-w-0">
-                <h4 className="font-semibold text-sm truncate">{record.title}</h4>
-                {record.artist_name && (
-                  <p className="text-xs text-muted-foreground truncate">{record.artist_name}</p>
+
+              {record.description && (
+                <p className="text-xs text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
+                  {record.description}
+                </p>
+              )}
+
+              <div className="space-y-3">
+                {record.completion_percentage > 0 && record.record_type === 'unfinished' && (
+                  <div>
+                    <div className="flex justify-between text-xs mb-2">
+                      <span className="font-medium">Progress</span>
+                      <span className="font-semibold">{record.completion_percentage}%</span>
+                    </div>
+                    <Progress value={record.completion_percentage} className="h-2" />
+                  </div>
+                )}
+
+                <div className="flex items-center justify-between text-xs">
+                  {record.release_date && (
+                    <div className="flex items-center gap-1 text-muted-foreground">
+                      <Calendar className="h-3 w-3" />
+                      <span>{new Date(record.release_date).toLocaleDateString()}</span>
+                    </div>
+                  )}
+                  
+                  {record.record_type && (
+                    <Badge 
+                      variant="outline" 
+                      className={`text-xs ${
+                        record.record_type === 'unfinished' ? 'border-orange-200 text-orange-700' :
+                        record.record_type === 'finished' ? 'border-yellow-200 text-yellow-700' :
+                        'border-green-200 text-green-700'
+                      }`}
+                    >
+                      {record.record_type === 'unfinished' ? 'In Progress' :
+                       record.record_type === 'finished' ? 'Ready' : 'Live'}
+                    </Badge>
+                  )}
+                </div>
+
+                {record.platforms && record.platforms.length > 0 && (
+                  <div className="flex flex-wrap gap-1">
+                    {record.platforms.slice(0, 3).map((platform, idx) => (
+                      <Badge key={idx} variant="secondary" className="text-xs px-2 py-0.5">
+                        {platform}
+                      </Badge>
+                    ))}
+                    {record.platforms.length > 3 && (
+                      <Badge variant="secondary" className="text-xs px-2 py-0.5">
+                        +{record.platforms.length - 3}
+                      </Badge>
+                    )}
+                  </div>
                 )}
               </div>
-            </div>
-            <DropdownMenu modal={false}>
-              <DropdownMenuTrigger asChild>
-                <Button 
-                  variant="ghost" 
-                  size="sm" 
-                  className="h-7 w-7 p-0 shrink-0"
-                >
-                  <MoreVertical className="h-3.5 w-3.5" />
-                </Button>
-              </DropdownMenuTrigger>
-              <DropdownMenuContent align="end" className="w-32">
-                <DropdownMenuItem
-                  onClick={() => onEdit(record)}
-                >
-                  <Edit3 className="h-3 w-3 mr-2" />
-                  Edit
-                </DropdownMenuItem>
-                <DropdownMenuSeparator />
-                <DropdownMenuItem
-                  onClick={() => onDelete(record.id)}
-                  className="text-red-600 hover:text-red-700"
-                >
-                  <Trash2 className="h-3 w-3 mr-2" />
-                  Delete
-                </DropdownMenuItem>
-              </DropdownMenuContent>
-            </DropdownMenu>
-          </div>
-
-          {record.description && (
-            <p className="text-xs text-muted-foreground mb-3 line-clamp-2 leading-relaxed">
-              {record.description}
-            </p>
-          )}
-
-          <div className="space-y-3">
-            {record.completion_percentage > 0 && record.record_type === 'unfinished' && (
-              <div>
-                <div className="flex justify-between text-xs mb-2">
-                  <span className="font-medium">Progress</span>
-                  <span className="font-semibold">{record.completion_percentage}%</span>
-                </div>
-                <Progress value={record.completion_percentage} className="h-2" />
-              </div>
-            )}
-
-            <div className="flex items-center justify-between text-xs">
-              {record.release_date && (
-                <div className="flex items-center gap-1 text-muted-foreground">
-                  <Calendar className="h-3 w-3" />
-                  <span>{new Date(record.release_date).toLocaleDateString()}</span>
-                </div>
-              )}
-              
-              {record.record_type && (
-                <Badge 
-                  variant="outline" 
-                  className={`text-xs ${
-                    record.record_type === 'unfinished' ? 'border-orange-200 text-orange-700' :
-                    record.record_type === 'finished' ? 'border-yellow-200 text-yellow-700' :
-                    'border-green-200 text-green-700'
-                  }`}
-                >
-                  {record.record_type === 'unfinished' ? 'In Progress' :
-                   record.record_type === 'finished' ? 'Ready' : 'Live'}
-                </Badge>
-              )}
-            </div>
-
-            {record.platforms && record.platforms.length > 0 && (
-              <div className="flex flex-wrap gap-1">
-                {record.platforms.slice(0, 3).map((platform, idx) => (
-                  <Badge key={idx} variant="secondary" className="text-xs px-2 py-0.5">
-                    {platform}
-                  </Badge>
-                ))}
-                {record.platforms.length > 3 && (
-                  <Badge variant="secondary" className="text-xs px-2 py-0.5">
-                    +{record.platforms.length - 3}
-                  </Badge>
-                )}
-              </div>
-            )}
-          </div>
-        </CardContent>
-      </Card>
-    </div>
+            </CardContent>
+          </Card>
+        </div>
+      )}
+    </Draggable>
   )
 }
 
@@ -259,47 +232,43 @@ function KanbanColumn({
   onEdit: (record: ProductionRecord) => void
   onDelete: (recordId: string) => void
 }) {
-  const {
-    setNodeRef,
-    isOver,
-  } = useDroppable({
-    id: status,
-    data: {
-      type: 'column',
-      column: { id: status, title }
-    },
-  })
-
   // Ensure records is always an array
   const safeRecords = records || []
 
   return (
     <div className="flex-1 min-w-[300px]">
-      <Card className={`h-full ${isOver ? 'ring-2 ring-primary' : ''}`}>
-        <CardContent ref={setNodeRef} className="min-h-[500px] p-4">
-          <SortableContext 
-            items={safeRecords.map(r => r.id)} 
-            strategy={verticalListSortingStrategy}
-          >
-            <div className="space-y-3">
-              {safeRecords.map((record) => (
-                <SortableCard 
-                  key={record.id} 
-                  record={record} 
-                  onEdit={onEdit}
-                  onDelete={onDelete}
-                />
-              ))}
-            </div>
-          </SortableContext>
-          
-          {safeRecords.length === 0 && (
-            <div className="flex flex-col items-center justify-center h-40 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
-              <Icon className="h-12 w-12 mb-3 opacity-30" />
-              <p className="text-sm font-medium mb-1">No tracks</p>
-              <p className="text-xs">Drag tracks here or click + to add</p>
-            </div>
-          )}
+      <Card className="h-full">
+        <CardContent className="min-h-[500px] p-4">
+          <Droppable droppableId={status}>
+            {(provided, snapshot) => (
+              <div
+                ref={provided.innerRef}
+                {...provided.droppableProps}
+                className={`min-h-[400px] space-y-3 ${
+                  snapshot.isDraggingOver ? 'bg-muted/50 rounded-lg' : ''
+                }`}
+              >
+                {safeRecords.map((record, index) => (
+                  <DraggableCard 
+                    key={record.id} 
+                    record={record}
+                    index={index}
+                    onEdit={onEdit}
+                    onDelete={onDelete}
+                  />
+                ))}
+                {provided.placeholder}
+                
+                {safeRecords.length === 0 && (
+                  <div className="flex flex-col items-center justify-center h-40 text-muted-foreground border-2 border-dashed border-muted rounded-lg">
+                    <Icon className="h-12 w-12 mb-3 opacity-30" />
+                    <p className="text-sm font-medium mb-1">No tracks</p>
+                    <p className="text-xs">Drag tracks here or click + to add</p>
+                  </div>
+                )}
+              </div>
+            )}
+          </Droppable>
         </CardContent>
       </Card>
     </div>
@@ -314,7 +283,6 @@ export default function ProductionPage() {
     released: []
   })
   const [loading, setLoading] = useState(true)
-  const [activeId, setActiveId] = useState<UniqueIdentifier | null>(null)
   const [editingRecord, setEditingRecord] = useState<ProductionRecord | null>(null)
   const [editFormData, setEditFormData] = useState({
     title: '',
@@ -327,16 +295,6 @@ export default function ProductionPage() {
   const [isEditModalOpen, setIsEditModalOpen] = useState(false)
   const [deletingRecord, setDeletingRecord] = useState<ProductionRecord | null>(null)
   const [isDeleteDialogOpen, setIsDeleteDialogOpen] = useState(false)
-  const [originalStatus, setOriginalStatus] = useState<string | null>(null)
-  
-  const sensors = useSensors(
-    useSensor(PointerSensor, {
-      activationConstraint: {
-        delay: 100,
-        tolerance: 5,
-      },
-    })
-  )
 
   useEffect(() => {
     fetchRecords()
@@ -388,145 +346,66 @@ export default function ProductionPage() {
     }
   }
 
-  const handleDragStart = (event: DragStartEvent) => {
-    setActiveId(event.active.id)
-    // Store the original status before any changes
-    const record = findRecordById(event.active.id as string)
-    if (record) {
-      setOriginalStatus(record.record_type)
-      console.log('🎯 Drag started - Original status:', record.record_type)
-    }
-  }
-
-  const handleDragOver = (event: DragOverEvent) => {
-    const { active, over } = event
+  const handleDragEnd = async (result: DropResult) => {
+    const { destination, source, draggableId } = result
     
-    if (!over) return
-    
-    const activeId = active.id
-    const overId = over.id
-    
-    if (activeId === overId) return
-
-    // Find the active record
-    const activeRecord = findRecordById(activeId as string)
-    if (!activeRecord) return
-
-    // Determine if we're dropping on a column or card
-    const isOverAColumn = over.data?.current?.type === 'column'
-    const isOverATask = over.data?.current?.type === 'task'
-
-    if (!isOverAColumn && !isOverATask) return
-
-    // If dropping on a column, move to that column
-    if (isOverAColumn) {
-      const newColumnId = overId as string
-      if (activeRecord.record_type !== newColumnId) {
-        setRecords(prev => {
-          const newRecords = { ...prev }
-          
-          // Remove from old column
-          const oldStatus = activeRecord.record_type as keyof GroupedRecords
-          newRecords[oldStatus] = (newRecords[oldStatus] || []).filter(r => r.id !== activeId)
-          
-          // Add to new column
-          const updatedRecord = { ...activeRecord, record_type: newColumnId as any }
-          const newStatus = newColumnId as keyof GroupedRecords
-          newRecords[newStatus] = [...(newRecords[newStatus] || []), updatedRecord]
-          
-          return newRecords
-        })
-      }
-    }
-    
-    // If dropping on a task, move to that task's column
-    if (isOverATask) {
-      const overRecord = findRecordById(overId as string)
-      if (overRecord && activeRecord.record_type !== overRecord.record_type) {
-        setRecords(prev => {
-          const newRecords = { ...prev }
-          
-          // Remove from old column
-          const oldStatus = activeRecord.record_type as keyof GroupedRecords
-          newRecords[oldStatus] = (newRecords[oldStatus] || []).filter(r => r.id !== activeId)
-          
-          // Add to new column
-          const updatedRecord = { ...activeRecord, record_type: overRecord.record_type }
-          const newStatus = overRecord.record_type as keyof GroupedRecords
-          newRecords[newStatus] = [...(newRecords[newStatus] || []), updatedRecord]
-          
-          return newRecords
-        })
-      }
-    }
-  }
-
-  const handleDragEnd = async (event: DragEndEvent) => {
-    const { active, over } = event
-    
-    setActiveId(null)
-    
-    if (!over) return
-
-    const activeRecord = findRecordById(active.id as string)
-    if (!activeRecord) return
-
-    // Determine the target status
-    let targetStatus: string
-    if (over.data?.current?.type === 'column') {
-      targetStatus = over.id as string
-    } else {
-      const overRecord = findRecordById(over.id as string)
-      targetStatus = overRecord?.record_type || activeRecord.record_type
+    // If no destination or same position, do nothing
+    if (!destination || (
+      destination.droppableId === source.droppableId &&
+      destination.index === source.index
+    )) {
+      return
     }
 
-    // Only update database if status actually changed (compare with original status)
-    if (originalStatus && originalStatus !== targetStatus) {
-      console.log('🎯 Starting database update:', {
-        recordId: activeRecord.id,
-        newStatus: targetStatus,
-        originalStatus: originalStatus,
-        currentStatus: activeRecord.record_type,
-        to: targetStatus
-      })
+    const sourceStatus = source.droppableId as keyof GroupedRecords
+    const destStatus = destination.droppableId as keyof GroupedRecords
+    const record = findRecordById(draggableId)
+    
+    if (!record) return
+
+    // Update UI optimistically
+    setRecords(prev => {
+      const newRecords = { ...prev }
       
-      try {
+      // Remove from source column
+      const sourceRecords = [...(newRecords[sourceStatus] || [])]
+      sourceRecords.splice(source.index, 1)
+      newRecords[sourceStatus] = sourceRecords
+      
+      // Add to destination column
+      const destRecords = [...(newRecords[destStatus] || [])]
+      const updatedRecord = { ...record, record_type: destStatus }
+      destRecords.splice(destination.index, 0, updatedRecord)
+      newRecords[destStatus] = destRecords
+      
+      return newRecords
+    })
 
+    // Only update database if status changed
+    if (sourceStatus !== destStatus) {
+      try {
         const response = await fetch('/api/dashboard/production', {
           method: 'PATCH',
           headers: { 'Content-Type': 'application/json' },
           body: JSON.stringify({
-            recordId: activeRecord.id,
-            newStatus: targetStatus
+            recordId: draggableId,
+            newStatus: destStatus
           })
         })
 
         if (!response.ok) {
           const errorData = await response.json()
-          console.error('❌ API Error:', errorData)
           throw new Error(errorData.error || 'Failed to update')
         }
 
-        const responseData = await response.json()
-        console.log('✅ Successfully updated record:', responseData)
-
-        toast.success(`Moved "${activeRecord.title}" to ${getColumnTitle(targetStatus)}`)
+        toast.success(`Moved "${record.title}" to ${getColumnTitle(destStatus)}`)
       } catch (error) {
-        console.error('❌ Error updating record:', error)
+        console.error('Error updating record:', error)
         toast.error('Failed to update record status')
         // Revert by refetching
         await fetchRecords()
       }
-    } else {
-      console.log('🔄 No status change detected:', {
-        originalStatus: originalStatus,
-        currentStatus: activeRecord.record_type,
-        targetStatus: targetStatus
-      })
     }
-    
-    // Clear the original status
-    setOriginalStatus(null)
   }
 
   const findRecordById = (id: string): ProductionRecord | undefined => {
@@ -655,8 +534,6 @@ export default function ProductionPage() {
     )
   }
 
-  const activeRecord = activeId ? findRecordById(activeId as string) : null
-
   return (
     <TooltipProvider>
       <div className="space-y-6">
@@ -678,13 +555,7 @@ export default function ProductionPage() {
       />
       
       {/* Kanban Board */}
-      <DndContext
-        sensors={sensors}
-        collisionDetection={closestCorners}
-        onDragStart={handleDragStart}
-        onDragOver={handleDragOver}
-        onDragEnd={handleDragEnd}
-      >
+      <DragDropContext onDragEnd={handleDragEnd}>
         <div className="flex gap-4 overflow-x-auto pb-4">
           <KanbanColumn 
             title="In-progress"
@@ -711,20 +582,7 @@ export default function ProductionPage() {
             onDelete={handleDelete}
           />
         </div>
-        
-        <DragOverlay>
-          {activeRecord ? (
-            <Card className="cursor-move shadow-lg">
-              <CardContent className="p-4">
-                <div className="flex items-center gap-2">
-                  <Music className="h-4 w-4" />
-                  <span className="font-medium">{activeRecord.title}</span>
-                </div>
-              </CardContent>
-            </Card>
-          ) : null}
-        </DragOverlay>
-      </DndContext>
+      </DragDropContext>
 
       {/* Edit Record Modal */}
       <Dialog open={isEditModalOpen} onOpenChange={setIsEditModalOpen}>
