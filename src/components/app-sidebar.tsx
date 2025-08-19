@@ -19,6 +19,7 @@ import {
   SidebarRail,
 } from "@/components/ui/sidebar"
 import { useAuth } from "@/contexts/auth-provider"
+import { usePathname } from "next/navigation"
 import * as React from "react"
 
 
@@ -34,6 +35,7 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
   const authContext = useAuth();
   const currentUser = user || authContext.user;
   const currentProfile = profile || authContext.profile;
+  const pathname = usePathname();
   
   const isSuperId = currentProfile?.global_role === 'superadmin';
   const isManager = currentProfile?.global_role === 'artist_manager';
@@ -69,19 +71,22 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         title: "Start Here",
         url: "#",
         icon: Rocket,
-        isActive: false,
+        isActive: pathname.startsWith('/onboarding') || pathname === '/team',
         items: [
           {
             title: "Onboarding",
             url: "/onboarding",
+            isActive: pathname.startsWith('/onboarding'),
             items: [
               {
                 title: "Connect Data",
                 url: "/onboarding/connect-data",
+                isActive: pathname === "/onboarding/connect-data",
               },
               {
                 title: "Set Goals",
                 url: "/onboarding/set-goals",
+                isActive: pathname === "/onboarding/set-goals",
               },
             ],
           },
@@ -89,6 +94,7 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
           ...(isManager || isSuperId ? [{
             title: "My Team",
             url: "/team",
+            isActive: pathname === "/team",
           }] : [])
         ],
       },
@@ -96,19 +102,22 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         title: "Dashboards",
         url: "#",
         icon: BarChart3,
-        isActive: true,
+        isActive: pathname.startsWith('/dashboard'),
         items: [
           {
             title: "Operations",
             url: "/dashboard",
+            isActive: pathname === "/dashboard",
           },
           {
             title: "Production",
             url: "/dashboard/production",
+            isActive: pathname === "/dashboard/production",
           },
           {
             title: "Reach",
             url: "/dashboard/reach",
+            isActive: pathname === "/dashboard/reach",
           },
         ],
       }
@@ -120,19 +129,22 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         title: "Admin",
         url: "#",
         icon: Wrench,
-        isActive: false,
+        isActive: pathname.startsWith('/admin'),
         items: [
           {
             title: "Agencies",
             url: "/admin/agencies",
+            isActive: pathname === "/admin/agencies",
           },
           {
             title: "Users",
             url: "/admin/users", 
+            isActive: pathname === "/admin/users",
           },
           {
             title: "System Settings",
             url: "/admin/settings",
+            isActive: pathname === "/admin/settings",
           }
         ]
       });
@@ -142,31 +154,37 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         title: "Tools",
         url: "#",
         icon: Wrench,
-        isActive: false,
+        isActive: pathname.startsWith('/tools'),
         items: [
           {
             title: "Content",
             url: "/tools/content",
+            isActive: pathname === "/tools/content",
           },
           {
             title: "Brand",
             url: "/tools/brand",
+            isActive: pathname === "/tools/brand",
           },
           {
             title: "Catalog",
             url: "/tools/catalog",
+            isActive: pathname === "/tools/catalog",
           },
           {
             title: "Agents",
             url: "/tools/agents",
+            isActive: pathname === "/tools/agents",
           },
           {
             title: "PMS",
             url: "/tools/pms",
+            isActive: pathname === "/tools/pms",
           },
           {
             title: "AI",
             url: "/tools/ai",
+            isActive: pathname === "/tools/ai",
           },
         ],
       });

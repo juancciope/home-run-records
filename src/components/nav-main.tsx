@@ -1,6 +1,7 @@
 "use client"
 
 import { ChevronRight, type LucideIcon } from "lucide-react"
+import Link from "next/link"
 
 import {
   Collapsible,
@@ -29,6 +30,12 @@ export function NavMain({
     items?: {
       title: string
       url: string
+      isActive?: boolean
+      items?: {
+        title: string
+        url: string
+        isActive?: boolean
+      }[]
     }[]
   }[]
 }) {
@@ -55,11 +62,24 @@ export function NavMain({
                 <SidebarMenuSub>
                   {item.items?.map((subItem) => (
                     <SidebarMenuSubItem key={subItem.title}>
-                      <SidebarMenuSubButton asChild>
-                        <a href={subItem.url}>
+                      <SidebarMenuSubButton asChild isActive={subItem.isActive}>
+                        <Link href={subItem.url}>
                           <span>{subItem.title}</span>
-                        </a>
+                        </Link>
                       </SidebarMenuSubButton>
+                      {subItem.items && (
+                        <SidebarMenuSub>
+                          {subItem.items.map((nestedItem) => (
+                            <SidebarMenuSubItem key={nestedItem.title}>
+                              <SidebarMenuSubButton asChild isActive={nestedItem.isActive}>
+                                <Link href={nestedItem.url}>
+                                  <span>{nestedItem.title}</span>
+                                </Link>
+                              </SidebarMenuSubButton>
+                            </SidebarMenuSubItem>
+                          ))}
+                        </SidebarMenuSub>
+                      )}
                     </SidebarMenuSubItem>
                   ))}
                 </SidebarMenuSub>
