@@ -99,7 +99,7 @@ export function AppSidebar({ user, profile, agencies, currentAgency, ...props }:
         isActive: true,
         items: [
           {
-            title: "Overview",
+            title: "Operations",
             url: "/dashboard",
           },
           {

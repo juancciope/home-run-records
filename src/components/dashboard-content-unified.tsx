@@ -345,7 +345,7 @@ export function DashboardContentUnified() {
         {/* Header */}
       <div>
         <div className="flex items-center justify-between mb-2">
-          <h1 className="text-3xl font-bold tracking-tight">Business Intelligence Dashboard</h1>
+          <h1 className="text-3xl font-bold tracking-tight">Artist Ops Dashboard</h1>
           <div className="flex items-center gap-2">
             <Select value={timeFilter} onValueChange={(value: any) => setTimeFilter(value)}>
               <SelectTrigger className="w-[140px]">
