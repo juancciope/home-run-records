@@ -101,9 +101,11 @@ function DraggableCard({
           className="mb-3"
         >
           <Card 
-            className={`hover:shadow-md transition-shadow border-l-4 border-l-primary/30 cursor-move ${
-              snapshot.isDragging ? 'shadow-lg transform rotate-2' : ''
-            }`}
+            className={`hover:shadow-md transition-shadow border-l-4 cursor-move ${
+              record.record_type === 'unfinished' ? 'border-l-orange-500' :
+              record.record_type === 'finished' ? 'border-l-yellow-500' :
+              'border-l-green-500'
+            } ${snapshot.isDragging ? 'shadow-lg transform rotate-2' : ''}`}
           >
             <CardContent className="p-4">
               <div className="flex items-start justify-between mb-3">
@@ -114,8 +116,12 @@ function DraggableCard({
                   >
                     <GripVertical className="h-4 w-4 text-muted-foreground" />
                   </div>
-                  <div className="h-10 w-10 rounded-lg bg-primary/10 flex items-center justify-center">
-                    <Music className="h-5 w-5 text-primary" />
+                  <div className={`h-10 w-10 rounded-lg flex items-center justify-center ${
+                    record.record_type === 'unfinished' ? 'bg-orange-100 text-orange-600' :
+                    record.record_type === 'finished' ? 'bg-yellow-100 text-yellow-600' :
+                    'bg-green-100 text-green-600'
+                  }`}>
+                    <Music className="h-5 w-5" />
                   </div>
                   <div className="flex-1 min-w-0">
                     <h4 className="font-semibold text-sm truncate">{record.title}</h4>
