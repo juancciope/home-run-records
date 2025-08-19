@@ -87,8 +87,8 @@ export function ProductionPipelineCards({ production, onRecordAdded }: Productio
           <div className="text-4xl font-bold">{production?.unfinished || 0}</div>
           <div className="flex items-center justify-between text-sm">
             <div className="flex items-center gap-2">
-              <span>Priority</span>
-              <span className="text-red-500 font-medium">High</span>
+              <span>Progress</span>
+              <span className="text-orange-600 font-medium">{production?.averageCompletion || 0}%</span>
             </div>
             <Badge variant="outline" className="text-xs">Active</Badge>
           </div>
