@@ -1050,19 +1050,28 @@ export class PipelineService {
                 record.engagement_level = 'captured'; // default
               }
             }
-            // Handle date fields
-            else if (header.includes('date') && value) {
-              // Try to parse date
-              const date = new Date(value);
-              if (!isNaN(date.getTime())) {
-                record[header] = header === 'meeting_date' ? date.toISOString() : value;
+            // Handle date fields - convert empty strings to null
+            else if (header.includes('date')) {
+              if (!value || value.trim() === '') {
+                record[header] = null; // NULL for empty dates
+              } else {
+                // Try to parse date
+                const date = new Date(value);
+                if (!isNaN(date.getTime())) {
+                  record[header] = header === 'meeting_date' ? date.toISOString() : value;
+                } else {
+                  record[header] = value;
+                }
+              }
+            }
+            // Default string handling - convert empty strings to null for optional fields
+            else {
+              // Convert empty strings to null for optional text fields
+              if (!value || value.trim() === '') {
+                record[header] = null;
               } else {
                 record[header] = value;
               }
-            }
-            // Default string handling
-            else {
-              record[header] = value;
             }
           });
           
