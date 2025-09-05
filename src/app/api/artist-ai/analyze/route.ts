@@ -49,6 +49,40 @@ interface AnalysisResult {
     sixtyDays: number;
     ninetyDays: number;
   };
+  brandAnalysis?: {
+    personality: string;
+    values: string;
+    aesthetic: string;
+    targetAudience: string;
+    strengths: string[];
+    risks: string[];
+    projection: string;
+  };
+  contentGuide?: {
+    contentTypeMix: {
+      reels: string;
+      posts: string;
+      carousels: string;
+      stories: string;
+    };
+    captionStrategy: {
+      idealLength: string;
+      structure: string;
+      callToAction: string;
+    };
+    hashtagStrategy: {
+      optimalCount: string;
+      mix: string;
+      examples: string[];
+    };
+    postingFrequency: string;
+  };
+  topPerformers?: {
+    platform: string;
+    type: string;
+    engagement: string;
+    whyItWorked: string;
+  }[];
 }
 
 async function extractInstagramProfile(username: string) {
@@ -61,14 +95,18 @@ async function extractInstagramProfile(username: string) {
   }
 
   try {
-    console.log(`Starting Instagram profile scraping for @${username}`);
-    console.log('Using Instagram profile actor: dSCLg0C3YEZ83HzYX');
+    console.log(`Starting Instagram PROFILE scraping for @${username}`);
+    console.log('Using Instagram main scraper for profile details');
 
     const runInput = {
-      usernames: [username]
+      directUrls: [`https://www.instagram.com/${username}/`],
+      resultsType: "details", // Get profile details only
+      resultsLimit: 1
     };
 
-    const runResponse = await fetch(`${APIFY_BASE_URL}/acts/dSCLg0C3YEZ83HzYX/runs`, {
+    console.log('Instagram profile run input:', JSON.stringify(runInput, null, 2));
+
+    const runResponse = await fetch(`${APIFY_BASE_URL}/acts/${INSTAGRAM_ACTOR_ID}/runs`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -78,6 +116,8 @@ async function extractInstagramProfile(username: string) {
     });
 
     if (!runResponse.ok) {
+      const errorText = await runResponse.text();
+      console.error(`Failed to start Instagram profile scraper: ${runResponse.status}`, errorText);
       throw new Error(`Failed to start profile scraper: ${runResponse.status}`);
     }
 
@@ -87,25 +127,29 @@ async function extractInstagramProfile(username: string) {
     // Wait for completion
     let status = 'RUNNING';
     let attempts = 0;
-    const maxAttempts = 20;
+    const maxAttempts = 30; // Increased timeout for profile scraping
 
-    while (status === 'RUNNING' && attempts < maxAttempts) {
+    while ((status === 'RUNNING' || status === 'READY') && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 3000));
       attempts++;
 
       try {
-        const statusResponse = await fetch(`${APIFY_BASE_URL}/runs/${run.data.id}`, {
+        const statusResponse = await fetch(`${APIFY_BASE_URL}/actor-runs/${run.data.id}`, {
           headers: { 'Authorization': `Bearer ${APIFY_TOKEN}` }
         });
 
-        if (!statusResponse.ok) break;
+        if (!statusResponse.ok) {
+          console.error('Failed to check Instagram profile status:', statusResponse.status);
+          break;
+        }
         
         const statusData = await statusResponse.json();
         status = statusData.data.status;
         console.log(`Instagram profile scraper status: ${status} (attempt ${attempts}/${maxAttempts})`);
         
         if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
-          console.error('Instagram profile scraper failed');
+          console.error('Instagram profile scraper failed with status:', status);
+          console.error('Status message:', statusData.data.statusMessage);
           break;
         }
       } catch (error) {
@@ -125,26 +169,28 @@ async function extractInstagramProfile(username: string) {
 
       if (resultsResponse.ok) {
         const results = await resultsResponse.json();
+        console.log(`Instagram profile results:`, JSON.stringify(results, null, 2));
+        
         if (results && results.length > 0) {
           const profile = results[0];
-          console.log(`Retrieved Instagram profile: ${profile.followersCount} followers`);
+          console.log(`✅ Retrieved Instagram profile: ${profile.followersCount || profile.followers} followers`);
           return {
-            followersCount: profile.followersCount || 0,
-            profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || null
+            followersCount: profile.followersCount || profile.followers || profile.followersCount || 0,
+            profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || profile.profilePic || null
           };
         }
       }
     }
 
     // Fallback to mock data
-    console.log('Using mock Instagram profile data');
+    console.log('⚠️ Using mock Instagram profile data - scraping may have failed');
     return {
       followersCount: Math.floor(Math.random() * 50000) + 1000,
       profilePicUrl: null
     };
 
   } catch (error) {
-    console.error('Instagram profile scraping failed:', error);
+    console.error('❌ Instagram profile scraping failed:', error);
     return {
       followersCount: Math.floor(Math.random() * 50000) + 1000,
       profilePicUrl: null
@@ -162,14 +208,20 @@ async function extractTikTokProfile(username: string) {
   }
 
   try {
-    console.log(`Starting TikTok profile scraping for @${username}`);
-    console.log('Using TikTok profile actor: clockworks/tiktok-profile-scraper');
+    console.log(`Starting TikTok PROFILE scraping for @${username}`);
+    console.log('Using TikTok scraper for profile details only');
 
     const runInput = {
-      usernames: [username]
+      profiles: [`https://www.tiktok.com/@${username}`],
+      resultsPerPage: 0, // Only profile data, no videos
+      shouldDownloadCovers: false,
+      shouldDownloadVideos: false,
+      shouldDownloadSubtitles: false
     };
 
-    const runResponse = await fetch(`${APIFY_BASE_URL}/acts/clockworks~tiktok-profile-scraper/runs`, {
+    console.log('TikTok profile run input:', JSON.stringify(runInput, null, 2));
+
+    const runResponse = await fetch(`${APIFY_BASE_URL}/acts/${TIKTOK_ACTOR_ID}/runs`, {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -179,6 +231,8 @@ async function extractTikTokProfile(username: string) {
     });
 
     if (!runResponse.ok) {
+      const errorText = await runResponse.text();
+      console.error(`Failed to start TikTok profile scraper: ${runResponse.status}`, errorText);
       throw new Error(`Failed to start TikTok profile scraper: ${runResponse.status}`);
     }
 
@@ -188,25 +242,29 @@ async function extractTikTokProfile(username: string) {
     // Wait for completion
     let status = 'RUNNING';
     let attempts = 0;
-    const maxAttempts = 20;
+    const maxAttempts = 30; // Increased timeout
 
-    while (status === 'RUNNING' && attempts < maxAttempts) {
+    while ((status === 'RUNNING' || status === 'READY') && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 3000));
       attempts++;
 
       try {
-        const statusResponse = await fetch(`${APIFY_BASE_URL}/runs/${run.data.id}`, {
+        const statusResponse = await fetch(`${APIFY_BASE_URL}/actor-runs/${run.data.id}`, {
           headers: { 'Authorization': `Bearer ${APIFY_TOKEN}` }
         });
 
-        if (!statusResponse.ok) break;
+        if (!statusResponse.ok) {
+          console.error('Failed to check TikTok profile status:', statusResponse.status);
+          break;
+        }
         
         const statusData = await statusResponse.json();
         status = statusData.data.status;
         console.log(`TikTok profile scraper status: ${status} (attempt ${attempts}/${maxAttempts})`);
         
         if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
-          console.error('TikTok profile scraper failed');
+          console.error('TikTok profile scraper failed with status:', status);
+          console.error('Status message:', statusData.data.statusMessage);
           break;
         }
       } catch (error) {
@@ -226,26 +284,31 @@ async function extractTikTokProfile(username: string) {
 
       if (resultsResponse.ok) {
         const results = await resultsResponse.json();
+        console.log(`TikTok profile results:`, JSON.stringify(results, null, 2));
+        
         if (results && results.length > 0) {
-          const profile = results[0];
-          console.log(`Retrieved TikTok profile: ${profile.followerCount} followers`);
+          // Look for profile data - could be in authorMeta or directly in result
+          const profileData = results.find((item: any) => item.authorMeta || item.followerCount !== undefined) || results[0];
+          const profile = profileData.authorMeta || profileData;
+          
+          console.log(`✅ Retrieved TikTok profile: ${profile.followerCount || profile.fans} followers`);
           return {
-            followersCount: profile.followerCount || profile.followersCount || 0,
-            profilePicUrl: profile.avatarLarger || profile.avatar || null
+            followersCount: profile.followerCount || profile.fans || profile.followersCount || 0,
+            profilePicUrl: profile.avatarLarger || profile.avatarMedium || profile.avatar || profile.profilePicUrl || null
           };
         }
       }
     }
 
     // Fallback to mock data
-    console.log('Using mock TikTok profile data');
+    console.log('⚠️ Using mock TikTok profile data - scraping may have failed');
     return {
       followersCount: Math.floor(Math.random() * 30000) + 500,
       profilePicUrl: null
     };
 
   } catch (error) {
-    console.error('TikTok profile scraping failed:', error);
+    console.error('❌ TikTok profile scraping failed:', error);
     return {
       followersCount: Math.floor(Math.random() * 30000) + 500,
       profilePicUrl: null
@@ -262,7 +325,7 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
   console.log('🚀 APIFY_TOKEN found, starting real Instagram scraping...');
 
   try {
-    console.log(`Starting Instagram scraping for @${username}`);
+    console.log(`Starting Instagram POSTS scraping for @${username}`);
     
     // Use the configured Instagram Actor
     const actorId = INSTAGRAM_ACTOR_ID;
@@ -272,10 +335,10 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     const runInput = {
       directUrls: [`https://www.instagram.com/${username}/`],
       resultsLimit: 30,
-      resultsType: "posts"
+      resultsType: "posts" // Get posts only, not profile details
     };
 
-    console.log('Apify run input:', runInput);
+    console.log('Instagram posts run input:', JSON.stringify(runInput, null, 2));
 
     const runResponse = await fetch(
       `${APIFY_BASE_URL}/acts/${actorId}/runs`,
@@ -440,7 +503,7 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
   console.log('🚀 APIFY_TOKEN found, starting real TikTok scraping...');
 
   try {
-    console.log(`Starting TikTok scraping for @${username}`);
+    console.log(`Starting TikTok POSTS scraping for @${username}`);
     
     // Use the configured TikTok Actor
     const actorId = TIKTOK_ACTOR_ID;
@@ -449,13 +512,13 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
     // Correct input format for clockworks/free-tiktok-scraper
     const runInput = {
       profiles: [`https://www.tiktok.com/@${username}`],
-      resultsPerPage: 30,
+      resultsPerPage: 30, // Get posts/videos
       shouldDownloadCovers: false,
       shouldDownloadVideos: false,
       shouldDownloadSubtitles: false
     };
 
-    console.log('TikTok Apify run input:', runInput);
+    console.log('TikTok posts run input:', JSON.stringify(runInput, null, 2));
 
     const runResponse = await fetch(
       `${APIFY_BASE_URL}/acts/${actorId}/runs`,
@@ -784,6 +847,22 @@ async function analyzeWithOpenAI(
         thirtyDays: 15,
         sixtyDays: 35,
         ninetyDays: 75,
+      },
+      brandAnalysis: {
+        personality: 'Authentic and relatable music artist with a genuine connection to their audience',
+        values: 'Authenticity, musical expression, and community engagement',
+        aesthetic: 'Contemporary music artist with consistent visual branding',
+        targetAudience: 'Music lovers aged 18-35 who appreciate authentic artistry',
+        strengths: [
+          'Consistent content creation',
+          'Strong audience engagement',
+          'Authentic brand voice'
+        ],
+        risks: [
+          'May need more strategic content planning',
+          'Could benefit from broader hashtag strategy'
+        ],
+        projection: 'Projects an authentic, approachable music artist brand with genuine passion for their craft and strong connection to their audience'
       }
     };
   }

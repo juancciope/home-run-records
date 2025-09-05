@@ -70,3 +70,6 @@ Auth session missing - user likely not logged in
  GET /artist-ai/preview?artist=Mary+Sarah&slug=marysarah 200 in 131ms
 Auth session missing - user likely not logged in
  GET /artist-ai/preview?artist=Mary+Sarah&slug=marysarah 200 in 19ms
+Auth session missing - user likely not logged in
+ GET /artist-ai 200 in 221ms
+ GET /favicon.ico?favicon.45db1c09.ico 200 in 261ms
