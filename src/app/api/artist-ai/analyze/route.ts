@@ -610,7 +610,7 @@ export async function POST(request: NextRequest) {
     
     // Store analysis in database
     console.log('💾 Storing analysis in database');
-    const supabase = createAuthenticatedClient();
+    const supabase = await createAuthenticatedClient();
     
     const analysisData = {
       artist_name: artistName,
