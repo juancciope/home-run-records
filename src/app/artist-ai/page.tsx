@@ -21,22 +21,52 @@ const TikTokIcon = () => (
 
 export default function ArtistSocialPage() {
   const router = useRouter()
+  const [step, setStep] = React.useState(1)
   const [artistName, setArtistName] = React.useState("")
+  const [instagramUsername, setInstagramUsername] = React.useState("")
+  const [tiktokUsername, setTiktokUsername] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
 
-  const handleCreatePage = async () => {
-    if (!artistName.trim()) return
+  const handleNextStep = () => {
+    if (step === 1 && artistName.trim()) {
+      setStep(2)
+    }
+  }
+
+  const handleAnalyze = async () => {
+    if (!artistName.trim() || (!instagramUsername.trim() && !tiktokUsername.trim())) {
+      return
+    }
     
     setIsLoading(true)
     
-    // Create clean URL slug from artist name
-    const slug = artistName.toLowerCase()
-      .replace(/[^a-z0-9\s]/g, '') // Remove special characters
-      .replace(/\s+/g, '') // Remove spaces
-    
-    // For production, we'll redirect to the analysis process
-    // For now, still showing preview
-    router.push(`/artist-ai/preview?artist=${encodeURIComponent(artistName)}&slug=${slug}`)
+    try {
+      const response = await fetch('/api/artist-ai/analyze', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          artistName: artistName.trim(),
+          instagramUsername: instagramUsername.trim() || null,
+          tiktokUsername: tiktokUsername.trim() || null,
+        }),
+      })
+
+      const data = await response.json()
+
+      if (data.success) {
+        // Redirect to the unique artist page
+        window.location.href = `/${data.artistSlug}`
+      } else {
+        alert('Analysis failed: ' + (data.error || 'Unknown error'))
+        setIsLoading(false)
+      }
+    } catch (error) {
+      console.error('Analysis error:', error)
+      alert('Analysis failed. Please try again.')
+      setIsLoading(false)
+    }
   }
 
   return (
@@ -71,38 +101,96 @@ export default function ArtistSocialPage() {
               transition={{ delay: 0.1 }}
               className="max-w-sm sm:max-w-md mx-auto space-y-4 px-4"
             >
-              <div className="relative">
-                <Input 
-                  type="text"
-                  placeholder="Enter your artist name"
-                  value={artistName}
-                  onChange={(e) => setArtistName(e.target.value)}
-                  className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 text-center text-base sm:text-lg py-4 sm:py-6"
-                  onKeyPress={(e) => e.key === 'Enter' && handleCreatePage()}
-                />
-              </div>
-              <Button 
-                size="lg" 
-                className="w-full text-base sm:text-lg py-4 sm:py-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                onClick={handleCreatePage}
-                disabled={isLoading || !artistName.trim()}
-              >
-                {isLoading ? (
-                  <>
-                    <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
-                    Creating...
-                  </>
-                ) : (
-                  <>
-                    Analyze My Content
+              {step === 1 ? (
+                <>
+                  <div className="relative">
+                    <Input 
+                      type="text"
+                      placeholder="Enter your artist name"
+                      value={artistName}
+                      onChange={(e) => setArtistName(e.target.value)}
+                      className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 text-center text-base sm:text-lg py-4 sm:py-6"
+                      onKeyPress={(e) => e.key === 'Enter' && handleNextStep()}
+                    />
+                  </div>
+                  <Button 
+                    size="lg" 
+                    className="w-full text-base sm:text-lg py-4 sm:py-6 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                    onClick={handleNextStep}
+                    disabled={!artistName.trim()}
+                  >
+                    Continue
                     <ArrowRight className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
-                  </>
-                )}
-              </Button>
-              {artistName && (
-                <p className="text-xs sm:text-sm text-gray-400 break-all px-2">
-                  Your URL will be: social.homeformusic.app/{artistName.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '')}
-                </p>
+                  </Button>
+                  {artistName && (
+                    <p className="text-xs sm:text-sm text-gray-400 break-all px-2">
+                      Your URL will be: social.homeformusic.app/{artistName.toLowerCase().replace(/[^a-z0-9\s]/g, '').replace(/\s+/g, '')}
+                    </p>
+                  )}
+                </>
+              ) : (
+                <>
+                  <div className="text-center mb-6">
+                    <h2 className="text-xl sm:text-2xl font-bold text-white mb-2">Hello, {artistName}!</h2>
+                    <p className="text-gray-400 text-sm">Enter your social media usernames to analyze your content</p>
+                  </div>
+                  
+                  <div className="space-y-3">
+                    <div className="relative">
+                      <Input 
+                        type="text"
+                        placeholder="Instagram username (e.g., @username)"
+                        value={instagramUsername}
+                        onChange={(e) => setInstagramUsername(e.target.value.replace('@', ''))}
+                        className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 text-base sm:text-lg py-4 sm:py-6"
+                      />
+                    </div>
+                    
+                    <div className="relative">
+                      <Input 
+                        type="text"
+                        placeholder="TikTok username (e.g., @username)"
+                        value={tiktokUsername}
+                        onChange={(e) => setTiktokUsername(e.target.value.replace('@', ''))}
+                        className="bg-gray-900 border-gray-700 text-white placeholder-gray-400 text-base sm:text-lg py-4 sm:py-6"
+                      />
+                    </div>
+                    
+                    <p className="text-xs text-gray-500 text-center px-2">
+                      Enter at least one username to continue. We'll analyze your posts and create insights.
+                    </p>
+                  </div>
+
+                  <div className="flex gap-3">
+                    <Button 
+                      variant="outline"
+                      size="lg"
+                      className="flex-1 text-base py-4 border-gray-600 text-gray-300 hover:bg-gray-800"
+                      onClick={() => setStep(1)}
+                      disabled={isLoading}
+                    >
+                      Back
+                    </Button>
+                    <Button 
+                      size="lg" 
+                      className="flex-1 text-base py-4 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
+                      onClick={handleAnalyze}
+                      disabled={isLoading || (!instagramUsername.trim() && !tiktokUsername.trim())}
+                    >
+                      {isLoading ? (
+                        <>
+                          <div className="mr-2 h-4 w-4 animate-spin rounded-full border-2 border-white border-t-transparent" />
+                          Analyzing...
+                        </>
+                      ) : (
+                        <>
+                          Analyze Content
+                          <Sparkles className="ml-2 h-4 w-4 sm:h-5 sm:w-5" />
+                        </>
+                      )}
+                    </Button>
+                  </div>
+                </>
               )}
             </motion.div>
 
