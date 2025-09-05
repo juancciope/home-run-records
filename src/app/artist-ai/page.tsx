@@ -34,8 +34,8 @@ export default function ArtistSocialPage() {
       .replace(/[^a-z0-9\s]/g, '') // Remove special characters
       .replace(/\s+/g, '') // Remove spaces
     
-    // For now, redirect to show the artist page would be created
-    // Later this will create the page and redirect to it
+    // For production, we'll redirect to the analysis process
+    // For now, still showing preview
     router.push(`/artist-ai/preview?artist=${encodeURIComponent(artistName)}&slug=${slug}`)
   }
 

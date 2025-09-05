@@ -544,7 +544,7 @@ async function analyzeWithOpenAI(
 
 export async function POST(request: NextRequest) {
   try {
-    const { artistId, instagramUsername, tiktokUsername } = await request.json();
+    const { artistId, instagramUsername, tiktokUsername, artistName } = await request.json();
 
     if (!instagramUsername && !tiktokUsername) {
       return NextResponse.json(
@@ -553,7 +553,14 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🚀 Starting AI analysis for:', { instagramUsername, tiktokUsername, artistId });
+    if (!artistName) {
+      return NextResponse.json(
+        { error: 'Artist name is required' },
+        { status: 400 }
+      );
+    }
+
+    console.log('🚀 Starting AI analysis for:', { instagramUsername, tiktokUsername, artistId, artistName });
 
     // For now, skip user authentication and profile lookup to allow free testing
     // TODO: Re-enable authentication when implementing paywall
@@ -596,21 +603,64 @@ export async function POST(request: NextRequest) {
     const analysis = await analyzeWithOpenAI(allPosts, vibrateData);
     console.log('✅ AI analysis completed');
 
-    // For free testing, skip database storage and return analysis directly
-    // TODO: Re-enable database storage when implementing paywall
-    const mockAnalysisId = `free-analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    // Create unique slug for artist
+    const slug = artistName.toLowerCase()
+      .replace(/[^a-z0-9\s]/g, '') // Remove special characters
+      .replace(/\s+/g, ''); // Remove spaces
+    
+    // Store analysis in database
+    console.log('💾 Storing analysis in database');
+    const supabase = createAuthenticatedClient();
+    
+    const analysisData = {
+      artist_name: artistName,
+      artist_slug: slug,
+      instagram_username: instagramUsername,
+      tiktok_username: tiktokUsername,
+      posts_analyzed: allPosts.length,
+      analysis_result: {
+        ...analysis,
+        scraped_posts: {
+          instagram: instagramPosts,
+          tiktok: tiktokPosts
+        },
+        viberate_data: vibrateData
+      }
+    };
+
+    // For production, we'll store without user_id for now to allow anonymous access
+    // Later we can add authentication
+    const { data: savedAnalysis, error: saveError } = await supabase
+      .from('ai_analyses')
+      .insert(analysisData)
+      .select()
+      .single();
+
+    if (saveError) {
+      console.error('Error saving analysis:', saveError);
+      // Continue with temporary ID if save fails
+      const mockAnalysisId = `temp-analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    } else {
+      console.log('✅ Analysis saved to database with ID:', savedAnalysis.id);
+    }
+
+    const analysisId = savedAnalysis?.id || `temp-analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
     console.log('📊 Analysis complete:', {
       instagramPosts: instagramPosts.length,
       tiktokPosts: tiktokPosts.length,
       hasVibrateData: !!vibrateData,
-      overallScore: analysis.overallScore
+      overallScore: analysis.overallScore,
+      artistSlug: slug
     });
 
     // Prepare comprehensive response data for results page
     const responseData: any = {
       success: true,
-      analysisId: mockAnalysisId,
+      analysisId,
+      artistName,
+      artistSlug: slug,
+      redirectUrl: `https://social.homeformusic.app/${slug}`,
       postsAnalyzed: allPosts.length,
       analysis,
       platforms: {
@@ -627,19 +677,7 @@ export async function POST(request: NextRequest) {
         instagram: instagramPosts.slice(0, 10), // Include top 10 posts for display
         tiktok: tiktokPosts.slice(0, 10)
       },
-      note: 'This is a free analysis for testing. Sign up for full features and history.'
-    };
-
-    // Add complete analysis data structure to response for client-side storage
-    responseData.complete_analysis_data = {
-      id: mockAnalysisId,
-      instagram_username: instagramUsername,
-      tiktok_username: tiktokUsername,
-      posts_analyzed: allPosts.length,
-      analysis_result: analysis,
-      platforms: responseData.platforms,
-      scraped_posts: responseData.scraped_posts,
-      created_at: new Date().toISOString()
+      message: `Analysis complete! Your unique page is ready at social.homeformusic.app/${slug}`
     };
 
     return NextResponse.json(responseData);
