@@ -385,51 +385,6 @@ function extractHashtags(text: string): string[] {
   return hashtags.slice(0, 10); // Limit to 10 hashtags
 }
 
-function createFallbackAnalysis(posts: any[]) {
-  // Create basic analysis from scraped data when OpenAI is unavailable
-  const totalLikes = posts.reduce((sum, post) => sum + (post.likes || 0), 0);
-  const totalComments = posts.reduce((sum, post) => sum + (post.comments || 0), 0);
-  const avgLikes = Math.round(totalLikes / posts.length) || 0;
-  const avgComments = Math.round(totalComments / posts.length) || 0;
-
-  // Basic insights based on engagement
-  const insights = [
-    {
-      type: 'success' as const,
-      title: 'Content Analysis Complete',
-      description: `Analyzed ${posts.length} posts with ${totalLikes.toLocaleString()} total likes`,
-      metric: `${avgLikes} avg likes`
-    },
-    {
-      type: 'improvement' as const,
-      title: 'Engagement Tracking',
-      description: `Average ${avgComments} comments per post shows audience interaction`,
-      metric: `${totalComments} total comments`
-    }
-  ];
-
-  return {
-    overallScore: Math.min(Math.max(Math.round((avgLikes + avgComments) / 100), 1), 10),
-    insights,
-    recommendations: [
-      'Post consistently to maintain engagement',
-      'Engage with your audience through comments',
-      'Use trending hashtags relevant to your content',
-      'Post when your audience is most active'
-    ],
-    contentAnalysis: {
-      bestPerforming: 'Posts with high engagement',
-      worstPerforming: 'Posts with low engagement',
-      optimalPostingTime: 'Peak audience hours',
-      topHashtags: ['#music', '#artist', '#content']
-    },
-    growthPrediction: {
-      thirtyDays: Math.round(avgLikes * 1.1),
-      sixtyDays: Math.round(avgLikes * 1.2), 
-      ninetyDays: Math.round(avgLikes * 1.3)
-    }
-  };
-}
 
 async function analyzeWithOpenAI(
   posts: SocialMediaPost[],
@@ -644,21 +599,10 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    // Analyze with OpenAI (with fallback for quota exceeded)
+    // Analyze with OpenAI
     console.log('🧠 Starting AI analysis with OpenAI');
-    let analysis;
-    try {
-      analysis = await analyzeWithOpenAI(allPosts, vibrateData);
-      console.log('✅ AI analysis completed');
-    } catch (error: any) {
-      console.error('Error with OpenAI analysis:', error);
-      if (error?.status === 429 || error?.code === 'insufficient_quota') {
-        console.log('🔄 OpenAI quota exceeded, using fallback analysis');
-        analysis = createFallbackAnalysis(allPosts);
-      } else {
-        throw error;
-      }
-    }
+    const analysis = await analyzeWithOpenAI(allPosts, vibrateData);
+    console.log('✅ AI analysis completed');
 
     // Create unique slug for artist
     const slug = artistName.toLowerCase()
