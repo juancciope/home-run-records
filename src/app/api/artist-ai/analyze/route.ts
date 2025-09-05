@@ -173,10 +173,21 @@ async function extractInstagramProfile(username: string) {
         
         if (results && results.length > 0) {
           const profile = results[0];
-          console.log(`✅ Retrieved Instagram profile: ${profile.followersCount || profile.followers} followers`);
+          console.log(`✅ Retrieved Instagram profile data:`, {
+            followers: profile.followersCount || profile.followers,
+            profilePicUrlHD: profile.profilePicUrlHD,
+            profilePicUrl: profile.profilePicUrl,
+            profilePic: profile.profilePic,
+            avatar: profile.avatar,
+            allFields: Object.keys(profile)
+          });
+          
+          const profilePicUrl = profile.profilePicUrlHD || profile.profilePicUrl || profile.profilePic || profile.avatar || null;
+          console.log(`📸 Instagram profile image URL: ${profilePicUrl}`);
+          
           return {
             followersCount: profile.followersCount || profile.followers || profile.followersCount || 0,
-            profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || profile.profilePic || null
+            profilePicUrl: profilePicUrl
           };
         }
       }
@@ -291,10 +302,21 @@ async function extractTikTokProfile(username: string) {
           const profileData = results.find((item: any) => item.authorMeta || item.followerCount !== undefined) || results[0];
           const profile = profileData.authorMeta || profileData;
           
-          console.log(`✅ Retrieved TikTok profile: ${profile.followerCount || profile.fans} followers`);
+          console.log(`✅ Retrieved TikTok profile data:`, {
+            followers: profile.followerCount || profile.fans,
+            avatarLarger: profile.avatarLarger,
+            avatarMedium: profile.avatarMedium, 
+            avatar: profile.avatar,
+            profilePicUrl: profile.profilePicUrl,
+            allFields: Object.keys(profile)
+          });
+          
+          const profilePicUrl = profile.avatarLarger || profile.avatarMedium || profile.avatar || profile.profilePicUrl || null;
+          console.log(`📸 TikTok profile image URL: ${profilePicUrl}`);
+          
           return {
             followersCount: profile.followerCount || profile.fans || profile.followersCount || 0,
-            profilePicUrl: profile.avatarLarger || profile.avatarMedium || profile.avatar || profile.profilePicUrl || null
+            profilePicUrl: profilePicUrl
           };
         }
       }

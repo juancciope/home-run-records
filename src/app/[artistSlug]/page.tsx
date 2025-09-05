@@ -227,6 +227,15 @@ export default function DynamicArtistPage() {
   const profileData = analysisData.analysis_result.profile_data
   const instagramProfile = profileData?.instagram || { followersCount: Math.floor(Math.random() * 50000) + 5000 }
   const tiktokProfile = profileData?.tiktok || { followersCount: Math.floor(Math.random() * 30000) + 3000 }
+  
+  // Debug profile data
+  console.log('🔍 Profile data received:', {
+    profileData,
+    instagramProfile,
+    tiktokProfile,
+    instagramPicUrl: instagramProfile?.profilePicUrl,
+    tiktokPicUrl: tiktokProfile?.profilePicUrl
+  })
 
   return (
     <div className="min-h-screen bg-black text-white dark" style={{backgroundColor: '#000000'}}>
@@ -261,8 +270,16 @@ export default function DynamicArtistPage() {
                       src={instagramProfile?.profilePicUrl || tiktokProfile?.profilePicUrl} 
                       alt={`${analysisData.artist_name} profile`}
                       className="w-full h-full object-cover"
+                      crossOrigin="anonymous"
+                      onLoad={() => console.log(`✅ Profile image loaded successfully`)}
                       onError={(e) => {
                         const target = e.target as HTMLImageElement
+                        console.error(`❌ Profile image failed to load:`, {
+                          src: target.src,
+                          instagramUrl: instagramProfile?.profilePicUrl,
+                          tiktokUrl: tiktokProfile?.profilePicUrl,
+                          error: e
+                        })
                         target.style.display = 'none'
                         const parent = target.parentElement
                         if (parent) {
