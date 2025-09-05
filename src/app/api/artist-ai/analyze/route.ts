@@ -638,8 +638,6 @@ export async function POST(request: NextRequest) {
 
     if (saveError) {
       console.error('Error saving analysis:', saveError);
-      // Continue with temporary ID if save fails
-      const mockAnalysisId = `temp-analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     } else {
       console.log('✅ Analysis saved to database with ID:', savedAnalysis.id);
     }

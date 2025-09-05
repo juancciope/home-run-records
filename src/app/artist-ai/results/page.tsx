@@ -1046,7 +1046,7 @@ export default function AnalysisResultsPage() {
         <div className="text-center mt-8 text-sm text-muted-foreground">
           <p>
             Analysis generated on {new Date(analysisData.created_at).toLocaleDateString()} • 
-            Need help? <a href="/contact" className="text-primary hover:underline">Contact support</a>
+            Need help? <Link href="/contact" className="text-primary hover:underline">Contact support</Link>
           </p>
         </div>
       </div>

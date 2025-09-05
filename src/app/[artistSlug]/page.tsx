@@ -10,17 +10,14 @@ import {
   MessageCircle,
   Share2,
   Eye,
-  TrendingUp,
-  Calendar,
   Users,
   ArrowLeft,
   Download,
-  Lightbulb,
   CheckCircle,
   XCircle,
   Sparkles
 } from "lucide-react"
-import { useParams, notFound } from "next/navigation"
+import { useParams } from "next/navigation"
 import Link from "next/link"
 import { createClient } from "@/utils/supabase/client"
 
