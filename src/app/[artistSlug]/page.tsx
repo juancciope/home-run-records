@@ -54,6 +54,15 @@ interface AnalysisData {
       sixtyDays: number
       ninetyDays: number
     }
+    brandAnalysis?: {
+      personality: string
+      values: string
+      aesthetic: string
+      targetAudience: string
+      strengths: string[]
+      risks: string[]
+      projection: string
+    }
     scraped_posts: {
       instagram: Array<{
         platform: string
@@ -66,6 +75,7 @@ interface AnalysisData {
         timestamp: string
         hashtags: string[]
         mediaUrl?: string
+        postUrl?: string
       }>
       tiktok: Array<{
         platform: string
@@ -78,7 +88,18 @@ interface AnalysisData {
         timestamp: string
         hashtags: string[]
         mediaUrl?: string
+        postUrl?: string
       }>
+    }
+    profile_data?: {
+      instagram?: {
+        followersCount: number
+        profilePicUrl?: string
+      }
+      tiktok?: {
+        followersCount: number
+        profilePicUrl?: string
+      }
     }
     viberate_data?: any
   }
@@ -201,10 +222,11 @@ export default function DynamicArtistPage() {
 
   const instagramPosts = analysisData.analysis_result.scraped_posts.instagram || []
   const tiktokPosts = analysisData.analysis_result.scraped_posts.tiktok || []
-  const mockFollowers = {
-    instagram: Math.floor(Math.random() * 50000) + 5000,
-    tiktok: Math.floor(Math.random() * 30000) + 3000
-  }
+  
+  // Use real profile data if available, otherwise fallback
+  const profileData = analysisData.analysis_result.profile_data
+  const instagramProfile = profileData?.instagram || { followersCount: Math.floor(Math.random() * 50000) + 5000 }
+  const tiktokProfile = profileData?.tiktok || { followersCount: Math.floor(Math.random() * 30000) + 3000 }
 
   return (
     <div className="min-h-screen bg-black text-white dark" style={{backgroundColor: '#000000'}}>
@@ -233,8 +255,24 @@ export default function DynamicArtistPage() {
           <Card className="bg-gray-900 border-gray-700">
             <CardContent className="p-4 sm:p-6 lg:p-8">
               <div className="flex flex-col sm:flex-row items-center sm:items-start gap-4 sm:gap-6">
-                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0">
-                  <span className="text-xl sm:text-2xl font-bold">{analysisData.artist_name.charAt(0).toUpperCase()}</span>
+                <div className="w-16 h-16 sm:w-20 sm:h-20 bg-gradient-to-r from-purple-600 to-pink-600 rounded-full flex items-center justify-center flex-shrink-0 overflow-hidden">
+                  {(instagramProfile?.profilePicUrl || tiktokProfile?.profilePicUrl) ? (
+                    <img 
+                      src={instagramProfile?.profilePicUrl || tiktokProfile?.profilePicUrl} 
+                      alt={`${analysisData.artist_name} profile`}
+                      className="w-full h-full object-cover"
+                      onError={(e) => {
+                        const target = e.target as HTMLImageElement
+                        target.style.display = 'none'
+                        const parent = target.parentElement
+                        if (parent) {
+                          parent.innerHTML = `<span class="text-xl sm:text-2xl font-bold">${analysisData.artist_name.charAt(0).toUpperCase()}</span>`
+                        }
+                      }}
+                    />
+                  ) : (
+                    <span className="text-xl sm:text-2xl font-bold">{analysisData.artist_name.charAt(0).toUpperCase()}</span>
+                  )}
                 </div>
                 <div className="text-center sm:text-left">
                   <h2 className="text-2xl sm:text-3xl font-bold text-white">{analysisData.artist_name}</h2>
@@ -243,13 +281,13 @@ export default function DynamicArtistPage() {
                     {analysisData.instagram_username && (
                       <div className="flex items-center gap-2">
                         <Instagram className="w-4 h-4 text-purple-400" />
-                        <span>{mockFollowers.instagram.toLocaleString()} followers</span>
+                        <span>{instagramProfile.followersCount.toLocaleString()} followers</span>
                       </div>
                     )}
                     {analysisData.tiktok_username && (
                       <div className="flex items-center gap-2">
                         <TikTokIcon />
-                        <span>{mockFollowers.tiktok.toLocaleString()} followers</span>
+                        <span>{tiktokProfile.followersCount.toLocaleString()} followers</span>
                       </div>
                     )}
                   </div>
@@ -282,7 +320,7 @@ export default function DynamicArtistPage() {
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
                   {instagramPosts.slice(0, 4).map((post, index) => (
-                    <div key={index} className="p-3 sm:p-4 bg-gray-800 rounded-lg">
+                    <div key={index} className="p-3 sm:p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => post.postUrl && window.open(post.postUrl, '_blank')}>
                       <div className="flex items-center justify-between mb-2">
                         <Badge variant="secondary" className="text-xs">{post.type}</Badge>
                         <span className="text-xs text-gray-400">{new Date(post.timestamp).toLocaleDateString()}</span>
@@ -334,7 +372,7 @@ export default function DynamicArtistPage() {
                 </CardHeader>
                 <CardContent className="space-y-3 sm:space-y-4">
                   {tiktokPosts.slice(0, 4).map((video, index) => (
-                    <div key={index} className="p-3 sm:p-4 bg-gray-800 rounded-lg">
+                    <div key={index} className="p-3 sm:p-4 bg-gray-800 rounded-lg hover:bg-gray-700 transition-colors cursor-pointer" onClick={() => video.postUrl && window.open(video.postUrl, '_blank')}>
                       <div className="flex items-center justify-between mb-2">
                         <Badge variant="secondary" className="text-xs">Video</Badge>
                         <span className="text-xs text-gray-400">{new Date(video.timestamp).toLocaleDateString()}</span>
@@ -427,11 +465,83 @@ export default function DynamicArtistPage() {
               </CardContent>
             </Card>
 
-            {/* Brand Analysis */}
+            {/* Brand Projection Analysis */}
+            {analysisData.analysis_result.brandAnalysis && (
+              <Card className="bg-gray-900 border-gray-700">
+                <CardHeader>
+                  <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
+                    <Users className="w-5 h-5 sm:w-6 sm:h-6 text-orange-400" />
+                    What Your Brand is Projecting
+                  </CardTitle>
+                </CardHeader>
+                <CardContent>
+                  <div className="space-y-6">
+                    {/* Main Brand Projection */}
+                    <div className="p-4 bg-orange-950/30 border-l-4 border-orange-400 rounded">
+                      <h4 className="font-semibold text-orange-400 mb-2">Overall Brand Projection</h4>
+                      <p className="text-sm text-gray-300">{analysisData.analysis_result.brandAnalysis.projection}</p>
+                    </div>
+                    
+                    {/* Brand Details Grid */}
+                    <div className="grid grid-cols-1 md:grid-cols-2 gap-6">
+                      <div className="space-y-4">
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-blue-400">Brand Personality</h4>
+                          <p className="text-sm text-gray-300 p-3 bg-gray-800 rounded">{analysisData.analysis_result.brandAnalysis.personality}</p>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-green-400">Values & Messaging</h4>
+                          <p className="text-sm text-gray-300 p-3 bg-gray-800 rounded">{analysisData.analysis_result.brandAnalysis.values}</p>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-purple-400">Target Audience</h4>
+                          <p className="text-sm text-gray-300 p-3 bg-gray-800 rounded">{analysisData.analysis_result.brandAnalysis.targetAudience}</p>
+                        </div>
+                      </div>
+                      
+                      <div className="space-y-4">
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-green-400">Brand Strengths</h4>
+                          <div className="space-y-2">
+                            {analysisData.analysis_result.brandAnalysis.strengths.map((strength, index) => (
+                              <div key={index} className="flex items-start gap-2">
+                                <CheckCircle className="w-4 h-4 text-green-400 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-gray-300">{strength}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-red-400">Brand Risks</h4>
+                          <div className="space-y-2">
+                            {analysisData.analysis_result.brandAnalysis.risks.map((risk, index) => (
+                              <div key={index} className="flex items-start gap-2">
+                                <XCircle className="w-4 h-4 text-red-400 mt-0.5 flex-shrink-0" />
+                                <span className="text-sm text-gray-300">{risk}</span>
+                              </div>
+                            ))}
+                          </div>
+                        </div>
+                        
+                        <div className="space-y-3">
+                          <h4 className="font-semibold text-yellow-400">Visual Aesthetic</h4>
+                          <p className="text-sm text-gray-300 p-3 bg-gray-800 rounded">{analysisData.analysis_result.brandAnalysis.aesthetic}</p>
+                        </div>
+                      </div>
+                    </div>
+                  </div>
+                </CardContent>
+              </Card>
+            )}
+
+            {/* Content Recommendations */}
             <Card className="bg-gray-900 border-gray-700">
               <CardHeader>
                 <CardTitle className="flex items-center gap-2 text-base sm:text-lg">
-                  <Users className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
+                  <Sparkles className="w-5 h-5 sm:w-6 sm:h-6 text-purple-400" />
                   Content Recommendations
                 </CardTitle>
               </CardHeader>

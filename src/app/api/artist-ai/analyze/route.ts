@@ -26,6 +26,7 @@ interface SocialMediaPost {
   timestamp: string;
   hashtags: string[];
   mediaUrl?: string;
+  postUrl?: string;
 }
 
 interface AnalysisResult {
@@ -48,6 +49,208 @@ interface AnalysisResult {
     sixtyDays: number;
     ninetyDays: number;
   };
+}
+
+async function extractInstagramProfile(username: string) {
+  if (!APIFY_TOKEN) {
+    console.log('No APIFY_TOKEN found, using mock profile data');
+    return {
+      followersCount: Math.floor(Math.random() * 50000) + 1000,
+      profilePicUrl: null
+    };
+  }
+
+  try {
+    console.log(`Starting Instagram profile scraping for @${username}`);
+    console.log('Using Instagram profile actor: dSCLg0C3YEZ83HzYX');
+
+    const runInput = {
+      usernames: [username]
+    };
+
+    const runResponse = await fetch(`${APIFY_BASE_URL}/acts/dSCLg0C3YEZ83HzYX/runs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${APIFY_TOKEN}`
+      },
+      body: JSON.stringify(runInput)
+    });
+
+    if (!runResponse.ok) {
+      throw new Error(`Failed to start profile scraper: ${runResponse.status}`);
+    }
+
+    const run = await runResponse.json();
+    console.log('Instagram profile scraper started, run ID:', run.data.id);
+
+    // Wait for completion
+    let status = 'RUNNING';
+    let attempts = 0;
+    const maxAttempts = 20;
+
+    while (status === 'RUNNING' && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      attempts++;
+
+      try {
+        const statusResponse = await fetch(`${APIFY_BASE_URL}/runs/${run.data.id}`, {
+          headers: { 'Authorization': `Bearer ${APIFY_TOKEN}` }
+        });
+
+        if (!statusResponse.ok) break;
+        
+        const statusData = await statusResponse.json();
+        status = statusData.data.status;
+        console.log(`Instagram profile scraper status: ${status} (attempt ${attempts}/${maxAttempts})`);
+        
+        if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
+          console.error('Instagram profile scraper failed');
+          break;
+        }
+      } catch (error) {
+        console.error('Error checking Instagram profile scraper status:', error);
+        break;
+      }
+    }
+
+    if (status === 'SUCCEEDED') {
+      // Get profile data
+      const resultsResponse = await fetch(
+        `${APIFY_BASE_URL}/datasets/${run.data.defaultDatasetId}/items`,
+        {
+          headers: { 'Authorization': `Bearer ${APIFY_TOKEN}` }
+        }
+      );
+
+      if (resultsResponse.ok) {
+        const results = await resultsResponse.json();
+        if (results && results.length > 0) {
+          const profile = results[0];
+          console.log(`Retrieved Instagram profile: ${profile.followersCount} followers`);
+          return {
+            followersCount: profile.followersCount || 0,
+            profilePicUrl: profile.profilePicUrlHD || profile.profilePicUrl || null
+          };
+        }
+      }
+    }
+
+    // Fallback to mock data
+    console.log('Using mock Instagram profile data');
+    return {
+      followersCount: Math.floor(Math.random() * 50000) + 1000,
+      profilePicUrl: null
+    };
+
+  } catch (error) {
+    console.error('Instagram profile scraping failed:', error);
+    return {
+      followersCount: Math.floor(Math.random() * 50000) + 1000,
+      profilePicUrl: null
+    };
+  }
+}
+
+async function extractTikTokProfile(username: string) {
+  if (!APIFY_TOKEN) {
+    console.log('No APIFY_TOKEN found, using mock TikTok profile data');
+    return {
+      followersCount: Math.floor(Math.random() * 30000) + 500,
+      profilePicUrl: null
+    };
+  }
+
+  try {
+    console.log(`Starting TikTok profile scraping for @${username}`);
+    console.log('Using TikTok profile actor: clockworks/tiktok-profile-scraper');
+
+    const runInput = {
+      usernames: [username]
+    };
+
+    const runResponse = await fetch(`${APIFY_BASE_URL}/acts/clockworks~tiktok-profile-scraper/runs`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        'Authorization': `Bearer ${APIFY_TOKEN}`
+      },
+      body: JSON.stringify(runInput)
+    });
+
+    if (!runResponse.ok) {
+      throw new Error(`Failed to start TikTok profile scraper: ${runResponse.status}`);
+    }
+
+    const run = await runResponse.json();
+    console.log('TikTok profile scraper started, run ID:', run.data.id);
+
+    // Wait for completion
+    let status = 'RUNNING';
+    let attempts = 0;
+    const maxAttempts = 20;
+
+    while (status === 'RUNNING' && attempts < maxAttempts) {
+      await new Promise(resolve => setTimeout(resolve, 3000));
+      attempts++;
+
+      try {
+        const statusResponse = await fetch(`${APIFY_BASE_URL}/runs/${run.data.id}`, {
+          headers: { 'Authorization': `Bearer ${APIFY_TOKEN}` }
+        });
+
+        if (!statusResponse.ok) break;
+        
+        const statusData = await statusResponse.json();
+        status = statusData.data.status;
+        console.log(`TikTok profile scraper status: ${status} (attempt ${attempts}/${maxAttempts})`);
+        
+        if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
+          console.error('TikTok profile scraper failed');
+          break;
+        }
+      } catch (error) {
+        console.error('Error checking TikTok profile scraper status:', error);
+        break;
+      }
+    }
+
+    if (status === 'SUCCEEDED') {
+      // Get profile data
+      const resultsResponse = await fetch(
+        `${APIFY_BASE_URL}/datasets/${run.data.defaultDatasetId}/items`,
+        {
+          headers: { 'Authorization': `Bearer ${APIFY_TOKEN}` }
+        }
+      );
+
+      if (resultsResponse.ok) {
+        const results = await resultsResponse.json();
+        if (results && results.length > 0) {
+          const profile = results[0];
+          console.log(`Retrieved TikTok profile: ${profile.followerCount} followers`);
+          return {
+            followersCount: profile.followerCount || profile.followersCount || 0,
+            profilePicUrl: profile.avatarLarger || profile.avatar || null
+          };
+        }
+      }
+    }
+
+    // Fallback to mock data
+    console.log('Using mock TikTok profile data');
+    return {
+      followersCount: Math.floor(Math.random() * 30000) + 500,
+      profilePicUrl: null
+    };
+
+  } catch (error) {
+    console.error('TikTok profile scraping failed:', error);
+    return {
+      followersCount: Math.floor(Math.random() * 30000) + 500,
+      profilePicUrl: null
+    };
+  }
 }
 
 async function extractInstagramPosts(username: string): Promise<SocialMediaPost[]> {
@@ -164,18 +367,34 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
         return generateMockInstagramPosts(username);
       }
 
-      // Transform Apify data to our format
-      return results.map((post: any) => ({
-        platform: 'instagram' as const,
-        type: post.type || (post.videoUrl ? 'video' : 'photo'),
-        caption: post.caption || '',
-        likes: post.likesCount || post.likes || 0,
-        comments: post.commentsCount || post.comments || 0,
-        views: post.videoViewCount || post.viewCount || 0,
-        timestamp: post.timestamp || post.takenAt || new Date().toISOString(),
-        hashtags: extractHashtags(post.caption || ''),
-        mediaUrl: post.displayUrl || post.url,
-      }));
+      // Transform Apify data to our format and filter out hidden likes
+      const validPosts = results
+        .filter((post: any) => {
+          const likes = post.likesCount || post.likes || 0;
+          // Filter out posts with hidden likes (Instagram returns -1 for hidden likes)
+          return likes >= 0;
+        })
+        .map((post: any) => ({
+          platform: 'instagram' as const,
+          type: post.type || (post.videoUrl ? 'video' : 'photo'),
+          caption: post.caption || '',
+          likes: post.likesCount || post.likes || 0,
+          comments: post.commentsCount || post.comments || 0,
+          views: post.videoViewCount || post.viewCount || 0,
+          shares: post.shareCount || 0,
+          timestamp: post.timestamp || post.takenAt || new Date().toISOString(),
+          hashtags: extractHashtags(post.caption || ''),
+          mediaUrl: post.displayUrl || post.url,
+          postUrl: post.url || `https://www.instagram.com/p/${post.shortcode || ''}`,
+          engagement: (post.likesCount || post.likes || 0) + 
+                     (post.commentsCount || post.comments || 0) + 
+                     (post.videoViewCount || post.viewCount || 0) * 0.1 + // Weight views less
+                     (post.shareCount || 0) * 2 // Weight shares more
+        }))
+        .sort((a: any, b: any) => b.engagement - a.engagement); // Sort by engagement descending
+
+      console.log(`Filtered ${validPosts.length} valid Instagram posts (removed ${results.length - validPosts.length} with hidden likes)`);
+      return validPosts;
     } catch (error) {
       console.error('Error fetching Instagram results:', error);
       return generateMockInstagramPosts(username);
@@ -328,19 +547,31 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
         return generateMockTikTokPosts(username);
       }
 
-      // Transform TikTok data
-      return results.map((post: any) => ({
-        platform: 'tiktok' as const,
-        type: 'video',
-        caption: post.text || post.desc || '',
-        likes: post.diggCount || post.stats?.diggCount || 0,
-        comments: post.commentCount || post.stats?.commentCount || 0,
-        shares: post.shareCount || post.stats?.shareCount || 0,
-        views: post.playCount || post.stats?.playCount || 0,
-        timestamp: post.createTime ? new Date(post.createTime * 1000).toISOString() : new Date().toISOString(),
-        hashtags: extractHashtags(post.text || post.desc || ''),
-        mediaUrl: post.videoUrl || post.video?.playAddr,
-      }));
+      // Transform TikTok data and sort by engagement
+      const tiktokPosts = results.map((post: any) => {
+        const likes = post.diggCount || post.stats?.diggCount || 0;
+        const comments = post.commentCount || post.stats?.commentCount || 0;
+        const shares = post.shareCount || post.stats?.shareCount || 0;
+        const views = post.playCount || post.stats?.playCount || 0;
+        
+        return {
+          platform: 'tiktok' as const,
+          type: 'video',
+          caption: post.text || post.desc || '',
+          likes,
+          comments,
+          shares,
+          views,
+          timestamp: post.createTime ? new Date(post.createTime * 1000).toISOString() : new Date().toISOString(),
+          hashtags: extractHashtags(post.text || post.desc || ''),
+          mediaUrl: post.videoUrl || post.video?.playAddr,
+          postUrl: post.webVideoUrl || `https://www.tiktok.com/@${username}/video/${post.id}`,
+          engagement: likes + comments + (views * 0.01) + (shares * 3) // TikTok engagement formula
+        };
+      }).sort((a: any, b: any) => b.engagement - a.engagement); // Sort by engagement descending
+
+      console.log(`Sorted ${tiktokPosts.length} TikTok posts by engagement`);
+      return tiktokPosts;
     } catch (error) {
       console.error('Error fetching TikTok results:', error);
       return generateMockTikTokPosts(username);
@@ -413,12 +644,18 @@ async function analyzeWithOpenAI(
     3. Provide 4-6 specific actionable recommendations
     4. Analyze content performance: best performing content type, worst performing, optimal posting times, top hashtags
     5. Predict follower growth percentage for 30, 60, and 90 days based on current trends
-    6. Create a detailed content guide with specific recommendations for:
+    6. BRAND PERCEPTION ANALYSIS: Analyze what brand image the artist is projecting through their content:
+       - Overall brand personality (professional, fun, authentic, edgy, etc.)
+       - Values and messaging consistency
+       - Visual aesthetic and style
+       - Target audience appeal
+       - Brand strengths and potential brand risks
+    7. Create a detailed content guide with specific recommendations for:
        - Content types that work best (Reels vs Posts vs Carousels vs Stories)
        - Caption structure and length that drives engagement
        - Hashtag strategy (number, mix of popular vs niche)
        - Best posting frequency
-    7. Identify top 5 best performing posts and analyze WHY they worked
+    8. Identify top 5 best performing posts and analyze WHY they worked
     
     Consider these metrics in your analysis:
     - Instagram: Likes, comments, views (for videos), hashtag performance, engagement rate
@@ -448,6 +685,15 @@ async function analyzeWithOpenAI(
         "thirtyDays": number,
         "sixtyDays": number,
         "ninetyDays": number
+      },
+      "brandAnalysis": {
+        "personality": "string describing overall brand personality",
+        "values": "string describing values and messaging",
+        "aesthetic": "string describing visual style",
+        "targetAudience": "string describing who they appeal to",
+        "strengths": ["string array of brand strengths"],
+        "risks": ["string array of potential brand risks"],
+        "projection": "string describing what the brand is projecting overall"
       },
       "contentGuide": {
         "contentTypeMix": {
@@ -584,10 +830,12 @@ export async function POST(request: NextRequest) {
       }
     }
 
-    // Extract posts from social media in parallel
-    const [instagramPosts, tiktokPosts] = await Promise.all([
+    // Extract posts and profile data from social media in parallel
+    const [instagramPosts, tiktokPosts, instagramProfile, tiktokProfile] = await Promise.all([
       instagramUsername ? extractInstagramPosts(instagramUsername) : Promise.resolve([]),
       tiktokUsername ? extractTikTokPosts(tiktokUsername) : Promise.resolve([]),
+      instagramUsername ? extractInstagramProfile(instagramUsername) : Promise.resolve(null),
+      tiktokUsername ? extractTikTokProfile(tiktokUsername) : Promise.resolve(null),
     ]);
 
     const allPosts = [...instagramPosts, ...tiktokPosts];
@@ -609,7 +857,7 @@ export async function POST(request: NextRequest) {
       .replace(/[^a-z0-9\s]/g, '') // Remove special characters
       .replace(/\s+/g, ''); // Remove spaces
     
-    // Store analysis in database
+    // Store analysis in database with UPSERT pattern
     console.log('💾 Storing analysis in database');
     const supabase = await createAuthenticatedClient();
     
@@ -625,22 +873,63 @@ export async function POST(request: NextRequest) {
           instagram: instagramPosts,
           tiktok: tiktokPosts
         },
+        profile_data: {
+          instagram: instagramProfile,
+          tiktok: tiktokProfile
+        },
         viberate_data: vibrateData
       }
     };
 
-    // For production, we'll store without user_id for now to allow anonymous access
-    // Later we can add authentication
-    const { data: savedAnalysis, error: saveError } = await supabase
+    // Check if analysis already exists for this artist slug
+    console.log(`🔍 Checking if analysis exists for slug: ${slug}`);
+    const { data: existingAnalysis } = await supabase
       .from('ai_analyses')
-      .insert(analysisData)
-      .select()
+      .select('id, created_at')
+      .eq('artist_slug', slug)
       .single();
+
+    let savedAnalysis;
+    let saveError;
+
+    if (existingAnalysis) {
+      // Update existing record
+      console.log(`🔄 Updating existing analysis with ID: ${existingAnalysis.id}`);
+      const { data, error } = await supabase
+        .from('ai_analyses')
+        .update({
+          ...analysisData,
+          updated_at: new Date().toISOString() // Explicitly set updated timestamp
+        })
+        .eq('id', existingAnalysis.id)
+        .select()
+        .single();
+      
+      savedAnalysis = data;
+      saveError = error;
+      
+      if (!error) {
+        console.log('✅ Analysis updated successfully');
+      }
+    } else {
+      // Insert new record
+      console.log('📝 Creating new analysis record');
+      const { data, error } = await supabase
+        .from('ai_analyses')
+        .insert(analysisData)
+        .select()
+        .single();
+      
+      savedAnalysis = data;
+      saveError = error;
+      
+      if (!error) {
+        console.log('✅ New analysis created with ID:', savedAnalysis.id);
+      }
+    }
 
     if (saveError) {
       console.error('Error saving analysis:', saveError);
-    } else {
-      console.log('✅ Analysis saved to database with ID:', savedAnalysis.id);
     }
 
     const analysisId = savedAnalysis?.id || `temp-analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
