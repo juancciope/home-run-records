@@ -89,8 +89,8 @@ export default function ArtistSocialPage() {
                 <span className="text-white">Analysis Tool</span>
               </h1>
               <p className="mx-auto max-w-2xl text-base sm:text-lg lg:text-xl text-gray-300 px-4">
-                Understand your fanbase and grow your music career. Get insights on what content works, 
-                download detailed reports, and discover what your posts say about your artist brand.
+                Get all your TikTok and Instagram post data in one place. Download everything as CSV files, 
+                see your top performing content, and get AI insights for better posts.
               </p>
             </motion.div>
 
@@ -224,7 +224,7 @@ export default function ArtistSocialPage() {
         <div className="mx-auto max-w-6xl">
           <div className="text-center mb-8 sm:mb-12">
             <h2 className="text-2xl sm:text-3xl font-bold mb-3 sm:mb-4 text-white">What you get</h2>
-            <p className="text-gray-400 text-sm sm:text-base">Everything you need to grow your fanbase and music career</p>
+            <p className="text-gray-400 text-sm sm:text-base">All your social media data and insights in one simple report</p>
           </div>
 
           <div className="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-3 gap-6 sm:gap-8">
@@ -236,8 +236,8 @@ export default function ArtistSocialPage() {
               <Card className="bg-gray-800 border-gray-700 h-full">
                 <CardContent className="p-6">
                   <Sparkles className="h-8 w-8 text-purple-400 mb-4" />
-                  <h3 className="font-semibold mb-2 text-white">Complete Fan Insights</h3>
-                  <p className="text-sm text-gray-300">Deep dive into your music content performance with downloadable data files</p>
+                  <h3 className="font-semibold mb-2 text-white">All Your Post Data</h3>
+                  <p className="text-sm text-gray-300">Every post from both platforms with likes, comments, views - downloadable as CSV</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -253,8 +253,8 @@ export default function ArtistSocialPage() {
                   <div className="w-8 h-8 bg-orange-600 rounded mb-4 flex items-center justify-center">
                     <span className="text-white text-sm font-bold">AI</span>
                   </div>
-                  <h3 className="font-semibold mb-2 text-white">Artist Brand Analysis</h3>
-                  <p className="text-sm text-gray-300">Discover what your content says about you as an artist and what resonates with fans</p>
+                  <h3 className="font-semibold mb-2 text-white">Top Performing Posts</h3>
+                  <p className="text-sm text-gray-300">See which posts got the most engagement and what made them successful</p>
                 </CardContent>
               </Card>
             </motion.div>
@@ -270,8 +270,8 @@ export default function ArtistSocialPage() {
                   <div className="w-8 h-8 bg-green-600 rounded mb-4 flex items-center justify-center">
                     <ArrowRight className="w-4 h-4 text-white" />
                   </div>
-                  <h3 className="font-semibold mb-2 text-white">Music Content Ideas</h3>
-                  <p className="text-sm text-gray-300">AI-powered suggestions based on what's working for other artists in your genre</p>
+                  <h3 className="font-semibold mb-2 text-white">Content Tips</h3>
+                  <p className="text-sm text-gray-300">AI analysis of your posts with practical suggestions for better content</p>
                 </CardContent>
               </Card>
             </motion.div>
