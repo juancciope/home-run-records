@@ -356,7 +356,7 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     // Correct input format for apify/instagram-scraper according to documentation
     const runInput = {
       directUrls: [`https://www.instagram.com/${username}/`],
-      resultsLimit: 30,
+      resultsLimit: 600,
       resultsType: "posts" // Get posts only, not profile details
     };
 
@@ -387,7 +387,7 @@ async function extractInstagramPosts(username: string): Promise<SocialMediaPost[
     // Wait for the run to complete with timeout
     let status = 'RUNNING';
     let attempts = 0;
-    const maxAttempts = 60; // 2 minutes max wait
+    const maxAttempts = 180; // 9 minutes max wait for 600 posts
 
     while ((status === 'RUNNING' || status === 'READY') && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 3000));
@@ -534,7 +534,7 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
     // Correct input format for clockworks/free-tiktok-scraper
     const runInput = {
       profiles: [`https://www.tiktok.com/@${username}`],
-      resultsPerPage: 30, // Get posts/videos
+      resultsPerPage: 600, // Get posts/videos
       shouldDownloadCovers: false,
       shouldDownloadVideos: false,
       shouldDownloadSubtitles: false
@@ -567,7 +567,7 @@ async function extractTikTokPosts(username: string): Promise<SocialMediaPost[]> 
     // Wait for the run to complete with timeout
     let status = 'RUNNING';
     let attempts = 0;
-    const maxAttempts = 60; // 2 minutes max wait
+    const maxAttempts = 180; // 9 minutes max wait for 600 posts
 
     while ((status === 'RUNNING' || status === 'READY') && attempts < maxAttempts) {
       await new Promise(resolve => setTimeout(resolve, 3000));
