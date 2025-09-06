@@ -224,7 +224,7 @@ async function extractTikTokProfile(username: string) {
 
     const runInput = {
       profiles: [`https://www.tiktok.com/@${username}`],
-      resultsPerPage: 0, // Only profile data, no videos
+      resultsPerPage: 1, // Minimum 1 required, we'll focus on profile data
       shouldDownloadCovers: false,
       shouldDownloadVideos: false,
       shouldDownloadSubtitles: false
