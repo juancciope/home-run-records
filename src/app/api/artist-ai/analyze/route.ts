@@ -965,7 +965,7 @@ async function performAnalysis(
     // Update progress - Starting
     analysisProgress.set(analysisId, {
       progress: 5,
-      message: "Preparing to collect social media data...",
+      message: "Connecting to Instagram...",
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
@@ -993,19 +993,65 @@ async function performAnalysis(
 
     // Update progress - Collecting posts
     analysisProgress.set(analysisId, {
-      progress: 10,
-      message: "Collecting posts from social media platforms...",
+      progress: 25,
+      message: "Collecting Instagram posts...",
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
 
-    // Extract posts and profile data from social media in parallel
-    const [instagramPosts, tiktokPosts, instagramProfile, tiktokProfile] = await Promise.all([
-      instagramUsername ? extractInstagramPosts(instagramUsername) : Promise.resolve([]),
-      tiktokUsername ? extractTikTokPosts(tiktokUsername) : Promise.resolve([]),
-      instagramUsername ? extractInstagramProfile(instagramUsername) : Promise.resolve(null),
-      tiktokUsername ? extractTikTokProfile(tiktokUsername) : Promise.resolve(null),
-    ]);
+    // Extract posts and profile data from social media platforms
+    let instagramPosts: SocialMediaPost[] = [];
+    let instagramProfile = null;
+    let tiktokPosts: SocialMediaPost[] = [];
+    let tiktokProfile = null;
+
+    // Process Instagram first
+    if (instagramUsername) {
+      analysisProgress.set(analysisId, {
+        progress: 25,
+        message: "Collecting Instagram posts...",
+        estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+        complete: false
+      });
+      
+      [instagramPosts, instagramProfile] = await Promise.all([
+        extractInstagramPosts(instagramUsername),
+        extractInstagramProfile(instagramUsername)
+      ]);
+      
+      // Update progress after Instagram
+      analysisProgress.set(analysisId, {
+        progress: 40,
+        message: "Connecting to TikTok...",
+        estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+        complete: false
+      });
+    }
+
+    // Process TikTok
+    if (tiktokUsername) {
+      if (!instagramUsername) {
+        // If no Instagram, start with TikTok
+        analysisProgress.set(analysisId, {
+          progress: 25,
+          message: "Connecting to TikTok...",
+          estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+          complete: false
+        });
+      }
+      
+      analysisProgress.set(analysisId, {
+        progress: 50,
+        message: "Collecting TikTok videos...",
+        estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+        complete: false
+      });
+      
+      [tiktokPosts, tiktokProfile] = await Promise.all([
+        extractTikTokPosts(tiktokUsername),
+        extractTikTokProfile(tiktokUsername)
+      ]);
+    }
 
     const allPosts = [...instagramPosts, ...tiktokPosts];
 
@@ -1021,10 +1067,10 @@ async function performAnalysis(
       return;
     }
 
-    // Update progress - Posts collected
+    // Update progress - Analysis phase
     analysisProgress.set(analysisId, {
-      progress: 50,
-      message: `Analyzing ${allPosts.length} posts for engagement patterns...`,
+      progress: 65,
+      message: `Analyzing engagement patterns from ${allPosts.length} posts...`,
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
@@ -1032,10 +1078,10 @@ async function performAnalysis(
     // Analyze with OpenAI
     console.log('🧠 Starting AI analysis with OpenAI');
     
-    // Update progress - AI analysis
+    // Update progress - AI insights generation
     analysisProgress.set(analysisId, {
       progress: 80,
-      message: "Generating AI-powered insights and recommendations...",
+      message: "Generating AI insights and recommendations...",
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
@@ -1123,10 +1169,10 @@ async function performAnalysis(
       console.error('Error saving analysis:', saveError);
     }
     
-    // Update progress - Saving results
+    // Update progress - Creating report
     analysisProgress.set(analysisId, {
       progress: 95,
-      message: "Saving your analysis results...",
+      message: "Creating your personalized report...",
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });

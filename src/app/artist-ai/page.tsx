@@ -250,47 +250,148 @@ export default function ArtistSocialPage() {
               )}
             </motion.div>
 
-            {/* Progress Bar Section */}
+            {/* Modern Loading Experience */}
             {isLoading && (
               <motion.div
-                initial={{ opacity: 0, y: 20 }}
-                animate={{ opacity: 1, y: 0 }}
-                className="max-w-sm sm:max-w-md mx-auto mt-8 space-y-4 px-4"
+                initial={{ opacity: 0, scale: 0.95 }}
+                animate={{ opacity: 1, scale: 1 }}
+                className="max-w-lg mx-auto mt-8 space-y-6 px-4"
               >
-                <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
-                  <div className="space-y-4">
+                {/* Main Progress Card */}
+                <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 border border-gray-700/50 backdrop-blur-sm">
+                  {/* Floating Animation Background */}
+                  <div className="absolute inset-0 rounded-2xl overflow-hidden">
+                    <div className="absolute -top-4 -right-4 w-24 h-24 bg-purple-500/10 rounded-full blur-xl animate-pulse"></div>
+                    <div className="absolute -bottom-4 -left-4 w-32 h-32 bg-pink-500/10 rounded-full blur-xl animate-pulse delay-1000"></div>
+                  </div>
+                  
+                  <div className="relative space-y-6">
+                    {/* Status Header */}
                     <div className="text-center">
-                      <h3 className="text-lg font-semibold text-white">{progressMessage}</h3>
-                      <p className="text-sm text-gray-400 mt-1">{timeRemaining}</p>
-                    </div>
-                    
-                    <div className="relative">
-                      <div className="bg-gray-800 rounded-full h-3 overflow-hidden">
-                        <motion.div
-                          className="bg-gradient-to-r from-purple-600 to-pink-600 h-full rounded-full"
-                          initial={{ width: 0 }}
-                          animate={{ width: `${progress}%` }}
-                          transition={{ duration: 0.5 }}
-                        />
+                      <div className="inline-flex items-center space-x-2 mb-3">
+                        <div className="w-2 h-2 bg-green-400 rounded-full animate-pulse"></div>
+                        <span className="text-sm font-medium text-green-400 uppercase tracking-wider">Processing</span>
                       </div>
-                      <p className="text-center text-sm text-gray-500 mt-2">{Math.round(progress)}%</p>
+                      <h3 className="text-xl font-semibold text-white mb-2">{progressMessage}</h3>
+                      <p className="text-gray-400">{timeRemaining}</p>
                     </div>
                     
-                    <div className="text-xs text-gray-500 text-center space-y-1">
-                      <p>✓ Collecting posts from social media</p>
-                      <p className={progress >= 50 ? 'text-gray-300' : ''}>
-                        {progress >= 50 ? '✓' : '○'} Analyzing engagement patterns
-                      </p>
-                      <p className={progress >= 80 ? 'text-gray-300' : ''}>
-                        {progress >= 80 ? '✓' : '○'} Generating AI insights
-                      </p>
+                    {/* Elegant Progress Ring */}
+                    <div className="flex justify-center">
+                      <div className="relative w-24 h-24">
+                        {/* Background Circle */}
+                        <svg className="w-24 h-24 transform -rotate-90" viewBox="0 0 100 100">
+                          <circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            stroke="rgb(55, 65, 81)"
+                            strokeWidth="6"
+                            fill="none"
+                            className="opacity-30"
+                          />
+                          {/* Progress Circle */}
+                          <motion.circle
+                            cx="50"
+                            cy="50"
+                            r="42"
+                            stroke="url(#progressGradient)"
+                            strokeWidth="6"
+                            fill="none"
+                            strokeLinecap="round"
+                            initial={{ pathLength: 0 }}
+                            animate={{ pathLength: progress / 100 }}
+                            transition={{ duration: 0.8, ease: "easeInOut" }}
+                            style={{
+                              pathLength: progress / 100,
+                            }}
+                            strokeDasharray="264"
+                            strokeDashoffset={264 - (264 * progress) / 100}
+                          />
+                          <defs>
+                            <linearGradient id="progressGradient" x1="0%" y1="0%" x2="100%" y2="100%">
+                              <stop offset="0%" stopColor="rgb(168, 85, 247)" />
+                              <stop offset="100%" stopColor="rgb(236, 72, 153)" />
+                            </linearGradient>
+                          </defs>
+                        </svg>
+                        {/* Percentage Text */}
+                        <div className="absolute inset-0 flex items-center justify-center">
+                          <span className="text-2xl font-bold text-white">{Math.round(progress)}%</span>
+                        </div>
+                      </div>
+                    </div>
+                    
+                    {/* Workflow Steps */}
+                    <div className="space-y-4">
+                      {[
+                        { step: 'Connecting to Instagram', complete: progress >= 5, active: progress >= 5 && progress < 25 },
+                        { step: 'Collecting Instagram posts', complete: progress >= 25, active: progress >= 25 && progress < 40 },
+                        { step: 'Connecting to TikTok', complete: progress >= 40, active: progress >= 40 && progress < 50 },
+                        { step: 'Collecting TikTok videos', complete: progress >= 50, active: progress >= 50 && progress < 65 },
+                        { step: 'Analyzing engagement patterns', complete: progress >= 65, active: progress >= 65 && progress < 80 },
+                        { step: 'Generating AI insights', complete: progress >= 80, active: progress >= 80 && progress < 95 },
+                        { step: 'Creating your report', complete: progress >= 95, active: progress >= 95 }
+                      ].map((item, index) => (
+                        <motion.div
+                          key={index}
+                          initial={{ opacity: 0, x: -20 }}
+                          animate={{ opacity: 1, x: 0 }}
+                          transition={{ delay: index * 0.1 }}
+                          className={`flex items-center space-x-3 ${
+                            item.active ? 'text-white' : item.complete ? 'text-green-400' : 'text-gray-500'
+                          }`}
+                        >
+                          <div className={`flex-shrink-0 w-6 h-6 rounded-full border-2 flex items-center justify-center ${
+                            item.complete 
+                              ? 'border-green-400 bg-green-400' 
+                              : item.active 
+                                ? 'border-purple-400 bg-purple-400/20' 
+                                : 'border-gray-600'
+                          }`}>
+                            {item.complete ? (
+                              <svg className="w-3 h-3 text-white" fill="none" viewBox="0 0 24 24" stroke="currentColor">
+                                <path strokeLinecap="round" strokeLinejoin="round" strokeWidth={3} d="M5 13l4 4L19 7" />
+                              </svg>
+                            ) : item.active ? (
+                              <div className="w-2 h-2 bg-purple-400 rounded-full animate-pulse"></div>
+                            ) : (
+                              <div className="w-2 h-2 bg-gray-600 rounded-full"></div>
+                            )}
+                          </div>
+                          <span className={`text-sm font-medium ${
+                            item.active ? 'animate-pulse' : ''
+                          }`}>
+                            {item.step}
+                          </span>
+                          {item.active && (
+                            <div className="flex space-x-1">
+                              <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce"></div>
+                              <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce delay-75"></div>
+                              <div className="w-1 h-1 bg-purple-400 rounded-full animate-bounce delay-150"></div>
+                            </div>
+                          )}
+                        </motion.div>
+                      ))}
                     </div>
                   </div>
                 </div>
                 
-                <p className="text-xs text-center text-gray-500">
-                  Please don't close or refresh this page
-                </p>
+                {/* Bottom Message */}
+                <motion.div
+                  initial={{ opacity: 0 }}
+                  animate={{ opacity: 1 }}
+                  transition={{ delay: 0.5 }}
+                  className="text-center"
+                >
+                  <div className="inline-flex items-center space-x-2 text-gray-400">
+                    <svg className="w-4 h-4 animate-spin" fill="none" viewBox="0 0 24 24">
+                      <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                      <path className="opacity-75" fill="currentColor" d="m4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                    </svg>
+                    <span className="text-xs">Please keep this tab open while we analyze your content</span>
+                  </div>
+                </motion.div>
               </motion.div>
             )}
 
