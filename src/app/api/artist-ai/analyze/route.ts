@@ -969,6 +969,10 @@ async function performAnalysis(
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
+    console.log(`🔄 Progress updated: 5% - Connecting to Instagram...`);
+
+    // Add delay to make progress visible
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // For now, skip user authentication and profile lookup to allow free testing
     // TODO: Re-enable authentication when implementing paywall
@@ -998,6 +1002,10 @@ async function performAnalysis(
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
+    console.log(`🔄 Progress updated: 25% - Collecting Instagram posts...`);
+
+    // Add delay to make progress visible
+    await new Promise(resolve => setTimeout(resolve, 3000));
 
     // Extract posts and profile data from social media platforms
     let instagramPosts: SocialMediaPost[] = [];
@@ -1026,6 +1034,10 @@ async function performAnalysis(
         estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
         complete: false
       });
+      console.log(`🔄 Progress updated: 40% - Connecting to TikTok...`);
+
+      // Add delay to make progress visible
+      await new Promise(resolve => setTimeout(resolve, 3000));
     }
 
     // Process TikTok
@@ -1046,6 +1058,9 @@ async function performAnalysis(
         estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
         complete: false
       });
+
+      // Add delay to make progress visible
+      await new Promise(resolve => setTimeout(resolve, 3000));
       
       [tiktokPosts, tiktokProfile] = await Promise.all([
         extractTikTokPosts(tiktokUsername),
@@ -1075,6 +1090,9 @@ async function performAnalysis(
       complete: false
     });
 
+    // Add delay to make progress visible
+    await new Promise(resolve => setTimeout(resolve, 3000));
+
     // Analyze with OpenAI
     console.log('🧠 Starting AI analysis with OpenAI');
     
@@ -1085,6 +1103,9 @@ async function performAnalysis(
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
+
+    // Add delay to make progress visible
+    await new Promise(resolve => setTimeout(resolve, 3000));
     
     const analysis = await analyzeWithOpenAI(allPosts, vibrateData);
     console.log('✅ AI analysis completed');
@@ -1176,6 +1197,9 @@ async function performAnalysis(
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
+
+    // Add delay to make progress visible
+    await new Promise(resolve => setTimeout(resolve, 2000));
 
     console.log('📊 Analysis complete:', {
       instagramPosts: instagramPosts.length,
