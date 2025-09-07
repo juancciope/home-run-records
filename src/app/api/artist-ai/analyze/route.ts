@@ -1,6 +1,7 @@
 import { NextRequest, NextResponse } from 'next/server';
 import { createAuthenticatedClient } from '@/utils/supabase/client';
 import OpenAI from 'openai';
+import { analysisProgress } from '@/lib/artist-ai/progress-tracker';
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -910,6 +911,65 @@ export async function POST(request: NextRequest) {
 
     console.log('🚀 Starting AI analysis for:', { instagramUsername, tiktokUsername, artistId, artistName });
 
+    // Generate analysis ID early for progress tracking
+    const analysisId = `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    
+    // Calculate estimated time based on platforms
+    const platformCount = (instagramUsername ? 1 : 0) + (tiktokUsername ? 1 : 0);
+    const estimatedTime = platformCount * 60000; // 60 seconds per platform
+    
+    // Initialize progress tracking
+    analysisProgress.set(analysisId, {
+      progress: 0,
+      message: "Starting social media analysis...",
+      estimatedTime,
+      complete: false
+    });
+    
+    // Return immediately with analysis ID so frontend can start polling
+    setTimeout(async () => {
+      try {
+        await performAnalysis(analysisId, { artistId, instagramUsername, tiktokUsername, artistName });
+      } catch (error) {
+        console.error('Background analysis error:', error);
+        analysisProgress.set(analysisId, {
+          progress: 100,
+          message: "Analysis failed",
+          estimatedTime,
+          complete: true,
+          success: false,
+          error: error instanceof Error ? error.message : 'Unknown error'
+        });
+      }
+    }, 100);
+    
+    return NextResponse.json({ 
+      analysisId,
+      message: 'Analysis started. Poll /api/artist-ai/status/{analysisId} for progress.'
+    });
+  } catch (error) {
+    console.error('Error starting analysis:', error);
+    return NextResponse.json(
+      { error: error instanceof Error ? error.message : 'Analysis failed' },
+      { status: 500 }
+    );
+  }
+}
+
+async function performAnalysis(
+  analysisId: string,
+  { artistId, instagramUsername, tiktokUsername, artistName }: any
+) {
+  try {
+
+    // Update progress - Starting
+    analysisProgress.set(analysisId, {
+      progress: 5,
+      message: "Preparing to collect social media data...",
+      estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+      complete: false
+    });
+
     // For now, skip user authentication and profile lookup to allow free testing
     // TODO: Re-enable authentication when implementing paywall
     let vibrateData = null;
@@ -931,6 +991,14 @@ export async function POST(request: NextRequest) {
       }
     }
 
+    // Update progress - Collecting posts
+    analysisProgress.set(analysisId, {
+      progress: 10,
+      message: "Collecting posts from social media platforms...",
+      estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+      complete: false
+    });
+
     // Extract posts and profile data from social media in parallel
     const [instagramPosts, tiktokPosts, instagramProfile, tiktokProfile] = await Promise.all([
       instagramUsername ? extractInstagramPosts(instagramUsername) : Promise.resolve([]),
@@ -942,14 +1010,36 @@ export async function POST(request: NextRequest) {
     const allPosts = [...instagramPosts, ...tiktokPosts];
 
     if (allPosts.length === 0) {
-      return NextResponse.json(
-        { error: 'No posts found. Please check your usernames and try again.' },
-        { status: 404 }
-      );
+      analysisProgress.set(analysisId, {
+        progress: 100,
+        message: "No posts found",
+        estimatedTime: 0,
+        complete: true,
+        success: false,
+        error: 'No posts found. Please check your usernames and try again.'
+      });
+      return;
     }
+
+    // Update progress - Posts collected
+    analysisProgress.set(analysisId, {
+      progress: 50,
+      message: `Analyzing ${allPosts.length} posts for engagement patterns...`,
+      estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+      complete: false
+    });
 
     // Analyze with OpenAI
     console.log('🧠 Starting AI analysis with OpenAI');
+    
+    // Update progress - AI analysis
+    analysisProgress.set(analysisId, {
+      progress: 80,
+      message: "Generating AI-powered insights and recommendations...",
+      estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+      complete: false
+    });
+    
     const analysis = await analyzeWithOpenAI(allPosts, vibrateData);
     console.log('✅ AI analysis completed');
 
@@ -1032,9 +1122,15 @@ export async function POST(request: NextRequest) {
     if (saveError) {
       console.error('Error saving analysis:', saveError);
     }
-
-    const analysisId = savedAnalysis?.id || `temp-analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
     
+    // Update progress - Saving results
+    analysisProgress.set(analysisId, {
+      progress: 95,
+      message: "Saving your analysis results...",
+      estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
+      complete: false
+    });
+
     console.log('📊 Analysis complete:', {
       instagramPosts: instagramPosts.length,
       tiktokPosts: tiktokPosts.length,
@@ -1043,38 +1139,32 @@ export async function POST(request: NextRequest) {
       artistSlug: slug
     });
 
-    // Prepare comprehensive response data for results page
-    const responseData: any = {
+    // Update progress - Complete
+    analysisProgress.set(analysisId, {
+      progress: 100,
+      message: "Analysis complete!",
+      estimatedTime: 0,
+      complete: true,
       success: true,
-      analysisId,
-      artistName,
-      artistSlug: slug,
-      redirectUrl: `https://social.homeformusic.app/${slug}`,
-      postsAnalyzed: allPosts.length,
-      analysis,
-      platforms: {
-        instagram: instagramPosts.length > 0,
-        tiktok: tiktokPosts.length > 0,
-        viberate: vibrateData ? {
-          totalFollowers: vibrateData.totalFollowers || 0,
-          totalReach: vibrateData.totalReach || 0,
-          engagedAudience: vibrateData.engagedAudience || 0,
-          platforms: vibrateData.platforms || {}
-        } : null,
-      },
-      scraped_posts: {
-        instagram: instagramPosts.slice(0, 10), // Include top 10 posts for display
-        tiktok: tiktokPosts.slice(0, 10)
-      },
-      message: `Analysis complete! Your unique page is ready at social.homeformusic.app/${slug}`
-    };
+      artistSlug: slug
+    });
 
-    return NextResponse.json(responseData);
+    // Clean up progress after 5 minutes
+    setTimeout(() => {
+      analysisProgress.delete(analysisId);
+    }, 300000);
+
   } catch (error) {
     console.error('Error in AI analysis:', error);
-    return NextResponse.json(
-      { error: error instanceof Error ? error.message : 'Analysis failed' },
-      { status: 500 }
-    );
+    
+    // Update progress with error
+    analysisProgress.set(analysisId, {
+      progress: 100,
+      message: "Analysis failed",
+      estimatedTime: 0,
+      complete: true,
+      success: false,
+      error: error instanceof Error ? error.message : 'Unknown error'
+    });
   }
 }

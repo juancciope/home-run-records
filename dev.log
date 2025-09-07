@@ -73,3 +73,41 @@ Auth session missing - user likely not logged in
 Auth session missing - user likely not logged in
  GET /artist-ai 200 in 221ms
  GET /favicon.ico?favicon.45db1c09.ico 200 in 261ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/juangarcia/homerunrecords/home-run-records/.next/server/app/artist-ai/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/juangarcia/homerunrecords/home-run-records/.next/server/app/artist-ai/page/app-build-manifest.json'
+}
+ ✓ Compiled /_error in 410ms
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/juangarcia/homerunrecords/home-run-records/.next/static/development/_buildManifest.js.tmp.630ew387ye8'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/juangarcia/homerunrecords/home-run-records/.next/static/development/_buildManifest.js.tmp.630ew387ye8'
+}
+[Error: ENOENT: no such file or directory, open '/Users/juangarcia/homerunrecords/home-run-records/.next/server/app/artist-ai/page/app-build-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/juangarcia/homerunrecords/home-run-records/.next/server/app/artist-ai/page/app-build-manifest.json'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/juangarcia/homerunrecords/home-run-records/.next/static/development/_buildManifest.js.tmp.ddqlszosluk'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/juangarcia/homerunrecords/home-run-records/.next/static/development/_buildManifest.js.tmp.ddqlszosluk'
+}
+[Error: ENOENT: no such file or directory, open '/Users/juangarcia/homerunrecords/home-run-records/.next/static/development/_buildManifest.js.tmp.tbouxa3lr2'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/juangarcia/homerunrecords/home-run-records/.next/static/development/_buildManifest.js.tmp.tbouxa3lr2'
+}
+ ⨯ [Error: ENOENT: no such file or directory, open '/Users/juangarcia/homerunrecords/home-run-records/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'] {
+  errno: -2,
+  code: 'ENOENT',
+  syscall: 'open',
+  path: '/Users/juangarcia/homerunrecords/home-run-records/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'
+}
+ ✓ Compiled middleware in 4ms

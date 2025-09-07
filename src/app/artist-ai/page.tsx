@@ -26,6 +26,9 @@ export default function ArtistSocialPage() {
   const [instagramUsername, setInstagramUsername] = React.useState("")
   const [tiktokUsername, setTiktokUsername] = React.useState("")
   const [isLoading, setIsLoading] = React.useState(false)
+  const [progress, setProgress] = React.useState(0)
+  const [progressMessage, setProgressMessage] = React.useState("")
+  const [timeRemaining, setTimeRemaining] = React.useState("")
 
   const handleNextStep = () => {
     if (step === 1 && artistName.trim()) {
@@ -39,8 +42,12 @@ export default function ArtistSocialPage() {
     }
     
     setIsLoading(true)
+    setProgress(0)
+    setProgressMessage("Starting analysis...")
+    setTimeRemaining("Estimating time...")
     
     try {
+      // Start the analysis
       const response = await fetch('/api/artist-ai/analyze', {
         method: 'POST',
         headers: {
@@ -55,17 +62,66 @@ export default function ArtistSocialPage() {
 
       const data = await response.json()
 
-      if (data.success) {
-        // Redirect to the unique artist page
-        window.location.href = `/${data.artistSlug}`
-      } else {
-        alert('Analysis failed: ' + (data.error || 'Unknown error'))
-        setIsLoading(false)
+      if (!data.analysisId) {
+        throw new Error('No analysis ID returned')
       }
+
+      // Poll for progress updates
+      const startTime = Date.now()
+      const pollInterval = setInterval(async () => {
+        try {
+          const statusResponse = await fetch(`/api/artist-ai/status/${data.analysisId}`)
+          const status = await statusResponse.json()
+          
+          if (status.progress !== undefined) {
+            setProgress(status.progress)
+            setProgressMessage(status.message || "Processing...")
+            
+            // Calculate time remaining
+            const elapsed = Date.now() - startTime
+            const estimatedTotal = status.estimatedTime || 120000 // Default 2 minutes
+            const remaining = Math.max(0, estimatedTotal - elapsed)
+            const seconds = Math.ceil(remaining / 1000)
+            
+            if (seconds > 60) {
+              setTimeRemaining(`About ${Math.ceil(seconds / 60)} minutes remaining`)
+            } else if (seconds > 0) {
+              setTimeRemaining(`About ${seconds} seconds remaining`)
+            } else {
+              setTimeRemaining("Almost done...")
+            }
+          }
+          
+          if (status.complete) {
+            clearInterval(pollInterval)
+            if (status.success) {
+              window.location.href = `/${status.artistSlug}`
+            } else {
+              alert('Analysis failed: ' + (status.error || 'Unknown error'))
+              setIsLoading(false)
+              setProgress(0)
+            }
+          }
+        } catch (error) {
+          console.error('Error polling status:', error)
+        }
+      }, 2000) // Poll every 2 seconds
+
+      // Timeout after 5 minutes
+      setTimeout(() => {
+        clearInterval(pollInterval)
+        if (isLoading) {
+          alert('Analysis is taking longer than expected. Please try again.')
+          setIsLoading(false)
+          setProgress(0)
+        }
+      }, 300000)
+
     } catch (error) {
       console.error('Analysis error:', error)
       alert('Analysis failed. Please try again.')
       setIsLoading(false)
+      setProgress(0)
     }
   }
 
@@ -193,6 +249,50 @@ export default function ArtistSocialPage() {
                 </>
               )}
             </motion.div>
+
+            {/* Progress Bar Section */}
+            {isLoading && (
+              <motion.div
+                initial={{ opacity: 0, y: 20 }}
+                animate={{ opacity: 1, y: 0 }}
+                className="max-w-sm sm:max-w-md mx-auto mt-8 space-y-4 px-4"
+              >
+                <div className="bg-gray-900 rounded-lg p-6 border border-gray-700">
+                  <div className="space-y-4">
+                    <div className="text-center">
+                      <h3 className="text-lg font-semibold text-white">{progressMessage}</h3>
+                      <p className="text-sm text-gray-400 mt-1">{timeRemaining}</p>
+                    </div>
+                    
+                    <div className="relative">
+                      <div className="bg-gray-800 rounded-full h-3 overflow-hidden">
+                        <motion.div
+                          className="bg-gradient-to-r from-purple-600 to-pink-600 h-full rounded-full"
+                          initial={{ width: 0 }}
+                          animate={{ width: `${progress}%` }}
+                          transition={{ duration: 0.5 }}
+                        />
+                      </div>
+                      <p className="text-center text-sm text-gray-500 mt-2">{Math.round(progress)}%</p>
+                    </div>
+                    
+                    <div className="text-xs text-gray-500 text-center space-y-1">
+                      <p>✓ Collecting posts from social media</p>
+                      <p className={progress >= 50 ? 'text-gray-300' : ''}>
+                        {progress >= 50 ? '✓' : '○'} Analyzing engagement patterns
+                      </p>
+                      <p className={progress >= 80 ? 'text-gray-300' : ''}>
+                        {progress >= 80 ? '✓' : '○'} Generating AI insights
+                      </p>
+                    </div>
+                  </div>
+                </div>
+                
+                <p className="text-xs text-center text-gray-500">
+                  Please don't close or refresh this page
+                </p>
+              </motion.div>
+            )}
 
             {/* Platform Icons */}
             <motion.div
