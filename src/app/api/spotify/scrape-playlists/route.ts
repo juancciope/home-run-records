@@ -164,19 +164,26 @@ async function scrapeSpotifyPlaylists(searchQuery: string): Promise<PlaylistResu
       }
 
       // Transform Apify data to our format
-      // scraper-mind/spotify-email-scraper returns: Artist, Playlist Title, Description, URL, Email
-      const playlists = results.map((item: any) => ({
-        name: item['Playlist Title'] || item.playlistTitle || item.name || 'Untitled Playlist',
-        curator: item.Artist || item.artist || item.curator || 'Unknown Curator',
-        description: item.Description || item.description || '',
-        songCount: undefined, // Not provided by this scraper
-        followers: undefined, // Not provided by this scraper
-        spotifyUrl: item.URL || item.url || item.spotifyUrl || '',
-        contactEmail: item.Email || item.email || extractEmailFromDescription(item.Description || item.description || ''),
-        instagram: extractSocialHandle(item.Description || item.description || '', 'instagram'),
-        twitter: extractSocialHandle(item.Description || item.description || '', 'twitter'),
-        website: extractWebsite(item.Description || item.description || '')
-      }));
+      // scraper-mind/spotify-email-scraper returns: title, description, url, email
+      const playlists = results.map((item: any) => {
+        // Extract playlist name from title (format: "Playlist Name - playlist by Curator" or "Playlist Name")
+        let playlistName = item.title || 'Untitled Playlist';
+        // Remove " - playlist by ..." or " | Podcast on Spotify" etc
+        playlistName = playlistName.replace(/\s*-\s*playlist by.*$/i, '').replace(/\s*\|\s*Podcast.*$/i, '').trim();
+
+        return {
+          name: playlistName,
+          curator: '', // Remove curator field as requested
+          description: item.description || '',
+          songCount: undefined, // Not provided by this scraper
+          followers: undefined, // Not provided by this scraper
+          spotifyUrl: item.url || '',
+          contactEmail: item.email || extractEmailFromDescription(item.description || ''),
+          instagram: extractSocialHandle(item.description || '', 'instagram'),
+          twitter: extractSocialHandle(item.description || '', 'twitter'),
+          website: extractWebsite(item.description || '')
+        };
+      });
 
       return playlists;
     } catch (error) {

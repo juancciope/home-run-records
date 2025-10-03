@@ -471,19 +471,12 @@ function PlaylistCard({ playlist, index }: { playlist: Playlist; index: number }
               )}
             </div>
 
-            <div className="flex items-center gap-4 text-sm text-gray-400 mb-3">
-              <div className="flex items-center gap-1">
-                <Users className="w-4 h-4" />
-                <span>{playlist.curator}</span>
+            {playlist.songCount && (
+              <div className="flex items-center gap-1 text-sm text-gray-400 mb-3">
+                <Music className="w-4 h-4" />
+                <span>{playlist.songCount} songs</span>
               </div>
-
-              {playlist.songCount && (
-                <div className="flex items-center gap-1">
-                  <Music className="w-4 h-4" />
-                  <span>{playlist.songCount} songs</span>
-                </div>
-              )}
-            </div>
+            )}
 
             {playlist.followers && (
               <div className="flex items-center gap-1 text-sm text-gray-400 mb-3">
