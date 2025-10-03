@@ -125,7 +125,7 @@ async function scrapeSpotifyPlaylists(searchQuery: string): Promise<PlaylistResu
 
         if (status === 'FAILED' || status === 'ABORTED' || status === 'TIMED-OUT') {
           console.error('Spotify scraper failed with status:', status);
-          return generateMockPlaylists(searchQuery);
+          throw new Error(`Spotify scraper failed with status: ${status}`);
         }
       } catch (error) {
         console.error('Error checking run status:', error);
@@ -134,8 +134,8 @@ async function scrapeSpotifyPlaylists(searchQuery: string): Promise<PlaylistResu
     }
 
     if (attempts >= maxAttempts) {
-      console.warn('Spotify scraper timed out, using mock data');
-      return generateMockPlaylists(searchQuery);
+      console.error('Spotify scraper timed out after', maxAttempts, 'attempts');
+      throw new Error(`Spotify scraper timed out after ${maxAttempts} attempts`);
     }
 
     // Get the results
@@ -150,16 +150,17 @@ async function scrapeSpotifyPlaylists(searchQuery: string): Promise<PlaylistResu
       );
 
       if (!resultsResponse.ok) {
-        console.error('Failed to fetch results:', resultsResponse.status);
-        return generateMockPlaylists(searchQuery);
+        const errorText = await resultsResponse.text();
+        console.error('Failed to fetch results:', resultsResponse.status, errorText);
+        throw new Error(`Failed to fetch results: ${resultsResponse.status}`);
       }
 
       const results = await resultsResponse.json();
       console.log(`Retrieved ${results.length} Spotify playlists`);
 
       if (!results || results.length === 0) {
-        console.warn('No Spotify playlists found, using mock data');
-        return generateMockPlaylists(searchQuery);
+        console.warn('No Spotify playlists found');
+        throw new Error('No Spotify playlists found for the search query');
       }
 
       // Transform Apify data to our format
@@ -180,11 +181,11 @@ async function scrapeSpotifyPlaylists(searchQuery: string): Promise<PlaylistResu
       return playlists;
     } catch (error) {
       console.error('Error fetching Spotify results:', error);
-      return generateMockPlaylists(searchQuery);
+      throw error;
     }
   } catch (error) {
     console.error('Error in Spotify scraper:', error);
-    return generateMockPlaylists(searchQuery);
+    throw error; // Re-throw to see the actual error instead of silently returning mock data
   }
 }
 
