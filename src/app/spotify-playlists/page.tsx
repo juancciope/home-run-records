@@ -109,13 +109,21 @@ interface Playlist {
 }
 
 export default function SpotifyPlaylistsPage() {
-  const [searchGenre, setSearchGenre] = React.useState('')
+  const [selectedGenre, setSelectedGenre] = React.useState('')
   const [selectedKeywords, setSelectedKeywords] = React.useState<string[]>([])
   const [isSearching, setIsSearching] = React.useState(false)
   const [results, setResults] = React.useState<Playlist[]>([])
   const [hasSearched, setHasSearched] = React.useState(false)
   const [error, setError] = React.useState('')
   const [totalResults, setTotalResults] = React.useState(0)
+
+  // Handle genre selection (single selection)
+  const handleGenreClick = (genre: string) => {
+    setSelectedGenre(genre)
+    // Clear results when changing genre
+    setResults([])
+    setHasSearched(false)
+  }
 
   // Toggle keyword selection
   const toggleKeyword = (keyword: string) => {
@@ -126,9 +134,21 @@ export default function SpotifyPlaylistsPage() {
     )
   }
 
+  // Clear all keywords
+  const clearKeywords = () => {
+    setSelectedKeywords([])
+  }
+
+  // Calculate search queries
+  const searchQueries = React.useMemo(() => {
+    if (!selectedGenre) return []
+    if (selectedKeywords.length === 0) return [selectedGenre]
+    return selectedKeywords.slice(0, 10).map(keyword => `${selectedGenre} ${keyword}`)
+  }, [selectedGenre, selectedKeywords])
+
   // Handle search
   const handleSearch = async () => {
-    if (!searchGenre.trim()) return
+    if (!selectedGenre) return
 
     setIsSearching(true)
     setError('')
@@ -141,7 +161,7 @@ export default function SpotifyPlaylistsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          genre: searchGenre.trim(),
+          genre: selectedGenre,
           keywords: selectedKeywords
         }),
       })
@@ -160,24 +180,6 @@ export default function SpotifyPlaylistsPage() {
     } finally {
       setIsSearching(false)
     }
-  }
-
-  // Handle genre pill click
-  const handleGenreClick = (genre: string) => {
-    setSearchGenre(current => {
-      if (!current.trim()) {
-        return genre
-      } else {
-        const currentGenres = current.split(',').map(g => g.trim().toLowerCase())
-        const newGenre = genre.trim().toLowerCase()
-
-        if (currentGenres.includes(newGenre)) {
-          return current
-        } else {
-          return current + ', ' + genre
-        }
-      }
-    })
   }
 
   // Export results to CSV
@@ -217,7 +219,7 @@ export default function SpotifyPlaylistsPage() {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `spotify-playlists-${searchGenre.toLowerCase().replace(/\s+/g, '-')}.csv`
+    a.download = `spotify-playlists-${selectedGenre.toLowerCase().replace(/\s+/g, '-')}.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -242,122 +244,184 @@ export default function SpotifyPlaylistsPage() {
             Find Spotify Playlists
           </h1>
 
-          <p className="text-xl text-gray-400 max-w-3xl mx-auto mb-4">
+          <p className="text-xl text-gray-400 max-w-3xl mx-auto">
             Discover curated playlists with curator contact details to pitch your music
           </p>
-
-          <Card className="bg-gradient-to-r from-purple-500/10 to-pink-500/10 border-purple-500/20 max-w-4xl mx-auto">
-            <CardContent className="p-4">
-              <p className="text-sm text-gray-300">
-                <Sparkles className="w-4 h-4 inline mr-2 text-purple-400" />
-                <strong>Pro Tip:</strong> Combine genres with strategic keywords like "Indie Pop + Submissions" or "Electronic + New Music" to find playlists actively seeking your type of music.
-              </p>
-            </CardContent>
-          </Card>
         </motion.div>
 
-        {/* Search Section */}
+        {/* 3-Step Search Builder */}
         <motion.div
           initial={{ opacity: 0, y: 20 }}
           animate={{ opacity: 1, y: 0 }}
           transition={{ delay: 0.1 }}
+          className="space-y-6"
         >
+          {/* STEP 1: Select Genre */}
           <Card className="bg-gray-900/50 backdrop-blur-xl border-gray-800">
-            <CardContent className="p-8">
-              {/* Search Input */}
-              <div className="mb-8">
-                <label className="block text-white text-lg font-semibold mb-4">
-                  Build your search query
-                </label>
-                <div className="relative">
-                  <Input
-                    type="text"
-                    value={searchGenre}
-                    onChange={(e) => setSearchGenre(e.target.value)}
-                    onKeyPress={(e) => e.key === 'Enter' && handleSearch()}
-                    placeholder="e.g., Indie Pop, New Music, Submissions, Electronic, Chill..."
-                    className="w-full h-14 px-6 bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500 pr-32"
-                  />
-                  <Button
-                    onClick={handleSearch}
-                    disabled={isSearching || !searchGenre.trim()}
-                    className="absolute right-2 top-2 bottom-2 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700"
-                  >
-                    {isSearching ? (
-                      <>
-                        <Loader2 className="w-4 h-4 mr-2 animate-spin" />
-                        Searching...
-                      </>
-                    ) : (
-                      <>
-                        <Search className="w-4 h-4 mr-2" />
-                        Search
-                      </>
-                    )}
-                  </Button>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-purple-500/20 border-2 border-purple-500 flex items-center justify-center text-purple-300 font-bold">
+                  1
                 </div>
-                <p className="text-xs text-gray-500 mt-2">
-                  💡 Combine multiple keywords for better results. Each click adds to your search.
-                </p>
+                <div>
+                  <CardTitle className="text-white">Select Your Music Genre</CardTitle>
+                  <CardDescription>Choose one genre that best describes your music</CardDescription>
+                </div>
               </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-3">
+                {MUSIC_GENRES.map((genre) => (
+                  <button
+                    key={genre}
+                    onClick={() => handleGenreClick(genre)}
+                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                      selectedGenre === genre
+                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/50'
+                        : 'bg-gray-800/50 hover:bg-gray-800 border-2 border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    <Music className="w-4 h-4 inline mr-2" />
+                    {genre}
+                  </button>
+                ))}
+              </div>
+              {selectedGenre && (
+                <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg flex items-center gap-2">
+                  <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
+                  <span className="text-sm text-purple-300">
+                    Selected: <strong>{selectedGenre}</strong>
+                  </span>
+                </div>
+              )}
+            </CardContent>
+          </Card>
 
-              {/* Two Category Sections */}
-              <div className="grid md:grid-cols-2 gap-8">
-                {/* Music Genres */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Music className="w-5 h-5 text-purple-400" />
-                    <h3 className="text-lg font-semibold text-white">Music Genres</h3>
+          {/* STEP 2: Select Keywords (Optional) */}
+          <Card className={`bg-gray-900/50 backdrop-blur-xl border-gray-800 transition-all ${
+            !selectedGenre ? 'opacity-50 pointer-events-none' : ''
+          }`}>
+            <CardHeader>
+              <div className="flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-8 h-8 rounded-full bg-pink-500/20 border-2 border-pink-500 flex items-center justify-center text-pink-300 font-bold">
+                    2
                   </div>
-                  <div className="flex flex-wrap gap-2">
-                    {MUSIC_GENRES.map((genre) => (
-                      <button
-                        key={genre}
-                        onClick={() => handleGenreClick(genre)}
-                        className="px-3 py-2 bg-purple-500/10 hover:bg-purple-500/20 border border-purple-500/30 hover:border-purple-500 rounded-full text-sm text-gray-300 hover:text-white transition-all"
-                      >
-                        {genre}
-                      </button>
-                    ))}
+                  <div>
+                    <CardTitle className="text-white">Add Strategic Keywords (Optional)</CardTitle>
+                    <CardDescription>
+                      Select keywords to find more specific playlists. You can skip this to search only by genre.
+                    </CardDescription>
                   </div>
                 </div>
-
-                {/* Strategic Keywords */}
-                <div>
-                  <div className="flex items-center gap-2 mb-4">
-                    <Filter className="w-5 h-5 text-pink-400" />
-                    <h3 className="text-lg font-semibold text-white">Strategic Keywords</h3>
-                  </div>
-                  <div className="flex flex-wrap gap-2 max-h-48 overflow-y-auto pr-2 scrollbar-thin scrollbar-track-gray-800 scrollbar-thumb-purple-600">
-                    {STRATEGIC_KEYWORDS.map((keyword) => (
-                      <button
-                        key={keyword}
-                        onClick={() => toggleKeyword(keyword)}
-                        className={`px-3 py-2 border rounded-full text-sm transition-all whitespace-nowrap ${
-                          selectedKeywords.includes(keyword)
-                            ? 'bg-pink-500/30 border-pink-400 text-white'
-                            : 'bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30 hover:border-pink-500 text-gray-300 hover:text-white'
-                        }`}
-                      >
-                        {keyword}
-                      </button>
-                    ))}
-                  </div>
-                  {selectedKeywords.length > 0 && (
-                    <div className="mt-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
-                      <p className="text-xs text-purple-300 font-medium mb-1">
-                        {selectedKeywords.length} keyword{selectedKeywords.length > 1 ? 's' : ''} selected (max 10)
-                      </p>
-                      <p className="text-xs text-gray-400">
-                        Will search: {selectedKeywords.slice(0, 3).map(k => `"${searchGenre || 'genre'} ${k}"`).join(', ')}
-                        {selectedKeywords.length > 3 && ` +${selectedKeywords.length - 3} more...`}
-                      </p>
-                    </div>
-                  )}
-                  <p className="text-xs text-gray-500 mt-3">
-                    Select keywords to combine with your genre for targeted playlist discovery
+                {selectedKeywords.length > 0 && (
+                  <Button
+                    onClick={clearKeywords}
+                    variant="ghost"
+                    size="sm"
+                    className="text-gray-400 hover:text-white"
+                  >
+                    Clear All
+                  </Button>
+                )}
+              </div>
+            </CardHeader>
+            <CardContent>
+              <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto pr-2">
+                {STRATEGIC_KEYWORDS.map((keyword) => (
+                  <button
+                    key={keyword}
+                    onClick={() => toggleKeyword(keyword)}
+                    disabled={!selectedGenre}
+                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                      selectedKeywords.includes(keyword)
+                        ? 'bg-pink-500/30 border-2 border-pink-400 text-white shadow-md'
+                        : 'bg-gray-800/50 hover:bg-gray-800 border-2 border-gray-700 hover:border-pink-500/50 text-gray-300 hover:text-white'
+                    }`}
+                  >
+                    {selectedKeywords.includes(keyword) && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                    {keyword}
+                  </button>
+                ))}
+              </div>
+              {selectedKeywords.length > 0 && (
+                <div className="mt-4 p-3 bg-pink-500/10 border border-pink-500/30 rounded-lg">
+                  <p className="text-sm text-pink-300 font-medium mb-1">
+                    {selectedKeywords.length} keyword{selectedKeywords.length > 1 ? 's' : ''} selected
+                    {selectedKeywords.length >= 10 && ' (maximum reached)'}
                   </p>
                 </div>
+              )}
+            </CardContent>
+          </Card>
+
+          {/* STEP 3: Review & Search */}
+          <Card className={`bg-gray-900/50 backdrop-blur-xl border-gray-800 transition-all ${
+            !selectedGenre ? 'opacity-50 pointer-events-none' : ''
+          }`}>
+            <CardHeader>
+              <div className="flex items-center gap-3">
+                <div className="w-8 h-8 rounded-full bg-green-500/20 border-2 border-green-500 flex items-center justify-center text-green-300 font-bold">
+                  3
+                </div>
+                <div>
+                  <CardTitle className="text-white">Review Your Search</CardTitle>
+                  <CardDescription>See exactly what we'll search for and start finding playlists</CardDescription>
+                </div>
+              </div>
+            </CardHeader>
+            <CardContent className="space-y-4">
+              {/* Search Preview */}
+              <div className="p-4 bg-gray-800/50 border-2 border-gray-700 rounded-lg">
+                <p className="text-sm text-gray-400 mb-3 font-medium">
+                  {searchQueries.length === 1 ? 'We will search for:' : `We will perform ${searchQueries.length} searches:`}
+                </p>
+                <div className="space-y-2">
+                  {searchQueries.slice(0, 5).map((query, index) => (
+                    <div key={index} className="flex items-center gap-2">
+                      <div className="w-6 h-6 rounded-full bg-purple-500/20 flex items-center justify-center text-xs text-purple-300 flex-shrink-0">
+                        {index + 1}
+                      </div>
+                      <code className="text-sm text-purple-300 bg-purple-500/10 px-3 py-1.5 rounded border border-purple-500/30">
+                        "{query}"
+                      </code>
+                    </div>
+                  ))}
+                  {searchQueries.length > 5 && (
+                    <p className="text-xs text-gray-500 ml-8">
+                      ...and {searchQueries.length - 5} more searches
+                    </p>
+                  )}
+                </div>
+              </div>
+
+              {/* Search Button */}
+              <Button
+                onClick={handleSearch}
+                disabled={isSearching || !selectedGenre}
+                size="lg"
+                className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-lg font-semibold"
+              >
+                {isSearching ? (
+                  <>
+                    <Loader2 className="w-5 h-5 mr-2 animate-spin" />
+                    Searching {searchQueries.length} {searchQueries.length === 1 ? 'query' : 'queries'}...
+                  </>
+                ) : (
+                  <>
+                    <Search className="w-5 h-5 mr-2" />
+                    Find Playlists ({searchQueries.length} {searchQueries.length === 1 ? 'search' : 'searches'})
+                  </>
+                )}
+              </Button>
+
+              {/* Helper Text */}
+              <div className="flex items-start gap-2 p-3 bg-blue-500/10 border border-blue-500/30 rounded-lg">
+                <Sparkles className="w-4 h-4 text-blue-400 flex-shrink-0 mt-0.5" />
+                <p className="text-xs text-blue-300">
+                  <strong>Tip:</strong> More keywords = more searches = better coverage!
+                  Each keyword combination helps you discover different types of playlists.
+                </p>
               </div>
             </CardContent>
           </Card>
@@ -387,7 +451,7 @@ export default function SpotifyPlaylistsPage() {
           >
             <div className="flex items-center gap-4">
               <h2 className="text-2xl font-bold text-white">
-                Results for "{searchGenre}"
+                Results for "{selectedGenre}"
               </h2>
               {totalResults > 0 && (
                 <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-semibold border border-purple-500/30">
