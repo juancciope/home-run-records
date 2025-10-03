@@ -67,7 +67,7 @@ async function scrapeSpotifyPlaylists(searchQuery: string): Promise<PlaylistResu
 
     // Start the Apify actor with correct input format for scraper-mind/spotify-email-scraper
     const runInput = {
-      keyword: searchQuery,
+      keywords: [searchQuery], // Must be an array, not a string
       customDomains: ['@gmail.com', '@yahoo.com', '@hotmail.com', '@outlook.com', '@icloud.com', '@protonmail.com'],
       platform: 'Spotify'
     };
