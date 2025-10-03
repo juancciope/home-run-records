@@ -74,7 +74,13 @@ export default function ArtistSocialPage() {
           const status = await statusResponse.json()
           
           if (status.progress !== undefined) {
-            setProgress(status.progress)
+            // Prevent progress from going backwards (unless it's a reset to 0)
+            setProgress(prevProgress => {
+              if (status.progress === 0 && prevProgress > 0) {
+                console.warn('⚠️ Progress reset to 0, this might indicate an issue')
+              }
+              return Math.max(prevProgress, status.progress)
+            })
             setProgressMessage(status.message || "Processing...")
             
             // Calculate time remaining
@@ -250,13 +256,18 @@ export default function ArtistSocialPage() {
               )}
             </motion.div>
 
-            {/* Modern Loading Experience */}
+            {/* Modern Loading Experience - Full Screen Overlay */}
             {isLoading && (
               <motion.div
-                initial={{ opacity: 0, scale: 0.95 }}
-                animate={{ opacity: 1, scale: 1 }}
-                className="max-w-lg mx-auto mt-8 space-y-6 px-4"
+                initial={{ opacity: 0 }}
+                animate={{ opacity: 1 }}
+                className="fixed inset-0 bg-black/80 backdrop-blur-sm z-50 flex items-center justify-center p-4"
               >
+                <motion.div
+                  initial={{ opacity: 0, scale: 0.95 }}
+                  animate={{ opacity: 1, scale: 1 }}
+                  className="max-w-lg w-full space-y-6"
+                >
                 {/* Main Progress Card */}
                 <div className="relative bg-gradient-to-br from-gray-900 to-gray-800 rounded-2xl p-8 border border-gray-700/50 backdrop-blur-sm">
                   {/* Floating Animation Background */}
@@ -391,6 +402,7 @@ export default function ArtistSocialPage() {
                     </svg>
                     <span className="text-xs">Please keep this tab open while we analyze your content</span>
                   </div>
+                </motion.div>
                 </motion.div>
               </motion.div>
             )}

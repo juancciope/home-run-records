@@ -20,9 +20,12 @@ setInterval(() => {
   const oldEntries: string[] = [];
   
   analysisProgress.forEach((status, id) => {
-    // Remove entries older than 30 minutes
+    // Only remove completed entries older than 30 minutes, or any entry older than 2 hours
     const timestamp = parseInt(id.split('-')[1] || '0');
-    if (now - timestamp > 1800000) {
+    const age = now - timestamp;
+    
+    if ((status.complete && age > 1800000) || age > 7200000) {
+      console.log(`🧹 Cleaning up progress entry: ${id}`);
       oldEntries.push(id);
     }
   });

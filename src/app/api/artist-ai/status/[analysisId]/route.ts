@@ -12,7 +12,7 @@ export async function GET(
   const status = analysisProgress.get(analysisId);
 
   if (!status) {
-    console.log(`❓ Status requested for ${analysisId} - not found, returning default`);
+    console.log(`❓ Status requested for ${analysisId} - not found, returning default. Available IDs: ${Array.from(analysisProgress.keys()).join(', ')}`);
     return NextResponse.json({
       progress: 0,
       message: "Initializing...",
@@ -21,6 +21,6 @@ export async function GET(
     });
   }
 
-  console.log(`📊 Status requested for ${analysisId} - progress: ${status.progress}%, message: "${status.message}"`);
+  console.log(`📊 Status requested for ${analysisId} - progress: ${status.progress}%, message: "${status.message}", complete: ${status.complete}`);
   return NextResponse.json(status);
 }

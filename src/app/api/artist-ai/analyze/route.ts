@@ -913,6 +913,7 @@ export async function POST(request: NextRequest) {
 
     // Generate analysis ID early for progress tracking
     const analysisId = `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    console.log(`🆔 Generated analysis ID: ${analysisId}`);
     
     // Calculate estimated time based on platforms
     const platformCount = (instagramUsername ? 1 : 0) + (tiktokUsername ? 1 : 0);
@@ -925,6 +926,7 @@ export async function POST(request: NextRequest) {
       estimatedTime,
       complete: false
     });
+    console.log(`🔄 Initial progress set for ${analysisId}: 0% - Starting social media analysis...`);
     
     // Return immediately with analysis ID so frontend can start polling
     setTimeout(async () => {
@@ -1002,7 +1004,7 @@ async function performAnalysis(
       estimatedTime: analysisProgress.get(analysisId)?.estimatedTime || 120000,
       complete: false
     });
-    console.log(`🔄 Progress updated: 25% - Collecting Instagram posts...`);
+    console.log(`🔄 Progress updated: 25% - Collecting Instagram posts... (ID: ${analysisId})`);
 
     // Add delay to make progress visible
     await new Promise(resolve => setTimeout(resolve, 3000));
