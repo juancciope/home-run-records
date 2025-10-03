@@ -20,7 +20,7 @@ interface PlaylistResult {
 export async function POST(request: NextRequest) {
   try {
     const body = await request.json();
-    const { genre } = body;
+    const { genre, keywords = [] } = body;
 
     if (!genre || typeof genre !== 'string') {
       return NextResponse.json(
@@ -29,7 +29,7 @@ export async function POST(request: NextRequest) {
       );
     }
 
-    console.log('🔍 Searching Spotify playlists for:', genre);
+    console.log('🔍 Searching Spotify playlists for:', genre, 'with keywords:', keywords);
 
     // If Apify token is not configured, return mock data
     if (!APIFY_TOKEN) {
@@ -41,7 +41,7 @@ export async function POST(request: NextRequest) {
     }
 
     // Use Apify to scrape Spotify playlists
-    const playlists = await scrapeSpotifyPlaylists(genre);
+    const playlists = await scrapeSpotifyPlaylists(genre, keywords);
 
     return NextResponse.json({
       playlists,
@@ -57,17 +57,30 @@ export async function POST(request: NextRequest) {
   }
 }
 
-async function scrapeSpotifyPlaylists(searchQuery: string): Promise<PlaylistResult[]> {
+async function scrapeSpotifyPlaylists(genre: string, selectedKeywords: string[] = []): Promise<PlaylistResult[]> {
   if (!APIFY_TOKEN) {
-    return generateMockPlaylists(searchQuery);
+    return generateMockPlaylists(genre);
   }
 
   try {
     console.log(`🚀 Starting Spotify scraper with actor: ${SPOTIFY_ACTOR_ID}`);
 
+    // Create keyword combinations: genre + each selected keyword
+    let searchKeywords: string[];
+
+    if (selectedKeywords.length > 0) {
+      // Limit to max 10 combinations to avoid overwhelming the scraper
+      const limitedKeywords = selectedKeywords.slice(0, 10);
+      searchKeywords = limitedKeywords.map(keyword => `${genre} ${keyword}`);
+      console.log(`📋 Created ${searchKeywords.length} keyword combinations`);
+    } else {
+      // If no keywords selected, just search the genre
+      searchKeywords = [genre];
+    }
+
     // Start the Apify actor with correct input format for scraper-mind/spotify-email-scraper
     const runInput = {
-      keywords: [searchQuery], // Must be an array, not a string
+      keywords: searchKeywords, // Array of combined keywords
       customDomains: ['@gmail.com', '@yahoo.com', '@hotmail.com', '@outlook.com', '@icloud.com', '@protonmail.com'],
       platform: 'Spotify'
     };

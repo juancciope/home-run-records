@@ -110,11 +110,21 @@ interface Playlist {
 
 export default function SpotifyPlaylistsPage() {
   const [searchGenre, setSearchGenre] = React.useState('')
+  const [selectedKeywords, setSelectedKeywords] = React.useState<string[]>([])
   const [isSearching, setIsSearching] = React.useState(false)
   const [results, setResults] = React.useState<Playlist[]>([])
   const [hasSearched, setHasSearched] = React.useState(false)
   const [error, setError] = React.useState('')
   const [totalResults, setTotalResults] = React.useState(0)
+
+  // Toggle keyword selection
+  const toggleKeyword = (keyword: string) => {
+    setSelectedKeywords(prev =>
+      prev.includes(keyword)
+        ? prev.filter(k => k !== keyword)
+        : [...prev, keyword]
+    )
+  }
 
   // Handle search
   const handleSearch = async () => {
@@ -131,7 +141,8 @@ export default function SpotifyPlaylistsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          genre: searchGenre.trim()
+          genre: searchGenre.trim(),
+          keywords: selectedKeywords
         }),
       })
 
@@ -321,15 +332,30 @@ export default function SpotifyPlaylistsPage() {
                     {STRATEGIC_KEYWORDS.map((keyword) => (
                       <button
                         key={keyword}
-                        onClick={() => handleGenreClick(keyword)}
-                        className="px-3 py-2 bg-pink-500/10 hover:bg-pink-500/20 border border-pink-500/30 hover:border-pink-500 rounded-full text-sm text-gray-300 hover:text-white transition-all whitespace-nowrap"
+                        onClick={() => toggleKeyword(keyword)}
+                        className={`px-3 py-2 border rounded-full text-sm transition-all whitespace-nowrap ${
+                          selectedKeywords.includes(keyword)
+                            ? 'bg-pink-500/30 border-pink-400 text-white'
+                            : 'bg-pink-500/10 hover:bg-pink-500/20 border-pink-500/30 hover:border-pink-500 text-gray-300 hover:text-white'
+                        }`}
                       >
                         {keyword}
                       </button>
                     ))}
                   </div>
+                  {selectedKeywords.length > 0 && (
+                    <div className="mt-3 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg">
+                      <p className="text-xs text-purple-300 font-medium mb-1">
+                        {selectedKeywords.length} keyword{selectedKeywords.length > 1 ? 's' : ''} selected (max 10)
+                      </p>
+                      <p className="text-xs text-gray-400">
+                        Will search: {selectedKeywords.slice(0, 3).map(k => `"${searchGenre || 'genre'} ${k}"`).join(', ')}
+                        {selectedKeywords.length > 3 && ` +${selectedKeywords.length - 3} more...`}
+                      </p>
+                    </div>
+                  )}
                   <p className="text-xs text-gray-500 mt-3">
-                    Keywords to find submission-friendly, discovery-focused, and niche playlists
+                    Select keywords to combine with your genre for targeted playlist discovery
                   </p>
                 </div>
               </div>
