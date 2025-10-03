@@ -18,7 +18,9 @@ import {
   Filter,
   ListMusic,
   CheckCircle,
-  Sparkles
+  Sparkles,
+  X,
+  Plus
 } from "lucide-react"
 import { motion } from "framer-motion"
 
@@ -110,16 +112,33 @@ interface Playlist {
 
 export default function SpotifyPlaylistsPage() {
   const [selectedGenre, setSelectedGenre] = React.useState('')
+  const [customGenre, setCustomGenre] = React.useState('')
   const [selectedKeywords, setSelectedKeywords] = React.useState<string[]>([])
+  const [customKeywordInput, setCustomKeywordInput] = React.useState('')
   const [isSearching, setIsSearching] = React.useState(false)
   const [results, setResults] = React.useState<Playlist[]>([])
   const [hasSearched, setHasSearched] = React.useState(false)
   const [error, setError] = React.useState('')
   const [totalResults, setTotalResults] = React.useState(0)
 
-  // Handle genre selection (single selection)
+  // Get the active genre (custom input takes priority)
+  const activeGenre = customGenre.trim() || selectedGenre
+
+  // Handle genre pill click
   const handleGenreClick = (genre: string) => {
     setSelectedGenre(genre)
+    setCustomGenre('') // Clear custom input when clicking a pill
+    // Clear results when changing genre
+    setResults([])
+    setHasSearched(false)
+  }
+
+  // Handle custom genre input
+  const handleCustomGenreChange = (value: string) => {
+    setCustomGenre(value)
+    if (value.trim()) {
+      setSelectedGenre('') // Clear pill selection when typing custom
+    }
     // Clear results when changing genre
     setResults([])
     setHasSearched(false)
@@ -134,6 +153,28 @@ export default function SpotifyPlaylistsPage() {
     )
   }
 
+  // Add custom keyword
+  const addCustomKeyword = () => {
+    const trimmed = customKeywordInput.trim()
+    if (trimmed && !selectedKeywords.includes(trimmed)) {
+      setSelectedKeywords(prev => [...prev, trimmed])
+      setCustomKeywordInput('')
+    }
+  }
+
+  // Handle custom keyword input (Enter key)
+  const handleCustomKeywordKeyPress = (e: React.KeyboardEvent) => {
+    if (e.key === 'Enter') {
+      e.preventDefault()
+      addCustomKeyword()
+    }
+  }
+
+  // Remove a keyword
+  const removeKeyword = (keyword: string) => {
+    setSelectedKeywords(prev => prev.filter(k => k !== keyword))
+  }
+
   // Clear all keywords
   const clearKeywords = () => {
     setSelectedKeywords([])
@@ -141,14 +182,14 @@ export default function SpotifyPlaylistsPage() {
 
   // Calculate search queries
   const searchQueries = React.useMemo(() => {
-    if (!selectedGenre) return []
-    if (selectedKeywords.length === 0) return [selectedGenre]
-    return selectedKeywords.slice(0, 10).map(keyword => `${selectedGenre} ${keyword}`)
-  }, [selectedGenre, selectedKeywords])
+    if (!activeGenre) return []
+    if (selectedKeywords.length === 0) return [activeGenre]
+    return selectedKeywords.slice(0, 10).map(keyword => `${activeGenre} ${keyword}`)
+  }, [activeGenre, selectedKeywords])
 
   // Handle search
   const handleSearch = async () => {
-    if (!selectedGenre) return
+    if (!activeGenre) return
 
     setIsSearching(true)
     setError('')
@@ -161,7 +202,7 @@ export default function SpotifyPlaylistsPage() {
           'Content-Type': 'application/json',
         },
         body: JSON.stringify({
-          genre: selectedGenre,
+          genre: activeGenre,
           keywords: selectedKeywords
         }),
       })
@@ -219,7 +260,7 @@ export default function SpotifyPlaylistsPage() {
     const url = window.URL.createObjectURL(blob)
     const a = document.createElement('a')
     a.href = url
-    a.download = `spotify-playlists-${selectedGenre.toLowerCase().replace(/\s+/g, '-')}.csv`
+    a.download = `spotify-playlists-${activeGenre.toLowerCase().replace(/\s+/g, '-')}.csv`
     document.body.appendChild(a)
     a.click()
     document.body.removeChild(a)
@@ -269,28 +310,50 @@ export default function SpotifyPlaylistsPage() {
                 </div>
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-3">
-                {MUSIC_GENRES.map((genre) => (
-                  <button
-                    key={genre}
-                    onClick={() => handleGenreClick(genre)}
-                    className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
-                      selectedGenre === genre
-                        ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/50'
-                        : 'bg-gray-800/50 hover:bg-gray-800 border-2 border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white'
-                    }`}
-                  >
-                    <Music className="w-4 h-4 inline mr-2" />
-                    {genre}
-                  </button>
-                ))}
+            <CardContent className="space-y-4">
+              {/* Custom Genre Input */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Type your own genre or select from suggestions below:
+                </label>
+                <Input
+                  type="text"
+                  value={customGenre}
+                  onChange={(e) => handleCustomGenreChange(e.target.value)}
+                  placeholder="e.g., Synthwave, Lo-fi Hip Hop, Dream Pop..."
+                  className="w-full bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-purple-500 focus:ring-purple-500"
+                />
               </div>
-              {selectedGenre && (
-                <div className="mt-4 p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg flex items-center gap-2">
+
+              {/* Genre Pills */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Or select from popular genres:
+                </label>
+                <div className="flex flex-wrap gap-3">
+                  {MUSIC_GENRES.map((genre) => (
+                    <button
+                      key={genre}
+                      onClick={() => handleGenreClick(genre)}
+                      className={`px-4 py-2.5 rounded-lg text-sm font-medium transition-all ${
+                        selectedGenre === genre
+                          ? 'bg-gradient-to-r from-purple-600 to-pink-600 text-white border-2 border-purple-400 shadow-lg shadow-purple-500/50'
+                          : 'bg-gray-800/50 hover:bg-gray-800 border-2 border-gray-700 hover:border-purple-500/50 text-gray-300 hover:text-white'
+                      }`}
+                    >
+                      <Music className="w-4 h-4 inline mr-2" />
+                      {genre}
+                    </button>
+                  ))}
+                </div>
+              </div>
+
+              {/* Genre Confirmation */}
+              {activeGenre && (
+                <div className="p-3 bg-purple-500/10 border border-purple-500/30 rounded-lg flex items-center gap-2">
                   <CheckCircle className="w-4 h-4 text-purple-400 flex-shrink-0" />
                   <span className="text-sm text-purple-300">
-                    Selected: <strong>{selectedGenre}</strong>
+                    Selected: <strong>{activeGenre}</strong>
                   </span>
                 </div>
               )}
@@ -299,7 +362,7 @@ export default function SpotifyPlaylistsPage() {
 
           {/* STEP 2: Select Keywords (Optional) */}
           <Card className={`bg-gray-900/50 backdrop-blur-xl border-gray-800 transition-all ${
-            !selectedGenre ? 'opacity-50 pointer-events-none' : ''
+            !activeGenre ? 'opacity-50 pointer-events-none' : ''
           }`}>
             <CardHeader>
               <div className="flex items-center justify-between">
@@ -326,38 +389,90 @@ export default function SpotifyPlaylistsPage() {
                 )}
               </div>
             </CardHeader>
-            <CardContent>
-              <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto pr-2">
-                {STRATEGIC_KEYWORDS.map((keyword) => (
-                  <button
-                    key={keyword}
-                    onClick={() => toggleKeyword(keyword)}
-                    disabled={!selectedGenre}
-                    className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
-                      selectedKeywords.includes(keyword)
-                        ? 'bg-pink-500/30 border-2 border-pink-400 text-white shadow-md'
-                        : 'bg-gray-800/50 hover:bg-gray-800 border-2 border-gray-700 hover:border-pink-500/50 text-gray-300 hover:text-white'
-                    }`}
+            <CardContent className="space-y-4">
+              {/* Custom Keyword Input */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Add your own keywords:
+                </label>
+                <div className="flex gap-2">
+                  <Input
+                    type="text"
+                    value={customKeywordInput}
+                    onChange={(e) => setCustomKeywordInput(e.target.value)}
+                    onKeyPress={handleCustomKeywordKeyPress}
+                    placeholder="e.g., curated, independent, acoustic..."
+                    disabled={!activeGenre}
+                    className="flex-1 bg-gray-800/50 border-gray-700 text-white placeholder-gray-500 focus:border-pink-500 focus:ring-pink-500"
+                  />
+                  <Button
+                    onClick={addCustomKeyword}
+                    disabled={!customKeywordInput.trim() || !activeGenre}
+                    variant="outline"
+                    className="border-pink-500/30 hover:bg-pink-500/20 hover:border-pink-500"
                   >
-                    {selectedKeywords.includes(keyword) && <CheckCircle className="w-3 h-3 inline mr-1" />}
-                    {keyword}
-                  </button>
-                ))}
+                    <Plus className="w-4 h-4" />
+                  </Button>
+                </div>
+                <p className="text-xs text-gray-500 mt-1">
+                  Press Enter or click + to add
+                </p>
               </div>
+
+              {/* Selected Keywords Pills (with X to remove) */}
               {selectedKeywords.length > 0 && (
-                <div className="mt-4 p-3 bg-pink-500/10 border border-pink-500/30 rounded-lg">
-                  <p className="text-sm text-pink-300 font-medium mb-1">
-                    {selectedKeywords.length} keyword{selectedKeywords.length > 1 ? 's' : ''} selected
-                    {selectedKeywords.length >= 10 && ' (maximum reached)'}
-                  </p>
+                <div>
+                  <label className="block text-sm text-gray-400 mb-2">
+                    Selected keywords ({selectedKeywords.length}/10):
+                  </label>
+                  <div className="flex flex-wrap gap-2">
+                    {selectedKeywords.map((keyword) => (
+                      <div
+                        key={keyword}
+                        className="flex items-center gap-1 px-3 py-1.5 bg-pink-500/30 border-2 border-pink-400 rounded-lg text-sm text-white"
+                      >
+                        <span>{keyword}</span>
+                        <button
+                          onClick={() => removeKeyword(keyword)}
+                          className="ml-1 hover:bg-pink-500/50 rounded-full p-0.5 transition-colors"
+                        >
+                          <X className="w-3 h-3" />
+                        </button>
+                      </div>
+                    ))}
+                  </div>
                 </div>
               )}
+
+              {/* Keyword Suggestions Pills */}
+              <div>
+                <label className="block text-sm text-gray-400 mb-2">
+                  Or select from suggestions:
+                </label>
+                <div className="flex flex-wrap gap-2 max-h-64 overflow-y-auto pr-2">
+                  {STRATEGIC_KEYWORDS.map((keyword) => (
+                    <button
+                      key={keyword}
+                      onClick={() => toggleKeyword(keyword)}
+                      disabled={!activeGenre || (selectedKeywords.length >= 10 && !selectedKeywords.includes(keyword))}
+                      className={`px-3 py-2 rounded-lg text-sm font-medium transition-all whitespace-nowrap ${
+                        selectedKeywords.includes(keyword)
+                          ? 'bg-pink-500/30 border-2 border-pink-400 text-white shadow-md'
+                          : 'bg-gray-800/50 hover:bg-gray-800 border-2 border-gray-700 hover:border-pink-500/50 text-gray-300 hover:text-white disabled:opacity-50 disabled:cursor-not-allowed'
+                      }`}
+                    >
+                      {selectedKeywords.includes(keyword) && <CheckCircle className="w-3 h-3 inline mr-1" />}
+                      {keyword}
+                    </button>
+                  ))}
+                </div>
+              </div>
             </CardContent>
           </Card>
 
           {/* STEP 3: Review & Search */}
           <Card className={`bg-gray-900/50 backdrop-blur-xl border-gray-800 transition-all ${
-            !selectedGenre ? 'opacity-50 pointer-events-none' : ''
+            !activeGenre ? 'opacity-50 pointer-events-none' : ''
           }`}>
             <CardHeader>
               <div className="flex items-center gap-3">
@@ -398,7 +513,7 @@ export default function SpotifyPlaylistsPage() {
               {/* Search Button */}
               <Button
                 onClick={handleSearch}
-                disabled={isSearching || !selectedGenre}
+                disabled={isSearching || !activeGenre}
                 size="lg"
                 className="w-full h-14 bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700 text-lg font-semibold"
               >
@@ -451,7 +566,7 @@ export default function SpotifyPlaylistsPage() {
           >
             <div className="flex items-center gap-4">
               <h2 className="text-2xl font-bold text-white">
-                Results for "{selectedGenre}"
+                Results for "{activeGenre}"
               </h2>
               {totalResults > 0 && (
                 <span className="px-3 py-1 bg-purple-500/20 text-purple-300 rounded-full text-sm font-semibold border border-purple-500/30">
