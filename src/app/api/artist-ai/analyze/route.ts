@@ -2,6 +2,7 @@ import { NextRequest, NextResponse } from 'next/server';
 import { createAuthenticatedClient } from '@/utils/supabase/client';
 import OpenAI from 'openai';
 import { analysisProgress } from '@/lib/artist-ai/progress-tracker';
+import { waitUntil } from '@vercel/functions';
 
 // Initialize OpenAI
 const openai = new OpenAI({
@@ -930,22 +931,24 @@ export async function POST(request: NextRequest) {
     });
     console.log(`🔄 Initial progress set for ${analysisId}: 0% - Starting social media analysis...`);
 
-    // Return immediately with analysis ID and token so frontend can start polling
-    setTimeout(async () => {
-      try {
-        await performAnalysis(analysisId, analysisToken, { artistId, instagramUsername, tiktokUsername, artistName });
-      } catch (error) {
-        console.error('Background analysis error:', error);
-        await analysisProgress.set(analysisId, {
-          progress: 100,
-          message: "Analysis failed",
-          estimatedTime,
-          complete: true,
-          success: false,
-          error: error instanceof Error ? error.message : 'Unknown error'
-        });
-      }
-    }, 100);
+    // Use waitUntil to ensure background processing continues after response is sent
+    waitUntil(
+      (async () => {
+        try {
+          await performAnalysis(analysisId, analysisToken, { artistId, instagramUsername, tiktokUsername, artistName });
+        } catch (error) {
+          console.error('Background analysis error:', error);
+          await analysisProgress.set(analysisId, {
+            progress: 100,
+            message: "Analysis failed",
+            estimatedTime,
+            complete: true,
+            success: false,
+            error: error instanceof Error ? error.message : 'Unknown error'
+          });
+        }
+      })()
+    );
 
     return NextResponse.json({
       analysisId,
