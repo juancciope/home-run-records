@@ -1,74 +1,67 @@
 import { type NextRequest, NextResponse } from 'next/server'
 import { updateSession } from '@/utils/supabase/middleware'
 
+// RegExp for public files
+const PUBLIC_FILE = /\.(.*)$/
+
 export async function middleware(request: NextRequest) {
-  const hostname = request.headers.get('host') || '';
-  const pathname = request.nextUrl.pathname;
+  // Clone the URL
+  const url = request.nextUrl.clone()
+  const hostname = request.headers.get('host') || ''
+  const pathname = url.pathname
 
-  // Skip middleware for API routes
-  if (pathname.startsWith('/api/')) {
-    return await updateSession(request);
+  // Skip public files, _next, api routes, and static assets
+  if (PUBLIC_FILE.test(pathname) ||
+      pathname.includes('_next') ||
+      pathname.startsWith('/api/') ||
+      pathname.includes('favicon.ico')) {
+    return await updateSession(request)
   }
 
-  // Extract subdomain (handles both production and localhost)
-  const isLocalhost = hostname.includes('localhost');
+  // Extract subdomain
+  const isLocalhost = hostname.includes('localhost')
   const subdomain = isLocalhost
-    ? hostname.split('.')[0].replace(/:\d+$/, '') // Remove port for localhost
-    : hostname.split('.')[0];
+    ? hostname.split('.')[0].replace(/:\d+$/, '')
+    : hostname.split('.')[0]
 
-  console.log('🔍 Middleware Debug:', { hostname, subdomain, pathname });
+  console.log('🔍 Middleware:', { hostname, subdomain, pathname })
 
-  // Determine the target path based on subdomain
-  let rewritePath: string | null = null;
+  // Route based on subdomain
+  let shouldRewrite = false
 
-  switch (subdomain) {
-    case 'spotify':
-      // Avoid double /spotify prefix
-      if (!pathname.startsWith('/spotify')) {
-        rewritePath = `/spotify${pathname === '/' ? '' : pathname}`;
-      }
-      break;
-    case 'social':
-      if (!pathname.startsWith('/social')) {
-        rewritePath = `/social${pathname === '/' ? '' : pathname}`;
-      }
-      break;
-    case 'audience':
-      if (!pathname.startsWith('/audience')) {
-        rewritePath = `/audience${pathname === '/' ? '' : pathname}`;
-      }
-      break;
-    case 'homerun':
-      // Main app - keep at root level, no rewrite needed
-      break;
-    default:
-      // For production bare domain, redirect to homerun
-      if (!isLocalhost && (subdomain === 'www' || subdomain === 'homeformusic')) {
-        return NextResponse.redirect(new URL('https://homerun.homeformusic.app', request.url));
-      }
-      break;
+  if (subdomain === 'spotify' && !pathname.startsWith('/spotify')) {
+    url.pathname = `/spotify${pathname}`
+    shouldRewrite = true
+  } else if (subdomain === 'social' && !pathname.startsWith('/social')) {
+    url.pathname = `/social${pathname}`
+    shouldRewrite = true
+  } else if (subdomain === 'audience' && !pathname.startsWith('/audience')) {
+    url.pathname = `/audience${pathname}`
+    shouldRewrite = true
+  } else if (!isLocalhost && (subdomain === 'www' || subdomain === 'homeformusic')) {
+    return NextResponse.redirect(new URL('https://homerun.homeformusic.app', request.url))
   }
 
-  // If we need to rewrite, do it before updating session
-  if (rewritePath) {
-    console.log('✅ Rewriting:', pathname, '→', rewritePath);
-    const url = request.nextUrl.clone();
-    url.pathname = rewritePath;
+  if (shouldRewrite) {
+    console.log('✅ Rewrite:', pathname, '→', url.pathname)
+  }
 
-    // Rewrite and then update session
-    const rewriteResponse = NextResponse.rewrite(url);
-    const sessionResponse = await updateSession(request);
+  // Update session first
+  const sessionResponse = await updateSession(request)
 
-    // Copy session headers to rewrite response
+  // If we need to rewrite, create new response with session headers
+  if (shouldRewrite) {
+    const rewriteResponse = NextResponse.rewrite(url)
+
+    // Copy session headers
     sessionResponse.headers.forEach((value, key) => {
-      rewriteResponse.headers.set(key, value);
-    });
+      rewriteResponse.headers.set(key, value)
+    })
 
-    return rewriteResponse;
+    return rewriteResponse
   }
 
-  // No rewrite needed, just update session
-  return await updateSession(request);
+  return sessionResponse
 }
 
 export const config = {
