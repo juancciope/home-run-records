@@ -8,11 +8,12 @@ export async function GET(
   const params = await context.params;
   const { analysisId } = params;
 
-  // Get progress from memory
-  const status = analysisProgress.get(analysisId);
+  // Get progress from Supabase database
+  const status = await analysisProgress.get(analysisId);
 
   if (!status) {
-    console.log(`❓ Status requested for ${analysisId} - not found, returning default. Available IDs: ${Array.from(analysisProgress.keys()).join(', ')}`);
+    const availableIds = await analysisProgress.keys();
+    console.log(`❓ Status requested for ${analysisId} - not found in database. Available IDs: ${availableIds.join(', ')}`);
     return NextResponse.json({
       progress: 0,
       message: "Initializing...",
