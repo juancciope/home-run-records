@@ -210,7 +210,7 @@ export default function DynamicArtistPage() {
         <div className="text-center">
           <h1 className="text-2xl font-bold mb-4">Artist Not Found</h1>
           <p className="text-gray-400 mb-6">{error || 'The artist page you\'re looking for doesn\'t exist.'}</p>
-          <Link href="https://home-run-records.vercel.app/artist-ai">
+          <Link href="https://social.homeformusic.app">
             <Button className="bg-gradient-to-r from-purple-600 to-pink-600 hover:from-purple-700 hover:to-pink-700">
               Create Your Analysis
             </Button>
@@ -243,7 +243,7 @@ export default function DynamicArtistPage() {
       <header className="px-4 py-4 sm:py-6 border-b border-gray-800">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-2 sm:mb-0">
-            <Link href="https://home-run-records.vercel.app/artist-ai" className="flex items-center gap-2 text-gray-400 hover:text-white text-sm">
+            <Link href="https://social.homeformusic.app" className="flex items-center gap-2 text-gray-400 hover:text-white text-sm">
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back to Social Analytics</span>
               <span className="sm:hidden">Back</span>

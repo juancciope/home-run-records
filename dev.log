@@ -111,3 +111,5 @@ Auth session missing - user likely not logged in
   path: '/Users/juangarcia/homerunrecords/home-run-records/.next/server/app/favicon.ico/[__metadata_id__]/route/app-paths-manifest.json'
 }
  ✓ Compiled middleware in 4ms
+ ✓ Compiled in 118ms
+[?25h

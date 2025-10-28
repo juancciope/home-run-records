@@ -81,7 +81,7 @@ export default function ArtistPreviewPage() {
       <header className="px-4 py-4 sm:py-6 border-b border-gray-800">
         <div className="max-w-6xl mx-auto">
           <div className="flex items-center justify-between mb-2 sm:mb-0">
-            <Link href="/artist-ai" className="flex items-center gap-2 text-gray-400 hover:text-white text-sm">
+            <Link href="/social" className="flex items-center gap-2 text-gray-400 hover:text-white text-sm">
               <ArrowLeft className="w-4 h-4" />
               <span className="hidden sm:inline">Back to Social Analytics</span>
               <span className="sm:hidden">Back</span>

@@ -245,7 +245,7 @@ export default function AnalysisResultsPage() {
           <AlertTriangle className="h-8 w-8 text-yellow-500 mx-auto" />
           <h1 className="text-xl font-semibold">Analysis Not Found</h1>
           <p className="text-muted-foreground">{error}</p>
-          <Button onClick={() => router.push('/artist-ai')}>
+          <Button onClick={() => router.push('/social')}>
             Start New Analysis
           </Button>
         </div>

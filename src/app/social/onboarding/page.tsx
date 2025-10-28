@@ -134,7 +134,7 @@ export default function ArtistAIOnboardingPage() {
       }
       
       // Redirect to results page with analysis ID
-      router.push(`/artist-ai/results?analysis=${result.analysisId}`)
+      router.push(`/social/results?analysis=${result.analysisId}`)
     } catch (error) {
       console.error('Analysis error:', error)
       alert('Analysis failed. Please try again.')
