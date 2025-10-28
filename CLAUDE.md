@@ -3,6 +3,15 @@
 ## Project Overview
 Home Run Records - Music production management platform with dashboards for tracking artist metrics and production workflows.
 
+## Subdomain Routing
+**IMPORTANT**: The app uses subdomain-based routing via Next.js middleware:
+- `spotify.homeformusic.app` → `/spotify` (Spotify Playlist Scraper)
+- `social.homeformusic.app` → `/social` (Artist AI Social Analytics)
+- `audience.homeformusic.app` → `/audience` (Find Your Audience Quiz)
+- `homerun.homeformusic.app` → Root `/` (Main Artist OS Platform)
+
+**Implementation**: `/middleware.ts` using `NextResponse.rewrite` pattern. Must use `request.nextUrl.clone()` and modify `pathname` directly.
+
 ## MANDATORY RULES
 
 ### UI/UX Kit Consistency (CRITICAL)
