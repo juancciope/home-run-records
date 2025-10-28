@@ -24,26 +24,28 @@ export async function middleware(request: NextRequest) {
     ? hostname.split('.')[0].replace(/:\d+$/, '')
     : hostname.split('.')[0]
 
-  console.log('🔍 Middleware:', { hostname, subdomain, pathname })
+  console.log('[MIDDLEWARE] Host:', hostname, '| Subdomain:', subdomain, '| Path:', pathname)
 
   // Route based on subdomain
   let shouldRewrite = false
 
   if (subdomain === 'spotify' && !pathname.startsWith('/spotify')) {
+    console.log('[MIDDLEWARE] Rewriting spotify:', pathname, '→', `/spotify${pathname}`)
     url.pathname = `/spotify${pathname}`
     shouldRewrite = true
   } else if (subdomain === 'social' && !pathname.startsWith('/social')) {
+    console.log('[MIDDLEWARE] Rewriting social:', pathname, '→', `/social${pathname}`)
     url.pathname = `/social${pathname}`
     shouldRewrite = true
   } else if (subdomain === 'audience' && !pathname.startsWith('/audience')) {
+    console.log('[MIDDLEWARE] Rewriting audience:', pathname, '→', `/audience${pathname}`)
     url.pathname = `/audience${pathname}`
     shouldRewrite = true
   } else if (!isLocalhost && (subdomain === 'www' || subdomain === 'homeformusic')) {
+    console.log('[MIDDLEWARE] Redirecting bare domain to homerun')
     return NextResponse.redirect(new URL('https://homerun.homeformusic.app', request.url))
-  }
-
-  if (shouldRewrite) {
-    console.log('✅ Rewrite:', pathname, '→', url.pathname)
+  } else {
+    console.log('[MIDDLEWARE] No rewrite needed for:', subdomain)
   }
 
   // Update session first

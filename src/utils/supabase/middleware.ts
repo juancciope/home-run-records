@@ -37,12 +37,25 @@ export async function updateSession(request: NextRequest) {
     data: { user },
   } = await supabase.auth.getUser()
 
-  if (
-    !user &&
-    !request.nextUrl.pathname.startsWith('/login') &&
-    !request.nextUrl.pathname.startsWith('/auth') &&
-    request.nextUrl.pathname !== '/'
-  ) {
+  // Public paths that don't require authentication
+  const publicPaths = [
+    '/login',
+    '/auth',
+    '/',
+    '/spotify',    // Spotify Playlist Scraper - public tool
+    '/social',     // Artist AI Social Analytics - public tool
+    '/audience'    // Find Your Audience Quiz - public tool
+  ]
+
+  const isPublicPath = publicPaths.some(path =>
+    request.nextUrl.pathname === path ||
+    request.nextUrl.pathname.startsWith(`${path}/`)
+  )
+
+  console.log('[AUTH] Path:', request.nextUrl.pathname, '| User:', !!user, '| Public:', isPublicPath)
+
+  if (!user && !isPublicPath) {
+    console.log('[AUTH] Redirecting to login - no user and not public path')
     // no user, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
