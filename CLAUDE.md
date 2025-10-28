@@ -4,13 +4,25 @@
 Home Run Records - Music production management platform with dashboards for tracking artist metrics and production workflows.
 
 ## Subdomain Routing
-**IMPORTANT**: The app uses subdomain-based routing via Next.js middleware:
-- `spotify.homeformusic.app` → `/spotify` (Spotify Playlist Scraper)
-- `social.homeformusic.app` → `/social` (Artist AI Social Analytics)
-- `audience.homeformusic.app` → `/audience` (Find Your Audience Quiz)
-- `homerun.homeformusic.app` → Root `/` (Main Artist OS Platform)
+**IMPORTANT**: The app uses subdomain-based routing configured in `next.config.ts`:
+- `spotify.homeformusic.app` → `/spotify` (Spotify Playlist Scraper - PUBLIC)
+- `social.homeformusic.app` → `/social` (Artist AI Social Analytics - PUBLIC)
+- `audience.homeformusic.app` → `/audience` (Find Your Audience Quiz - PUBLIC)
+- `homerun.homeformusic.app` → Root `/` (Main Artist OS Platform - AUTH REQUIRED)
 
-**Implementation**: `/middleware.ts` using `NextResponse.rewrite` pattern. Must use `request.nextUrl.clone()` and modify `pathname` directly.
+**Implementation Details**:
+1. **next.config.ts**: Uses `beforeFiles` rewrites to map subdomains to paths BEFORE middleware runs
+   - Rewrites exclude static assets: `/:path((?!_next|api|favicon.ico).*)*`
+   - This ensures `_next`, `api`, and `favicon.ico` are not rewritten
+2. **middleware.ts**: Simplified to only handle bare domain redirect and auth checks
+   - Subdomain rewrites happen in next.config.ts, so middleware sees the correct paths
+3. **src/utils/supabase/middleware.ts**: Public paths array includes `/spotify`, `/social`, `/audience`
+   - Auth middleware sees rewritten paths and allows public access without login
+
+**Why This Architecture**:
+- `beforeFiles` rewrites execute BEFORE middleware, ensuring auth sees correct paths
+- Request object is immutable, so rewrites must happen at config level, not in middleware
+- This pattern is recommended by Vercel for subdomain routing on their platform
 
 ## MANDATORY RULES
 
