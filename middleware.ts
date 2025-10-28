@@ -3,6 +3,12 @@ import { updateSession } from '@/utils/supabase/middleware'
 
 export async function middleware(request: NextRequest) {
   const hostname = request.headers.get('host') || '';
+  const pathname = request.nextUrl.pathname;
+
+  // Skip middleware for API routes
+  if (pathname.startsWith('/api/')) {
+    return await updateSession(request);
+  }
 
   // Extract subdomain (handles both production and localhost)
   const isLocalhost = hostname.includes('localhost');
@@ -10,42 +16,59 @@ export async function middleware(request: NextRequest) {
     ? hostname.split('.')[0].replace(/:\d+$/, '') // Remove port for localhost
     : hostname.split('.')[0];
 
+  console.log('🔍 Middleware Debug:', { hostname, subdomain, pathname });
+
   // Determine the target path based on subdomain
-  let targetPath = request.nextUrl.pathname;
+  let rewritePath: string | null = null;
 
   switch (subdomain) {
     case 'spotify':
-      targetPath = `/spotify${request.nextUrl.pathname}`;
+      // Avoid double /spotify prefix
+      if (!pathname.startsWith('/spotify')) {
+        rewritePath = `/spotify${pathname === '/' ? '' : pathname}`;
+      }
       break;
     case 'social':
-      targetPath = `/social${request.nextUrl.pathname}`;
+      if (!pathname.startsWith('/social')) {
+        rewritePath = `/social${pathname === '/' ? '' : pathname}`;
+      }
       break;
     case 'audience':
-      targetPath = `/audience${request.nextUrl.pathname}`;
+      if (!pathname.startsWith('/audience')) {
+        rewritePath = `/audience${pathname === '/' ? '' : pathname}`;
+      }
       break;
     case 'homerun':
       // Main app - keep at root level, no rewrite needed
       break;
     default:
-      // For production bare domain, redirect to homerun (main app)
+      // For production bare domain, redirect to homerun
       if (!isLocalhost && (subdomain === 'www' || subdomain === 'homeformusic')) {
         return NextResponse.redirect(new URL('https://homerun.homeformusic.app', request.url));
       }
-      // For localhost without subdomain, allow normal routing
       break;
   }
 
-  // Update session with Supabase
-  const response = await updateSession(request);
+  // If we need to rewrite, do it before updating session
+  if (rewritePath) {
+    console.log('✅ Rewriting:', pathname, '→', rewritePath);
+    const url = request.nextUrl.clone();
+    url.pathname = rewritePath;
 
-  // If we need to rewrite to a subdomain path, do it after session update
-  if (targetPath !== request.nextUrl.pathname) {
-    const url = new URL(targetPath, request.url);
-    url.search = request.nextUrl.search; // Preserve query params
-    return NextResponse.rewrite(url, { headers: response.headers });
+    // Rewrite and then update session
+    const rewriteResponse = NextResponse.rewrite(url);
+    const sessionResponse = await updateSession(request);
+
+    // Copy session headers to rewrite response
+    sessionResponse.headers.forEach((value, key) => {
+      rewriteResponse.headers.set(key, value);
+    });
+
+    return rewriteResponse;
   }
 
-  return response;
+  // No rewrite needed, just update session
+  return await updateSession(request);
 }
 
 export const config = {
