@@ -4,13 +4,14 @@ import * as React from "react"
 import { Button } from "@/components/ui/button"
 import { Card, CardContent } from "@/components/ui/card"
 import { Input } from "@/components/ui/input"
-import { 
-  Instagram, 
+import {
+  Instagram,
   ArrowRight,
   Sparkles
 } from "lucide-react"
 import { useRouter } from "next/navigation"
 import { motion } from "framer-motion"
+import { SignupModal } from "@/components/auth/signup-modal"
 
 // Social platform icons component
 const TikTokIcon = () => (
@@ -29,6 +30,11 @@ export default function ArtistSocialPage() {
   const [progress, setProgress] = React.useState(0)
   const [progressMessage, setProgressMessage] = React.useState("")
   const [timeRemaining, setTimeRemaining] = React.useState("")
+  const [showSignupModal, setShowSignupModal] = React.useState(false)
+  const [completedAnalysis, setCompletedAnalysis] = React.useState<{
+    artistSlug: string
+    analysisToken: string
+  } | null>(null)
 
   const handleNextStep = () => {
     if (step === 1 && artistName.trim()) {
@@ -101,7 +107,13 @@ export default function ArtistSocialPage() {
           if (status.complete) {
             clearInterval(pollInterval)
             if (status.success) {
-              window.location.href = `/${status.artistSlug}`
+              // Show signup modal instead of redirecting
+              setCompletedAnalysis({
+                artistSlug: status.artistSlug,
+                analysisToken: data.analysisToken
+              })
+              setShowSignupModal(true)
+              setIsLoading(false)
             } else {
               alert('Analysis failed: ' + (status.error || 'Unknown error'))
               setIsLoading(false)
@@ -491,6 +503,16 @@ export default function ArtistSocialPage() {
           </div>
         </div>
       </section>
+
+      {/* Signup Modal */}
+      {completedAnalysis && (
+        <SignupModal
+          open={showSignupModal}
+          onOpenChange={setShowSignupModal}
+          artistSlug={completedAnalysis.artistSlug}
+          analysisToken={completedAnalysis.analysisToken}
+        />
+      )}
     </div>
   )
 }

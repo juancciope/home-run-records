@@ -911,14 +911,16 @@ export async function POST(request: NextRequest) {
 
     console.log('🚀 Starting AI analysis for:', { instagramUsername, tiktokUsername, artistId, artistName });
 
-    // Generate analysis ID early for progress tracking
+    // Generate analysis ID and token early for progress tracking
     const analysisId = `analysis-${Date.now()}-${Math.random().toString(36).substr(2, 9)}`;
+    const analysisToken = `token-${Date.now()}-${Math.random().toString(36).substr(2, 16)}`;
     console.log(`🆔 Generated analysis ID: ${analysisId}`);
-    
+    console.log(`🔑 Generated analysis token: ${analysisToken}`);
+
     // Calculate estimated time based on platforms
     const platformCount = (instagramUsername ? 1 : 0) + (tiktokUsername ? 1 : 0);
     const estimatedTime = platformCount * 60000; // 60 seconds per platform
-    
+
     // Initialize progress tracking in database
     await analysisProgress.set(analysisId, {
       progress: 0,
@@ -928,10 +930,10 @@ export async function POST(request: NextRequest) {
     });
     console.log(`🔄 Initial progress set for ${analysisId}: 0% - Starting social media analysis...`);
 
-    // Return immediately with analysis ID so frontend can start polling
+    // Return immediately with analysis ID and token so frontend can start polling
     setTimeout(async () => {
       try {
-        await performAnalysis(analysisId, { artistId, instagramUsername, tiktokUsername, artistName });
+        await performAnalysis(analysisId, analysisToken, { artistId, instagramUsername, tiktokUsername, artistName });
       } catch (error) {
         console.error('Background analysis error:', error);
         await analysisProgress.set(analysisId, {
@@ -944,9 +946,10 @@ export async function POST(request: NextRequest) {
         });
       }
     }, 100);
-    
-    return NextResponse.json({ 
+
+    return NextResponse.json({
       analysisId,
+      analysisToken,
       message: 'Analysis started. Poll /api/artist-ai/status/{analysisId} for progress.'
     });
   } catch (error) {
@@ -960,6 +963,7 @@ export async function POST(request: NextRequest) {
 
 async function performAnalysis(
   analysisId: string,
+  analysisToken: string,
   { artistId, instagramUsername, tiktokUsername, artistName }: any
 ) {
   try {
@@ -1135,6 +1139,7 @@ async function performAnalysis(
       instagram_username: instagramUsername,
       tiktok_username: tiktokUsername,
       posts_analyzed: allPosts.length,
+      analysis_token: analysisToken,
       analysis_result: {
         ...analysis,
         scraped_posts: {

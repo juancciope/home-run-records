@@ -52,10 +52,20 @@ export async function updateSession(request: NextRequest) {
     request.nextUrl.pathname.startsWith(`${path}/`)
   )
 
-  console.log('[AUTH] Path:', request.nextUrl.pathname, '| User:', !!user, '| Public:', isPublicPath)
+  // Check for analysis token for dynamic artist pages
+  const analysisToken = request.cookies.get('analysis_token')?.value
+  const isDynamicArtistPage = request.nextUrl.pathname.match(/^\/[a-z0-9-]+$/) &&
+                               request.nextUrl.pathname !== '/' &&
+                               !publicPaths.includes(request.nextUrl.pathname)
 
-  if (!user && !isPublicPath) {
-    console.log('[AUTH] Redirecting to login - no user and not public path')
+  console.log('[AUTH] Path:', request.nextUrl.pathname, '| User:', !!user, '| Public:', isPublicPath, '| Token:', !!analysisToken, '| Dynamic:', isDynamicArtistPage)
+
+  // Allow access if:
+  // 1. It's a public path
+  // 2. User is authenticated
+  // 3. It's a dynamic artist page and they have a valid analysis token
+  if (!user && !isPublicPath && !(isDynamicArtistPage && analysisToken)) {
+    console.log('[AUTH] Redirecting to login - no user, not public path, and no token')
     // no user, redirect to login
     const url = request.nextUrl.clone()
     url.pathname = '/login'
