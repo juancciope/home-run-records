@@ -12,8 +12,8 @@ Home Run Records - Music production management platform with dashboards for trac
 
 **Implementation Details**:
 1. **next.config.ts**: Uses `beforeFiles` rewrites to map subdomains to paths BEFORE middleware runs
-   - Rewrites exclude static assets: `/:path((?!_next|api|favicon.ico).*)*`
-   - This ensures `_next`, `api`, and `favicon.ico` are not rewritten
+   - Rewrites exclude static assets and auth: `/:path((?!_next|api|auth|favicon.ico).*)*`
+   - This ensures `_next`, `api`, `auth`, and `favicon.ico` are not rewritten
 2. **middleware.ts**: Simplified to only handle bare domain redirect and auth checks
    - Subdomain rewrites happen in next.config.ts, so middleware sees the correct paths
 3. **src/utils/supabase/middleware.ts**: Public paths array includes `/spotify`, `/social`, `/audience`

@@ -20,9 +20,9 @@ const nextConfig: NextConfig = {
   async rewrites() {
     return {
       beforeFiles: [
-        // Spotify subdomain - rewrite to /spotify path (excluding static assets)
+        // Spotify subdomain - rewrite to /spotify path (excluding static assets and auth)
         {
-          source: '/:path((?!_next|api|favicon.ico).*)*',
+          source: '/:path((?!_next|api|auth|favicon.ico).*)*',
           has: [
             {
               type: 'host',
@@ -31,9 +31,9 @@ const nextConfig: NextConfig = {
           ],
           destination: '/spotify/:path*',
         },
-        // Social subdomain - rewrite to /social path (excluding static assets)
+        // Social subdomain - rewrite to /social path (excluding static assets and auth)
         {
-          source: '/:path((?!_next|api|favicon.ico).*)*',
+          source: '/:path((?!_next|api|auth|favicon.ico).*)*',
           has: [
             {
               type: 'host',
@@ -42,9 +42,9 @@ const nextConfig: NextConfig = {
           ],
           destination: '/social/:path*',
         },
-        // Audience subdomain - rewrite to /audience path (excluding static assets)
+        // Audience subdomain - rewrite to /audience path (excluding static assets and auth)
         {
-          source: '/:path((?!_next|api|favicon.ico).*)*',
+          source: '/:path((?!_next|api|auth|favicon.ico).*)*',
           has: [
             {
               type: 'host',
