@@ -36,10 +36,16 @@ export function SignupModal({ open, onOpenChange, artistSlug, analysisToken }: S
       // Store analysis token in cookie before sending magic link
       document.cookie = `analysis_token=${analysisToken}; path=/; max-age=${60 * 60 * 24 * 7}` // 7 days
 
+      // Use production domain for redirect, fallback to current origin for localhost
+      const isLocalhost = window.location.hostname === 'localhost'
+      const redirectDomain = isLocalhost
+        ? window.location.origin
+        : 'https://social.homeformusic.app'
+
       const { error } = await supabase.auth.signInWithOtp({
         email: email.trim(),
         options: {
-          emailRedirectTo: `${window.location.origin}/auth/callback?redirect_to=/${artistSlug}&token=${analysisToken}`,
+          emailRedirectTo: `${redirectDomain}/auth/callback?redirect_to=/${artistSlug}&token=${analysisToken}`,
         },
       })
 
