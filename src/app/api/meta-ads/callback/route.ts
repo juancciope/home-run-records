@@ -1,5 +1,10 @@
 import { NextRequest, NextResponse } from 'next/server';
-import { exchangeCodeForToken, expiresAtFromExpiresIn, extendToLongLived } from '@/lib/meta-ads/oauth';
+import {
+  exchangeCodeForToken,
+  expiresAtFromExpiresIn,
+  extendToLongLived,
+  redirectUriFromRequest,
+} from '@/lib/meta-ads/oauth';
 import { metaGet } from '@/lib/meta-ads/client';
 import { getCurrentUserAndAgency, upsertConnection } from '@/lib/meta-ads/connection';
 
@@ -12,7 +17,7 @@ export async function GET(req: NextRequest) {
   const error = url.searchParams.get('error');
   const errorDesc = url.searchParams.get('error_description');
 
-  const dashboardUrl = new URL('/dashboard', process.env.NEXT_PUBLIC_APP_URL || url.origin);
+  const dashboardUrl = new URL('/dashboard', req.url);
 
   if (error) {
     dashboardUrl.searchParams.set('meta_ads', 'error');
@@ -41,8 +46,10 @@ export async function GET(req: NextRequest) {
   }
 
   try {
-    // 1. code → short-lived
-    const short = await exchangeCodeForToken(code);
+    // 1. code → short-lived. The redirect_uri MUST match what was sent
+    //    in /connect, so we rebuild it from the same request-host helper.
+    const redirectUri = redirectUriFromRequest(req);
+    const short = await exchangeCodeForToken(code, redirectUri);
     // 2. short-lived → long-lived
     const long = await extendToLongLived(short.access_token);
     const expiresAt = expiresAtFromExpiresIn(long.expires_in);
