@@ -256,8 +256,11 @@ function ConnectCard() {
         </div>
       </CardHeader>
       <CardContent>
-        <Button asChild className="bg-blue-600 hover:bg-blue-700 text-white">
-          <a href="/api/meta-ads/connect">Connect Meta Ads</a>
+        <Button
+          className="bg-blue-600 hover:bg-blue-700 text-white"
+          onClick={() => { window.location.href = '/api/meta-ads/connect'; }}
+        >
+          Connect Meta Ads
         </Button>
       </CardContent>
     </Card>
