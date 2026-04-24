@@ -30,9 +30,10 @@ export default async function RootLayout({
   const authData = await getUserWithProfile()
 
   return (
-    <html lang="en">
+    <html lang="en" suppressHydrationWarning>
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
+        suppressHydrationWarning
       >
         <AuthProvider 
           initialUser={authData?.user ?? null}

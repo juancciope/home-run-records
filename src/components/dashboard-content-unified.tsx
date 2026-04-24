@@ -27,6 +27,7 @@ import {
 import { Plus, TrendingUp, Users, Target, Music, FileText, Eye, MoreHorizontal, Calendar } from "lucide-react";
 import { AddDataModal } from "./add-data-modal";
 import { ProductionPipelineCards } from "./production-pipeline-cards";
+import { MetaAdsCards } from "./meta-ads-cards";
 import {
   Select,
   SelectContent,
@@ -597,6 +598,11 @@ export function DashboardContentUnified() {
             </CardHeader>
           </Card>
         </div>
+      </div>
+
+      {/* Ad Performance (Meta Ads) */}
+      <div>
+        <MetaAdsCards />
       </div>
 
       {/* Fan Engagement Section */}
